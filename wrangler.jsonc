@@ -1,0 +1,37 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "r-students-searchsite",
+  "main": "./worker/entry.ts",
+  "compatibility_date": "2026-10-30",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "ai": {
+    "binding": "AI"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "AI_QUOTA_DO",
+        "class_name": "AiQuotaDurableObject"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["AiQuotaDurableObject"]
+    }
+  ],
+  "vars": {
+    "AI_DAILY_LIMIT": "10",
+    "APP_TIMEZONE": "Asia/Ho_Chi_Minh",
+    "GEMINI_MODEL": "gemini-2.5-flash"
+  }
+,
+  "assets": {
+    "directory": "dist/client",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "single-page-application",
+    "binding": "ASSETS"
+  }
+}

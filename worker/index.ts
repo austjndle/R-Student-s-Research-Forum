@@ -1,0 +1,255 @@
+import { Hono } from "hono";
+import { AiQuotaDurableObject } from "../durable-objects/ai-quota";
+import { searchKnowledgeBase } from "../lib/search/engine";
+import { isQueryInScope, buildRAGContext, buildSystemInstruction, formatKnowledgeAnswer } from "../lib/ai/gemini";
+import { verifyOfficialEndpoints } from "../lib/knowledge/sync";
+import {
+  generateVisitorId,
+  signVisitorId,
+  verifySignedVisitorToken,
+  checkMemoryQuota,
+  reserveMemoryQuota,
+  refundMemoryQuota,
+} from "../lib/rate-limit/session";
+import { GoogleGenAI } from "@google/genai";
+
+export { AiQuotaDurableObject };
+
+export interface Env {
+  AI_QUOTA_DO: DurableObjectNamespace;
+  AI?: {
+    run: (model: string, input: Record<string, unknown>) => Promise<any>;
+  };
+  AI_DAILY_LIMIT: string;
+  APP_TIMEZONE: string;
+  GEMINI_MODEL: string;
+  GEMINI_API_KEY: string;
+  ANONYMOUS_SESSION_SECRET: string;
+  ASSETS?: Fetcher;
+}
+
+const app = new Hono<{ Bindings: Env }>();
+
+// API: Search
+app.get("/api/search", (c) => {
+  const q = c.req.query("q") || "";
+  const categoryId = c.req.query("category") || "all";
+  const campus = c.req.query("campus") as "saigon_south" | "hanoi" | "all" | undefined;
+  const lang = (c.req.query("lang") as "en" | "vi") || "en";
+  const limit = Math.min(20, Math.max(1, parseInt(c.req.query("limit") || "10", 10)));
+
+  if (!q.trim()) {
+    return c.json({ query: "", total: 0, results: [] });
+  }
+
+  const results = searchKnowledgeBase(q, {
+    categoryId,
+    campus,
+    language: lang,
+    limit,
+  });
+
+  return c.json(
+    { query: q, total: results.length, results },
+    200,
+    { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" }
+  );
+});
+
+// Helper: Get or create persistent Durable Object quota stub
+function getQuotaStub(c: any, visitorId: string) {
+  if (c.env.AI_QUOTA_DO) {
+    const id = c.env.AI_QUOTA_DO.idFromName(visitorId);
+    return c.env.AI_QUOTA_DO.get(id);
+  }
+  return null;
+}
+
+// API: Usage
+app.get("/api/usage", async (c) => {
+  const secret = c.env.ANONYMOUS_SESSION_SECRET || "dev-local-secret-rmit-research-hub-2026";
+  const cookieValue = c.req.header("Cookie")?.match(/r_forum_uid=([^;]+)/)?.[1];
+
+  let visitorId: string | null = null;
+  let isNew = false;
+
+  if (cookieValue) {
+    visitorId = await verifySignedVisitorToken(cookieValue, secret);
+  }
+  if (!visitorId) {
+    visitorId = generateVisitorId();
+    isNew = true;
+  }
+
+  const stub = getQuotaStub(c, visitorId);
+  let quotaData: any;
+
+  if (stub) {
+    const doRes = await stub.fetch("https://ai-quota/status");
+    quotaData = await doRes.json();
+  } else {
+    quotaData = checkMemoryQuota(visitorId, parseInt(c.env.AI_DAILY_LIMIT || "10", 10));
+  }
+
+  if (isNew) {
+    const signed = await signVisitorId(visitorId, secret);
+    c.header("Set-Cookie", `r_forum_uid=${signed}; HttpOnly; Secure; SameSite=Lax; Max-Age=31536000; Path=/`);
+  }
+  return c.json(quotaData);
+});
+
+// API: Sync & Freshness check with official RMIT endpoints
+app.get("/api/sync", async (c) => {
+  const status = await verifyOfficialEndpoints();
+  return c.json({
+    success: true,
+    timestamp: new Date().toISOString(),
+    ...status,
+  });
+});
+
+// API: Chat
+app.post("/api/chat", async (c) => {
+  const secret = c.env.ANONYMOUS_SESSION_SECRET || "default-secret-r-students";
+  const cookieValue = c.req.header("Cookie")?.match(/r_forum_uid=([^;]+)/)?.[1];
+
+  let visitorId: string | null = null;
+  let isNew = false;
+
+  if (cookieValue) {
+    visitorId = await verifySignedVisitorToken(cookieValue, secret);
+  }
+  if (!visitorId) {
+    visitorId = generateVisitorId();
+    isNew = true;
+  }
+
+  let body: { message?: string; language?: "en" | "vi" };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "Invalid JSON" }, 400);
+  }
+
+  const message = body.message?.trim() || "";
+  // Detect language: if query contains Vietnamese diacritics or body.language is 'vi', respond in Vietnamese
+  const hasVietnamese = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(message);
+  const language: "en" | "vi" = hasVietnamese || body.language === "vi" ? "vi" : "en";
+
+  if (!message || message.length > 2000) {
+    return c.json({ error: "Message must be between 1 and 2,000 characters." }, 400);
+  }
+
+  const scopeCheck = isQueryInScope(message);
+  if (!scopeCheck.inScope) {
+    const refusal =
+      language === "vi"
+        ? "Tôi là Trợ lý Nghiên cứu RMIT, chỉ hỗ trợ giải đáp các câu hỏi liên quan đến Đại học RMIT Việt Nam (như học bổng, đổi ngành, học phí, đăng ký môn, dịch vụ sinh viên). Câu hỏi này nằm ngoài phạm vi hỗ trợ."
+        : "I am the RMIT Research Assistant, designed specifically to assist with RMIT University Vietnam questions (courses, scholarships, tuition, enrolment, student services). Your question is outside this scope.";
+
+    return c.json({
+      answer: refusal,
+      outOfScope: true,
+      remaining: checkMemoryQuota(visitorId).remaining,
+      sources: [],
+    });
+  }
+
+  // Atomic reservation via Cloudflare Durable Object
+  const stub = getQuotaStub(c, visitorId);
+  let allowed = false;
+  let remaining = 0;
+
+  if (stub) {
+    const doRes = await stub.fetch("https://ai-quota/reserve", { method: "POST" });
+    const doData = await doRes.json();
+    allowed = doData.allowed;
+    remaining = doData.remaining;
+  } else {
+    const reservation = reserveMemoryQuota(visitorId, parseInt(c.env.AI_DAILY_LIMIT || "10", 10));
+    allowed = reservation.allowed;
+    remaining = reservation.remaining;
+  }
+
+  if (!allowed) {
+    return c.json(
+      {
+        error: "Bạn đã dùng hết 10 câu hỏi AI miễn phí trong ngày. Hạn ngạch sẽ được làm mới lúc 00:00 (giờ Việt Nam). Công cụ Tìm kiếm thông minh vẫn hoạt động bình thường.",
+        quotaExhausted: true,
+        remaining: 0,
+      },
+      429
+    );
+  }
+
+  try {
+    const rag = buildRAGContext(message, language);
+    const systemPrompt = buildSystemInstruction(language);
+    const apiKey = c.env.GEMINI_API_KEY;
+    const model = c.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+    let answerText = "";
+    if (apiKey) {
+      const ai = new GoogleGenAI({ apiKey });
+      const prompt = `Student Question: ${message}\n\nVERIFIED RMIT KNOWLEDGE CONTEXT:\n${rag.contextText}`;
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: { systemInstruction: systemPrompt, temperature: 0.2, maxOutputTokens: 1024 },
+      });
+      answerText = response.text || "";
+    } else if (c.env.AI) {
+      try {
+        const aiRes = await c.env.AI.run("@cf/meta/llama-3.2-3b-instruct", {
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Student Question: ${message}\n\nVERIFIED RMIT KNOWLEDGE CONTEXT:\n${rag.contextText}\n\nAnswer the student's question directly, clearly, and concisely in ${language === "vi" ? "Vietnamese" : "English"}:` }
+          ],
+          max_tokens: 1024,
+          temperature: 0.2,
+        });
+        answerText = aiRes?.response || "";
+      } catch (aiErr) {
+        console.error("Workers AI error:", aiErr);
+      }
+    }
+
+    if (!answerText) {
+      answerText = formatKnowledgeAnswer(rag.bestDoc, message, language);
+    }
+
+    const currentRemaining = stub ? remaining : checkMemoryQuota(visitorId).remaining;
+    const signed = await signVisitorId(visitorId, secret);
+    c.header("Set-Cookie", `r_forum_uid=${signed}; HttpOnly; Secure; SameSite=Lax; Max-Age=31536000; Path=/`);
+    return c.json({
+      answer: answerText,
+      remaining: currentRemaining,
+      limit: parseInt(c.env.AI_DAILY_LIMIT || "10", 10),
+      sources: rag.sources,
+      matchedTopics: rag.matchedDocTitles,
+    });
+  } catch (err: unknown) {
+    if (stub) {
+      await stub.fetch("https://ai-quota/refund", { method: "POST" }).catch(() => {});
+    } else {
+      refundMemoryQuota(visitorId);
+    }
+    return c.json({ error: "AI error. Your quota was refunded. Smart Search remains active." }, 500);
+  }
+});
+
+// Fallback to static assets or app UI
+app.all("*", async (c) => {
+  if (c.env.ASSETS) {
+    const res = await c.env.ASSETS.fetch(c.req.raw);
+    if (res.status !== 404) {
+      return res;
+    }
+    const url = new URL(c.req.url);
+    url.pathname = "/index.html";
+    return c.env.ASSETS.fetch(new Request(url.toString(), c.req.raw));
+  }
+  return c.text("R-Students' Research Forum Cloudflare Worker", 200);
+});
+
+export default app;
