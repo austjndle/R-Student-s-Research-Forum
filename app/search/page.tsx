@@ -15,6 +15,8 @@ import {
   Copy,
   Check,
   ChevronRight,
+  ChevronDown,
+  Filter,
   BookOpen,
 } from "lucide-react";
 
@@ -83,24 +85,29 @@ function SearchContent() {
               className="w-full pl-11 pr-4 py-3 text-sm rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] focus:outline-none focus:border-[var(--accent)] transition-colors shadow-xs"
             />
           </div>
-
-          <div className="flex items-center gap-2">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-3 text-sm rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] focus:outline-none focus:border-[var(--accent)]"
-            >
-              <option value="all">{t.search.allCategories}</option>
-              {KNOWLEDGE_CATEGORIES.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {language === "vi" ? cat.nameVi : cat.nameEn}
+          {/* Modern Custom Category Dropdown */}
+          <div className="relative shrink-0">
+            <div className="relative flex items-center">
+              <Filter className="w-3.5 h-3.5 text-[var(--accent)] absolute left-3.5 pointer-events-none" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="appearance-none pl-9 pr-9 py-3 text-xs sm:text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--hover)] text-[var(--main-text)] focus:outline-none focus:border-[var(--accent)] transition-all cursor-pointer shadow-xs w-full sm:w-auto"
+              >
+                <option value="all" className="bg-[var(--surface)] text-[var(--main-text)]">
+                  {t.search.allCategories}
                 </option>
-              ))}
-            </select>
+                {KNOWLEDGE_CATEGORIES.map((cat) => (
+                  <option key={cat.id} value={cat.id} className="bg-[var(--surface)] text-[var(--main-text)]">
+                    {language === "vi" ? cat.nameVi : cat.nameEn}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-[var(--secondary-text)] absolute right-3 pointer-events-none transition-transform" />
+            </div>
           </div>
         </div>
       </div>
-
       {/* Results Header Count */}
       {query.trim() && (
         <div className="flex items-center justify-between text-xs text-[var(--secondary-text)] border-b border-[var(--border)] pb-2">
