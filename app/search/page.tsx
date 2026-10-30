@@ -18,6 +18,12 @@ import {
   ChevronDown,
   Filter,
   BookOpen,
+  Calendar,
+  Mail,
+  RefreshCw,
+  Laptop,
+  Trophy,
+  Dumbbell,
 } from "lucide-react";
 
 function SearchContent() {
@@ -337,7 +343,7 @@ function SearchContent() {
                   descVi: "Mốc thời gian kỳ 3, hạn nộp học phí và ngày chốt rút môn không phạt phí.",
                   descEn: "Key semester dates, tuition payment due dates, and cut-off deadlines.",
                   query: "lịch học kì này",
-                  iconText: "📅",
+                  Icon: Calendar,
                 },
                 {
                   titleVi: "Văn mẫu Email gửi Giảng viên",
@@ -345,7 +351,7 @@ function SearchContent() {
                   descVi: "Xin hẹn consult 1-1, gia hạn deadline, hỏi điểm và báo cáo bạn nhóm free-rider.",
                   descEn: "Templates for consultations, extensions, grade feedback, and group conflicts.",
                   query: "Mail consult giảng viên",
-                  iconText: "✉️",
+                  Icon: Mail,
                 },
                 {
                   titleVi: "Thủ tục Đổi ngành học",
@@ -353,7 +359,7 @@ function SearchContent() {
                   descVi: "Điều kiện GPA tối thiểu, thủ tục nộp đơn Internal Program Transfer qua Student Connect.",
                   descEn: "Minimum GPA criteria, application forms, and credit transfer mapping.",
                   query: "Đổi ngành RMIT",
-                  iconText: "🔄",
+                  Icon: RefreshCw,
                 },
                 {
                   titleVi: "Hướng dẫn nộp bài Canvas LMS",
@@ -361,7 +367,7 @@ function SearchContent() {
                   descVi: "Cách nộp bài tập an toàn, giải mã chỉ số trùng lặp Turnitin và quy tắc phạt nộp trễ.",
                   descEn: "Assignment submission steps, Turnitin similarity breakdown, and late rules.",
                   query: "Hướng dẫn nộp bài Canvas",
-                  iconText: "💻",
+                  Icon: Laptop,
                 },
                 {
                   titleVi: "Học bổng & Dean's List",
@@ -369,15 +375,15 @@ function SearchContent() {
                   descVi: "Học bổng Hiệu trưởng 100%, học bổng Merit 25-50% và tiêu chuẩn vinh danh Dean's List.",
                   descEn: "VC scholarships, Academic merit awards, and semester Dean's List honors.",
                   query: "Học bổng Dean list",
-                  iconText: "🏆",
+                  Icon: Trophy,
                 },
                 {
-                  titleVi: "Đăng ký Câu lạc bộ (CLB)",
+                  titleVi: "Đăng ký Câu lạc bộ & Thể thao",
                   titleEn: "Student Clubs & Sports Teams",
-                  descVi: "Danh bạ CLB thể thao (Bóng rổ, Bóng đá) và ngày hội Club Day của Student Life.",
-                  descEn: "Sports teams, societies, and Club Day registrations at SGS & Hanoi campuses.",
+                  descVi: "Đội tuyển RMIT Redbacks (Bóng rổ, Bóng đá) và ngày hội Club Day của Student Life.",
+                  descEn: "RMIT Redbacks varsity teams, academic societies, and Club Day registrations.",
                   query: "Câu lạc bộ bóng rổ",
-                  iconText: "🏀",
+                  Icon: Dumbbell,
                 },
               ].map((item, idx) => (
                 <button
@@ -386,21 +392,23 @@ function SearchContent() {
                     setQuery(item.query);
                     executeSearch(item.query, selectedCategory);
                   }}
-                  className="p-4 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] hover:border-[var(--accent)] hover:shadow-md transition-all text-left flex flex-col justify-between group space-y-3 cursor-pointer"
+                  className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] hover:border-[var(--accent)] hover:shadow-md transition-all text-left flex flex-col justify-between group space-y-4 cursor-pointer"
                 >
-                  <div className="space-y-1.5">
-                    <div className="text-2xl">{item.iconText}</div>
-                    <h3 className="font-bold text-sm text-[var(--main-text)] group-hover:text-[var(--accent)] transition-colors leading-snug">
+                  <div className="space-y-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--badge-bg)] text-[var(--accent)] flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <item.Icon className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-bold text-sm sm:text-base text-[var(--main-text)] group-hover:text-[var(--accent)] transition-colors leading-snug">
                       {language === "vi" ? item.titleVi : item.titleEn}
                     </h3>
-                    <p className="text-[11px] text-[var(--secondary-text)] leading-relaxed line-clamp-2">
+                    <p className="text-xs text-[var(--secondary-text)] leading-relaxed line-clamp-2">
                       {language === "vi" ? item.descVi : item.descEn}
                     </p>
                   </div>
 
-                  <div className="flex items-center text-[11px] font-semibold text-[var(--accent)] group-hover:translate-x-1 transition-transform">
-                    <span>{language === "vi" ? "Tra cứu ngay" : "Search this"}</span>
-                    <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                  <div className="pt-2.5 border-t border-[var(--border)] flex items-center justify-between text-xs font-semibold text-[var(--accent)]">
+                    <span>{language === "vi" ? "Tra cứu ngay" : "Search topic"}</span>
+                    <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </button>
               ))}
