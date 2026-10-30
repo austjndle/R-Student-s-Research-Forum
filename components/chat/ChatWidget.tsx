@@ -168,15 +168,15 @@ export function ChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-full bg-[var(--accent)] hover:opacity-90 text-white shadow-xl transition-all hover:scale-105 active:scale-95"
+          className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-50 flex items-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full bg-[var(--accent)] hover:opacity-95 text-white shadow-lg transition-all hover:scale-105 active:scale-95 group border border-white/20"
           aria-label="Open AI Assistant"
         >
-          <Sparkles className="w-5 h-5 animate-pulse" />
-          <span className="font-semibold text-sm hidden sm:inline-block">
+          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white animate-pulse shrink-0" />
+          <span className="font-semibold text-xs hidden sm:inline-block">
             {t.ai.name}
           </span>
           {remainingQuota !== null && (
-            <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-mono">
+            <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-mono font-medium leading-none">
               {remainingQuota}/{quotaLimit}
             </span>
           )}

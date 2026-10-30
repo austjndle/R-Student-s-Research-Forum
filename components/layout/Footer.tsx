@@ -106,7 +106,7 @@ export function Footer() {
 
         {/* Bottom bar */}
         {/* Bottom bar with Creator Info, Edu Email, GitHub, LinkedIn */}
-        <div className="mt-12 pt-6 border-t border-[var(--border)] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[var(--secondary-text)]">
+        <div className="mt-12 pt-6 border-t border-[var(--border)] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[var(--secondary-text)] pr-0 lg:pr-32 pb-4">
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
             <p>{t.footer.copyright}</p>
             <span className="hidden sm:inline-block text-[var(--border)]">•</span>
