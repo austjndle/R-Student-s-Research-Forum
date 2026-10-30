@@ -77,17 +77,10 @@ R-students' research hub/
 ├── wrangler.jsonc             # Cloudflare Workers configuration
 └── SECURITY.md                # Security and production hardening documentation
 ```
-
----
-
-## Getting Started
-
-### Prerequisites
-- Node.js (>= 20) or Bun (>= 1.4)
-- Wrangler CLI
-
-### Installation
-```bash
+### Live Deployment
+- **Production URL:** [https://r-students-searchsite.rstuhub.workers.dev](https://r-students-searchsite.rstuhub.workers.dev)
+- **Cloudflare Worker:** `r-students-searchsite`
+- **Account Subdomain:** `rstuhub`
 bun install
 ```
 
