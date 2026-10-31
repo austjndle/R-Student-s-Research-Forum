@@ -14,10 +14,22 @@ import {
   ChevronRight,
   ExternalLink,
 } from "lucide-react";
+const QUICK_BUILDING_LABELS: Record<string, string> = {
+  "sgs-b1": "B1",
+  "sgs-b2": "B2",
+  "sgs-sports": "Sports",
+  "sgs-b10": "B10",
+  "hn-main": "Hanoi",
+};
+
+function getQuickBuildingLabel(buildingId: string): string {
+  return QUICK_BUILDING_LABELS[buildingId] ?? buildingId;
+}
 
 export default function CampusHoursPage() {
   const { language, t } = useLanguage();
   const [activeCampus, setActiveCampus] = useState<"saigon_south" | "hanoi">("saigon_south");
+  const [activeBuildingId, setActiveBuildingId] = useState<string | null>("sgs-b1");
   const [searchFilter, setSearchFilter] = useState("");
 
   const buildings = RMIT_CAMPUS_HOURS.filter((b) => b.campus === activeCampus);
@@ -62,7 +74,10 @@ export default function CampusHoursPage() {
         {/* Tabs */}
         <div className="flex items-center gap-1 border border-[var(--border)] bg-[var(--surface)] p-1">
           <button
-            onClick={() => setActiveCampus("saigon_south")}
+            onClick={() => {
+              setActiveCampus("saigon_south");
+              setActiveBuildingId("sgs-b1");
+            }}
             className={`min-h-11 px-4 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
               activeCampus === "saigon_south"
                 ? "bg-[var(--accent)] text-white shadow-xs"
@@ -72,7 +87,10 @@ export default function CampusHoursPage() {
             Nam Sài Gòn (Saigon South)
           </button>
           <button
-            onClick={() => setActiveCampus("hanoi")}
+            onClick={() => {
+              setActiveCampus("hanoi");
+              setActiveBuildingId("hn-main");
+            }}
             className={`min-h-11 px-4 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
               activeCampus === "hanoi"
                 ? "bg-[var(--accent)] text-white shadow-xs"
@@ -136,7 +154,7 @@ export default function CampusHoursPage() {
       </div>
 
       {/* Quick Jump Anchor bar */}
-      <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+      <div className="flex w-full min-w-0 max-w-full flex-wrap items-center justify-center gap-2 pt-1 text-center text-xs">
         <span className="text-[var(--secondary-text)] font-semibold">
           {language === "vi" ? "Chuyển nhanh tới tòa nhà:" : "Jump to building:"}
         </span>
@@ -144,9 +162,15 @@ export default function CampusHoursPage() {
           <a
             key={b.id}
             href={`#${b.id}`}
-            className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-2.5 text-xs text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            onClick={() => setActiveBuildingId(b.id)}
+            aria-current={activeBuildingId === b.id ? "location" : undefined}
+            className={`inline-flex min-h-11 max-w-full items-center justify-center whitespace-normal break-words border px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+              activeBuildingId === b.id
+                ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                : "border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            }`}
           >
-            {language === "vi" ? b.nameVi.split("(")[0] : b.nameEn.split("(")[0]}
+            {getQuickBuildingLabel(b.id)}
           </a>
         ))}
       </div>
@@ -160,7 +184,7 @@ export default function CampusHoursPage() {
             className="editorial-card scroll-mt-24 space-y-4"
           >
             {/* Building Header & Action Links */}
-            <div className="p-5 sm:p-6 border-b border-[var(--border)] bg-[var(--surface-elevated)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex min-w-0 flex-col justify-between gap-4 border-b border-[var(--border)] bg-[var(--surface-elevated)] p-5 sm:flex-row sm:items-center sm:p-6">
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--badge-bg)] text-[var(--accent)]">
                   <Building2 className="w-3 h-3" />
@@ -175,13 +199,13 @@ export default function CampusHoursPage() {
               </div>
 
               {/* Direct Maps & PDF floor plan buttons */}
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <div className="flex max-w-full min-w-0 shrink-0 flex-wrap items-center gap-2">
                 {building.floorPlanPdfUrl && (
                   <a
                     href={building.floorPlanPdfUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    className="inline-flex min-h-11 items-center gap-1.5 border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <span className="inline-flex items-center gap-1.5"><MapPin className="h-3 w-3 text-[var(--accent)]" aria-hidden="true" />{language === "vi" ? "Sơ đồ mặt bằng (PDF)" : "Floor Plan (PDF)"}</span>
                     <ExternalLink className="w-3 h-3 text-[var(--accent)]" />
@@ -192,7 +216,7 @@ export default function CampusHoursPage() {
                     href={building.googleMapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    className="inline-flex min-h-11 items-center gap-1.5 border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <MapPin className="w-3 h-3 text-[var(--accent)]" />
                     <span>Google Maps</span>
@@ -202,7 +226,16 @@ export default function CampusHoursPage() {
             </div>
             {/* Floors Table */}
             {/* Floors Table with responsive horizontal scroll and generous column proportions */}
-            <div className="editorial-scroll p-5 pt-0 sm:p-6 sm:pt-0">
+            <div
+              className="editorial-scroll p-5 pt-0 sm:p-6 sm:pt-0"
+              role="region"
+              aria-label={language === "vi" ? "Bảng giờ mở cửa, vuốt ngang để xem đầy đủ" : "Opening-hours table, scroll horizontally to view all columns"}
+              tabIndex={0}
+            >
+              <div className="mb-3 flex items-center justify-between gap-3 text-[11px] text-[var(--secondary-text)] sm:hidden">
+                <span>{language === "vi" ? "Vuốt ngang để xem đầy đủ bảng" : "Swipe horizontally to view the full table"}</span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+              </div>
               <table className="w-full text-left text-xs sm:text-sm border-collapse min-w-[760px] md:min-w-full">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--secondary-text)]">

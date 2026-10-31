@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { AiQuotaDurableObject } from "../durable-objects/ai-quota";
 import { EventReviewDurableObject } from "../durable-objects/event-review";
 import { searchKnowledgeBase } from "../lib/search/engine";
-import { isQueryInScope, buildRAGContext, buildSystemInstruction, formatKnowledgeAnswer } from "../lib/ai/gemini";
+import { isQueryInScope, buildRAGContext, buildEventContext, buildClubContext, buildSystemInstruction, formatKnowledgeAnswer, formatStudentLifeFallback, formatClubFallback, isPracticalStudentLifeQuery } from "../lib/ai/gemini";
 import { verifyOfficialEndpoints } from "../lib/knowledge/sync";
 import { isAuthorizedEventAdmin } from "../lib/events/admin-auth";
 import { validateEventReviewCandidate, type EventReviewDraft } from "../lib/events/review";
@@ -265,6 +265,13 @@ app.post("/api/chat", async (c) => {
 
   try {
     const rag = buildRAGContext(message, language);
+    const eventContext = buildEventContext(message, language);
+    const clubContext = buildClubContext(message, language);
+    const verifiedContext = [
+      rag.contextText ? `VERIFIED RMIT KNOWLEDGE CONTEXT:\n${rag.contextText}` : "",
+      eventContext.contextText ? `VERIFIED CAMPUS EVENT CONTEXT:\n${eventContext.contextText}` : "",
+      clubContext.contextText ? `VERIFIED RMIT CLUB CONTEXT:\n${clubContext.contextText}` : "",
+    ].filter(Boolean).join("\n\n");
     const systemPrompt = buildSystemInstruction(language);
     const apiKey = c.env.GEMINI_API_KEY;
     const model = c.env.GEMINI_MODEL || "gemini-2.5-flash";
@@ -272,7 +279,7 @@ app.post("/api/chat", async (c) => {
     let answerText = "";
     if (apiKey) {
       const ai = new GoogleGenAI({ apiKey });
-      const prompt = `Student Question: ${message}\n\nVERIFIED RMIT KNOWLEDGE CONTEXT:\n${rag.contextText}`;
+      const prompt = `Student Question: ${message}\n\n${verifiedContext}`;
       const response = await ai.models.generateContent({
         model,
         contents: prompt,
@@ -284,7 +291,7 @@ app.post("/api/chat", async (c) => {
         const aiRes = await c.env.AI.run("@cf/meta/llama-3.2-3b-instruct", {
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: `Student Question: ${message}\n\nVERIFIED RMIT KNOWLEDGE CONTEXT:\n${rag.contextText}\n\nAnswer the student's question directly, clearly, and concisely in ${language === "vi" ? "Vietnamese" : "English"}:` }
+            { role: "user", content: `Student Question: ${message}\n\n${verifiedContext}\n\nAnswer the student's question directly, clearly, and concisely in ${language === "vi" ? "Vietnamese" : "English"}:` }
           ],
           max_tokens: 1024,
           temperature: 0.2,
@@ -296,7 +303,15 @@ app.post("/api/chat", async (c) => {
     }
 
     if (!answerText) {
-      answerText = formatKnowledgeAnswer(rag.bestDoc, message, language);
+      answerText = isPracticalStudentLifeQuery(message)
+        ? formatStudentLifeFallback(message, language, eventContext)
+        : clubContext.matchedClubNames.length > 0
+          ? formatClubFallback(language, clubContext)
+          : eventContext.matchedEventTitles.length > 0
+            ? formatStudentLifeFallback(message, language, eventContext)
+            : rag.bestDoc
+              ? formatKnowledgeAnswer(rag.bestDoc, message, language)
+              : formatStudentLifeFallback(message, language, eventContext);
     }
 
     const currentRemaining = stub ? remaining : checkMemoryQuota(visitorId).remaining;
@@ -306,8 +321,8 @@ app.post("/api/chat", async (c) => {
       answer: answerText,
       remaining: currentRemaining,
       limit: parseInt(c.env.AI_DAILY_LIMIT || "10", 10),
-      sources: rag.sources,
-      matchedTopics: rag.matchedDocTitles,
+      sources: [...rag.sources, ...eventContext.sources, ...clubContext.sources].filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index),
+      matchedTopics: [...rag.matchedDocTitles, ...eventContext.matchedEventTitles, ...clubContext.matchedClubNames],
     });
   } catch (err: unknown) {
     if (stub) {

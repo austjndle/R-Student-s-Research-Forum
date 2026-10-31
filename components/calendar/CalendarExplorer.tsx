@@ -70,15 +70,20 @@ function EntryRow({ entry, language }: { entry: CalendarEntry; language: "en" | 
   const description = getEntryDescription(entry, language);
   const organiser = language === "vi" ? entry.organiserVi : entry.organiserEn;
   const venue = language === "vi" ? entry.venueVi : entry.venueEn;
+  const registrationLinks = entry.registrationLinks ?? (entry.registrationUrl ? [{
+    labelEn: "Register",
+    labelVi: "Đăng ký",
+    url: entry.registrationUrl,
+  }] : []);
 
   return (
-    <article className="group grid gap-4 border-t border-[var(--border)] py-5 md:grid-cols-[92px_minmax(0,1fr)_auto] md:items-start">
+    <article className="group grid gap-4 border-t border-[var(--border)] py-5 md:grid-cols-[120px_minmax(0,1fr)_auto] md:items-start">
       <div className="flex items-center gap-3 md:block">
         <div className="border-l-4 border-[var(--accent)] pl-3">
           <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent)]">
             {entry.type === "academic_date" ? "DATE" : "EVENT"}
           </p>
-          <p className="mt-1 text-lg font-bold leading-none text-[var(--main-text)]">
+          <p className="mt-1 whitespace-nowrap text-base font-bold leading-none text-[var(--main-text)] md:text-lg">
             {new Intl.DateTimeFormat(language === "vi" ? "vi-VN" : "en-GB", {
               timeZone: "Asia/Ho_Chi_Minh",
               day: "2-digit",
@@ -105,7 +110,7 @@ function EntryRow({ entry, language }: { entry: CalendarEntry; language: "en" | 
         </div>
       </div>
 
-      <div className="flex items-center gap-3 md:justify-end">
+      <div className="flex flex-wrap items-center gap-3 md:justify-end">
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
           <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
           {language === "vi" ? "Đã xác minh" : "Verified"}
@@ -119,16 +124,17 @@ function EntryRow({ entry, language }: { entry: CalendarEntry; language: "en" | 
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
           {language === "vi" ? "Nguồn gốc" : "Original source"}
         </a>
-        {entry.registrationUrl && (
+        {registrationLinks.map((registration) => (
           <a
-            href={entry.registrationUrl}
+            key={registration.url}
+            href={registration.url}
             target="_blank"
             rel="noreferrer"
-            className="hidden min-h-11 items-center border border-[var(--accent)] bg-[var(--accent)] px-3 text-xs font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 sm:inline-flex"
+            className="inline-flex min-h-11 items-center border border-[var(--accent)] bg-[var(--accent)] px-3 text-xs font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
           >
-            {language === "vi" ? "Đăng ký" : "Register"}
+            {language === "vi" ? registration.labelVi : registration.labelEn}
           </a>
-        )}
+        ))}
       </div>
       <p className="font-mono text-[11px] text-[var(--secondary-text)] md:col-start-2">
         {language === "vi" ? "Xác minh lần cuối" : "Last verified"}: {source?.lastSuccessfulCheck ?? entry.sourceLastVerified}
@@ -137,14 +143,18 @@ function EntryRow({ entry, language }: { entry: CalendarEntry; language: "en" | 
   );
 }
 
-export function CalendarExplorer({ defaultType = "all" }: { defaultType?: CalendarEntryType | "all" }) {
+export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultType?: CalendarEntryType | "all"; lockedType?: CalendarEntryType }) {
   const { language } = useLanguage();
   const [typeFilter, setTypeFilter] = useState<CalendarEntryType | "all">(defaultType);
+  const activeType = lockedType ?? typeFilter;
   const [campusFilter, setCampusFilter] = useState<Campus>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("upcoming");
   const [viewFilter, setViewFilter] = useState<ViewFilter>("list");
   const [today, setToday] = useState<string | null>(null);
+  const availableCategories = Object.entries(categoryLabels[language]).filter(([value]) =>
+    activeType === "all" || (activeType === "academic_date" ? value === "academic" : value !== "academic")
+  );
 
   useEffect(() => {
     setToday(toDateKey(new Date().toISOString()));
@@ -154,7 +164,7 @@ export function CalendarExplorer({ defaultType = "all" }: { defaultType?: Calend
     const currentDate = today ? new Date(`${today}T00:00:00+07:00`) : null;
     const currentMonth = today?.slice(0, 7);
     return getPublishedCalendarEntries()
-      .filter((entry) => typeFilter === "all" || entry.type === typeFilter)
+      .filter((entry) => activeType === "all" || entry.type === activeType)
       .filter((entry) => campusFilter === "all" || entry.campus === "all" || entry.campus === campusFilter)
       .filter((entry) => categoryFilter === "all" || entry.category === categoryFilter)
       .filter((entry) => {
@@ -163,7 +173,7 @@ export function CalendarExplorer({ defaultType = "all" }: { defaultType?: Calend
         return entry.startAt.slice(0, 7) === currentMonth || entry.endAt?.slice(0, 7) === currentMonth;
       })
       .sort((a, b) => a.startAt.localeCompare(b.startAt));
-  }, [campusFilter, categoryFilter, timeFilter, today, typeFilter]);
+  }, [activeType, campusFilter, categoryFilter, timeFilter, today]);
 
   const monthGroups = useMemo(() => {
     const groups = new Map<string, CalendarEntry[]>();
@@ -176,9 +186,11 @@ export function CalendarExplorer({ defaultType = "all" }: { defaultType?: Calend
 
   const ui = language === "vi"
     ? {
-        eyebrow: typeFilter === "campus_event" ? "ĐỜI SỐNG CƠ SỞ" : "LỊCH HỌC VỤ & SỰ KIỆN",
-        title: typeFilter === "campus_event" ? "Campus Events" : "Lịch RMIT, rõ ràng hơn.",
-        intro: "Một lịch biên tập, có nguồn gốc và được xác minh cho các mốc học vụ cùng hoạt động tại RMIT Việt Nam.",
+        eyebrow: activeType === "campus_event" ? "ĐỜI SỐNG CƠ SỞ" : "LỊCH HỌC VỤ",
+        title: activeType === "campus_event" ? "Campus Events" : "Lịch học vụ",
+        intro: activeType === "campus_event"
+          ? "Lịch các hoạt động, lễ hội và sự kiện sinh viên được xác minh từ nguồn RMIT công khai."
+          : "Các mốc học vụ chính thức của RMIT Việt Nam, được trình bày theo thời gian và liên kết đến nguồn gốc.",
         academic: "Ngày học vụ",
         events: "Sự kiện cơ sở",
         all: "Tất cả",
@@ -192,15 +204,19 @@ export function CalendarExplorer({ defaultType = "all" }: { defaultType?: Calend
         list: "Danh sách",
         calendar: "Theo tháng",
         noEntries: "Chưa có mục nào phù hợp với bộ lọc.",
-        sourceTitle: "Nguồn và quy trình xác minh",
-        sourceText: "R-Students chỉ hiển thị thông tin có thể kiểm tra từ nguồn RMIT công khai. Facebook được dùng như nguồn khám phá thủ công; không có dữ liệu Facebook nào được tự động đưa lên trang này.",
+        sourceTitle: "Nguồn xác minh",
+        sourceText: activeType === "campus_event"
+          ? "Sự kiện được kiểm tra từ các nguồn RMIT công khai và chính thức."
+          : "Ngày học vụ được đối chiếu với lịch chính thức của RMIT Việt Nam. Hãy kiểm tra chương trình của bạn nếu có lịch riêng.",
         sourceRegistry: "Xem danh bạ nguồn",
         lastChecked: "Kiểm tra lần cuối",
       }
     : {
-        eyebrow: typeFilter === "campus_event" ? "CAMPUS LIFE" : "ACADEMIC CALENDAR & EVENTS",
-        title: typeFilter === "campus_event" ? "Campus Events" : "The RMIT calendar, clarified.",
-        intro: "An editorial, source-linked calendar for academic milestones and verified campus activity at RMIT Vietnam.",
+        eyebrow: activeType === "campus_event" ? "CAMPUS EVENTS" : "ACADEMIC CALENDAR",
+        title: activeType === "campus_event" ? "Campus Events" : "Academic Calendar",
+        intro: activeType === "campus_event"
+          ? "A source-linked schedule of verified RMIT Vietnam campus activities, festivals, and student events."
+          : "Official RMIT Vietnam academic milestones, organised by date and linked to the original calendar source.",
         academic: "Academic dates",
         events: "Campus events",
         all: "All entries",
@@ -214,8 +230,10 @@ export function CalendarExplorer({ defaultType = "all" }: { defaultType?: Calend
         list: "List",
         calendar: "By month",
         noEntries: "No entries match these filters.",
-        sourceTitle: "Sources and verification",
-        sourceText: "R-Students only publishes information that can be checked against public RMIT sources. Facebook is treated as a manual discovery source; no Facebook data is automatically published here.",
+        sourceTitle: "Verification source",
+        sourceText: activeType === "campus_event"
+          ? "Events are checked against public official RMIT sources."
+          : "Academic dates are checked against the official RMIT Vietnam calendar. Confirm program-specific schedules when applicable.",
         sourceRegistry: "View source registry",
         lastChecked: "Last checked",
       };
@@ -236,7 +254,8 @@ export function CalendarExplorer({ defaultType = "all" }: { defaultType?: Calend
 
       <section className="border-b border-[var(--border)] py-5" aria-label={language === "vi" ? "Bộ lọc lịch" : "Calendar filters"}>
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap gap-2" role="tablist" aria-label={language === "vi" ? "Loại mục" : "Entry type"}>
+          {!lockedType && (
+            <div className="flex flex-wrap gap-2" role="tablist" aria-label={language === "vi" ? "Loại mục" : "Entry type"}>
             {[
               ["all", ui.all],
               ["academic_date", ui.academic],
@@ -253,7 +272,8 @@ export function CalendarExplorer({ defaultType = "all" }: { defaultType?: Calend
                 {label}
               </button>
             ))}
-          </div>
+            </div>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             <Filter className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
             <label className="sr-only" htmlFor="calendar-campus">{ui.campus}</label>
@@ -262,11 +282,15 @@ export function CalendarExplorer({ defaultType = "all" }: { defaultType?: Calend
               <option value="saigon_south">{language === "vi" ? "Nam Sài Gòn" : "Saigon South"}</option>
               <option value="hanoi">{language === "vi" ? "Hà Nội" : "Hanoi"}</option>
             </select>
-            <label className="sr-only" htmlFor="calendar-category">{ui.category}</label>
-            <select id="calendar-category" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--main-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
-              <option value="all">{ui.allCategories}</option>
-              {Object.entries(categoryLabels[language]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </select>
+            {activeType !== "academic_date" && (
+              <>
+                <label className="sr-only" htmlFor="calendar-category">{ui.category}</label>
+                <select id="calendar-category" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--main-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+                  <option value="all">{ui.allCategories}</option>
+                  {availableCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              </>
+            )}
             <select aria-label={language === "vi" ? "Khoảng thời gian" : "Time range"} value={timeFilter} onChange={(event) => setTimeFilter(event.target.value as TimeFilter)} className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--main-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
               <option value="upcoming">{ui.upcoming}</option>
               <option value="this_month">{ui.thisMonth}</option>
@@ -311,7 +335,7 @@ export function CalendarExplorer({ defaultType = "all" }: { defaultType?: Calend
       <footer className="mt-12 grid gap-4 border-t border-[var(--border)] pt-6 text-xs text-[var(--secondary-text)] sm:grid-cols-[1fr_auto] sm:items-end">
         <div>
           <p className="font-semibold text-[var(--main-text)]">{ui.sourceTitle}</p>
-          <p className="mt-1 max-w-2xl">{EVENT_SOURCES.filter((source) => source.verificationStatus === "verified").length} {language === "vi" ? "nguồn website chính thức đã xác minh" : "verified official website sources"} · {EVENT_SOURCES.filter((source) => source.sourceType === "official_facebook").length} {language === "vi" ? "nguồn Facebook cần duyệt thủ công" : "Facebook discovery source requiring manual review"}</p>
+          <p className="mt-1 max-w-2xl">{EVENT_SOURCES.filter((source) => source.verificationStatus === "verified").length} {language === "vi" ? "nguồn website chính thức đã xác minh" : "verified official website sources"}</p>
         </div>
         <Link href="/about#sources" className="inline-flex min-h-11 items-center gap-2 font-semibold text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2">
           <ShieldCheck className="h-4 w-4" aria-hidden="true" />

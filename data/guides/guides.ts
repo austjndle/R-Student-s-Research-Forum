@@ -34,7 +34,7 @@ export const RESEARCH_GUIDES: ResearchGuide[] = [
     descriptionEn: "Master the RMIT Policy Register to locate enforceable regulations on grading, appeals, academic integrity, and attendance.",
     descriptionVi: "Kỹ năng tra cứu Sổ tay Quy chế (Policy Register) để tìm điều lệ ràng buộc về thang điểm, khiếu nại, liêm chính học thuật và điểm danh.",
     readTimeMinutes: 4,
-    imageUrl: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/headers/rmit-events-home-header.jpg",
     steps: [
       {
         number: 1,
@@ -77,7 +77,7 @@ export const RESEARCH_GUIDES: ResearchGuide[] = [
     descriptionEn: "Find detailed course prerequisites, credit values, assessment weightings, and learning outcomes before enrolling.",
     descriptionVi: "Tra cứu điều kiện tiên quyết, số tín chỉ, tỷ trọng các đầu điểm và chuẩn đầu ra môn học trước khi đăng ký.",
     readTimeMinutes: 3,
-    imageUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/rmit-hanoi-campus-facilities/rmit-hanoi-campus-facilities-06.jpg",
     steps: [
       {
         number: 1,
@@ -115,7 +115,7 @@ export const RESEARCH_GUIDES: ResearchGuide[] = [
     descriptionEn: "Learn the fastest ways to submit administrative inquiries and ensure prompt resolution.",
     descriptionVi: "Phương pháp gửi yêu cầu hành chính nhanh nhất và theo dõi xử lý hồ sơ không bị gián đoạn.",
     readTimeMinutes: 3,
-    imageUrl: "https://images.unsplash.com/photo-1577495508048-b635879837f1?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/current-students/student-council.jpg",
     steps: [
       {
         number: 1,
@@ -152,7 +152,7 @@ export const RESEARCH_GUIDES: ResearchGuide[] = [
     descriptionEn: "Avoid financial loss and academic penalties by keeping track of critical milestone dates each semester.",
     descriptionVi: "Tránh mất học phí và bị điểm phạt học bạ bằng cách nắm chắc các mốc thời gian quan trọng trong kỳ.",
     readTimeMinutes: 4,
-    imageUrl: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/student-activities-01.jpg",
     steps: [
       {
         number: 1,
@@ -189,7 +189,7 @@ export const RESEARCH_GUIDES: ResearchGuide[] = [
     descriptionEn: "Comprehensive walkthrough of scholarship opportunities for prospective and current students.",
     descriptionVi: "Hướng dẫn toàn diện về các cơ hội học bổng cho tân sinh viên và sinh viên đang theo học.",
     readTimeMinutes: 5,
-    imageUrl: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/career-fair-2022.jpg",
     steps: [
       {
         number: 1,
@@ -226,7 +226,7 @@ export const RESEARCH_GUIDES: ResearchGuide[] = [
     descriptionEn: "Frameworks, etiquette, and essential details to get your inquiry resolved on the first attempt.",
     descriptionVi: "Bố cục, quy tắc lịch sự và các thông tin bắt buộc để được xử lý vấn đề ngay từ email đầu tiên.",
     readTimeMinutes: 3,
-    imageUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/rmit-sgs-campus-facilities/2015-campus-photos/rmit-sgs-b2-inside-12.jpg",
     steps: [
       {
         number: 1,
@@ -263,7 +263,7 @@ export const RESEARCH_GUIDES: ResearchGuide[] = [
     descriptionEn: "Stop sending inquiries to the wrong office. A cheat-sheet of university departments and their jurisdictions.",
     descriptionVi: "Tránh gửi nhầm email lòng vòng. Bảng hướng dẫn tra cứu nhanh trách nhiệm của từng phòng ban tại trường.",
     readTimeMinutes: 3,
-    imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/welcome-day-22.jpg",
     steps: [
       {
         number: 1,

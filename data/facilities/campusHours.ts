@@ -55,8 +55,8 @@ export const RMIT_CAMPUS_HOURS: BuildingInfo[] = [
         saturdayHours: "08:00 - 17:00",
         sundayHours: "08:00 - 17:00",
         airConditioningHours: "08:00 - 21:00",
-        notesVi: "Theo rmit.edu.vn/libraryvn: Trong kỳ học mở Thứ 2 - Thứ 6: 08:00 - 21:00; Thứ 7 & Chủ Nhật: 08:00 - 17:00. Đặc biệt trong kỳ thi (Tuần 10 - 12): Mở cửa từ Thứ 2 đến Chủ Nhật: 08:00 - 21:00.",
-        notesEn: "Official rmit.edu.vn/libraryvn hours: During semester Mon - Fri: 8am - 9pm; Sat & Sun: 8am - 5pm. Exam period (Weeks 10 - 12): Mon - Sun: 8am - 9pm.",
+        notesVi: "Theo RMIT Library: Đặc biệt trong kỳ thi (Tuần 10–12), mở cửa Thứ 2–Chủ nhật: 08:00–21:00.",
+        notesEn: "According to RMIT Library: During exam weeks 10–12, open Monday–Sunday from 8am–9pm.",
       },
       {
         floor: "Level 3 Entrance (Lối vào chính Thư viện)",
@@ -234,8 +234,8 @@ export const RMIT_CAMPUS_HOURS: BuildingInfo[] = [
         saturdayHours: "08:00 - 17:00",
         sundayHours: "08:00 - 17:00",
         airConditioningHours: "08:00 - 21:00",
-        notesVi: "Theo rmit.edu.vn/libraryvn: Trong kỳ học mở Thứ 2 - Thứ 6: 08:00 - 21:00; Thứ 7 & Chủ Nhật: 08:00 - 17:00. Kỳ nghỉ giữa kỳ: Thứ 2 - Thứ 6: 08:00 - 17:00 (Nghỉ cuối tuần & lễ).",
-        notesEn: "Official rmit.edu.vn/libraryvn hours: During semester Mon - Fri: 8am - 9pm; Sat & Sun: 8am - 5pm. Semester break: Mon - Fri: 8am - 5pm (closed weekends & public holidays).",
+        notesVi: "Theo RMIT Library: Trong kỳ nghỉ giữa kỳ, mở Thứ 2–Thứ 6: 08:00–17:00; đóng cuối tuần và ngày lễ.",
+        notesEn: "According to RMIT Library: During semester break, open Monday–Friday from 8am–5pm; closed weekends and public holidays.",
       },
       {
         floor: "Level 3 (Tầng 3)",

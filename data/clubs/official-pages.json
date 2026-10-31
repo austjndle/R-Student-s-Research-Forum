@@ -1,0 +1,1184 @@
+[
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/academic-clubs/analytics-club",
+    "status": 200,
+    "title": "Analytics Club - RMIT University",
+    "heading": "Analytics Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "analyticsclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMIT.AnalyticsClub",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSAnalytics-club-cover?wid=800",
+    "imageAlt": "SGSAnalytics-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/academic-clubs/business-club",
+    "status": 200,
+    "title": "Business Club - RMIT University",
+    "heading": "Business Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "businessclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMITBusinessClub/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSBusiness-club-cover?wid=800",
+    "imageAlt": "SGSBusiness-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/academic-clubs/economics-club",
+    "status": 200,
+    "title": "Economics Club - RMIT University",
+    "heading": "Economics Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "economicsclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmiteconomicsclub",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/sgs-economics-club-logo?wid=800",
+    "imageAlt": "sgs-economics-club-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/academic-clubs/fintech-club",
+    "status": 200,
+    "title": "FinTech Club - RMIT University",
+    "heading": "FinTech Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "fintechclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitfintechclub",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSFintech-club-cover?wid=800",
+    "imageAlt": "SGSFintech-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/academic-clubs/finance-club",
+    "status": 200,
+    "title": "Finance Club - RMIT University",
+    "heading": "Finance Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "financeclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitvn.finance.club",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSFinance-club-cover?wid=800",
+    "imageAlt": "SGSFinance-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/academic-clubs/golden-flames-competition-club",
+    "status": 200,
+    "title": "Golden Flames Competition Club - RMIT University",
+    "heading": "Golden Flames Competition Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "gfcompetitionclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMITCompetitionClub/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSGoldenFlames-club-cover?wid=800",
+    "imageAlt": "SGSGoldenFlames-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/academic-clubs/human-development-club",
+    "status": 200,
+    "title": "Human Development Club - RMIT University",
+    "heading": "Human Development Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "hdclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmit.hdc",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSHD-club-cover?wid=800",
+    "imageAlt": "SGSHD-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/academic-clubs/innovation-social-entrepreneurship",
+    "status": 200,
+    "title": "Innovation and Social Entrepreneurship - RMIT University",
+    "heading": "Innovation and Social Entrepreneurship",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "riseclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RISEClubSGS/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/saigon-south-campus-clubs/sgs-clubs-logos/academic-clubs-logos/rise-club-sgs-logo.jpg",
+    "imageAlt": "rise-club-sgs-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/academic-clubs/logistics-club",
+    "status": 200,
+    "title": "Logistics Club - RMIT University",
+    "heading": "Logistics Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "logisticsclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitlogisticsclubsgs/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/sgs-logistics-club-logo?wid=800",
+    "imageAlt": "sgs-logistics-club-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/academic-clubs/neoculture-tech-club",
+    "status": 200,
+    "title": "Neo Culture Tech Club - RMIT University",
+    "heading": "Neo Culture Tech Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "neoculturetechclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmit.nct",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSNeoCultureTech-club-cover?wid=800",
+    "imageAlt": "SGSNeoCultureTech-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/academic-clubs/tourism-and-hospitality-club",
+    "status": 200,
+    "title": "Tourism and Hospitality Club - RMIT University",
+    "heading": "Tourism and Hospitality Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "tnhclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmittnh.sgs/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGST-and-H-club-cover?wid=800",
+    "imageAlt": "SGST-and-H-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/aikido-club",
+    "status": 200,
+    "title": "Aikido Club - RMIT University",
+    "heading": "Aikido Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "aikidoclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitvietnamaikido/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/saigon-south-campus-clubs/aikido/sgs-aikido-club-logo.png",
+    "imageAlt": "sgs-aikido-club-logo.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/badminton-club",
+    "status": 200,
+    "title": "Badminton Club - RMIT University",
+    "heading": "Badminton Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "badmintonclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitvietnambadmintonclubsgs/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSBadminton-club-cover?wid=800",
+    "imageAlt": "SGSBadminton-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/basketball-club-female",
+    "status": 200,
+    "title": "Basketball Club (Female) - RMIT University",
+    "heading": "Basketball Club (Female)",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "femalebasketballclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitvnbasketball/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSFemaleBasketball-club-cover?wid=800",
+    "imageAlt": "SGSFemaleBasketball-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/basketball-club-male",
+    "status": 200,
+    "title": "Basketball Club (Male) - RMIT University",
+    "heading": "Basketball Club (Male)",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "malebasketballclub.sgs@rmit.edu.vn",
+      "femalebasketballclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitvnbasketball/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSMaleBasketball-club-cover?wid=800",
+    "imageAlt": "SGSMaleBasketball-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/billiards-club",
+    "status": 200,
+    "title": "Billiards Club - RMIT University",
+    "heading": "Billiards Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "billiardsclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitbilliardsclubsgs",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/saigon-south-campus-clubs/sgs-clubs-logos/sports-clubs-logos/billiards-club-sgs-logo.jpg",
+    "imageAlt": "billiards-club-sgs-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/brazilian-jiu-jitsu-club",
+    "status": 200,
+    "title": "Brazilian Jiu-Jitsu Club - RMIT University",
+    "heading": "Brazilian Jiu-Jitsu Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "jiujitsuclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitvn.bjj",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/sgs-bjj-club-logo?wid=800",
+    "imageAlt": "Brazilian Jiu-Jitsu club logo - SGS"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/cheerleading-club",
+    "status": 200,
+    "title": "Cheerleading Club - RMIT University",
+    "heading": "Cheerleading Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "cheerleading.sgs@rmit.edu.vn",
+      "cheerleadingsgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitvncheerleading",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/saigon-south-campus-clubs/sgs-clubs-logos/sports-clubs-logos/cheerleading-club-logo.png",
+    "imageAlt": "cheerleading-club-logo.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/flag-football-club",
+    "status": 200,
+    "title": "Flag Football Club - RMIT University",
+    "heading": "Flag Football Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "flagfootballclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMITVNSGSFlagFootballClub",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSFlagFootball-club-cover?wid=800",
+    "imageAlt": "SGSFlagFootball-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/football-club",
+    "status": 200,
+    "title": "Football Club - RMIT University",
+    "heading": "Football Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "footballclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitfootballclubsgs",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSFootball-club-cover?wid=800",
+    "imageAlt": "SGSFootball-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/judo-club",
+    "status": 200,
+    "title": "Judo Club - RMIT University",
+    "heading": "Judo Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "judoclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/judoclub.rmit.sgs",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/saigon-south-campus-clubs/sgs-clubs-logos/sports-clubs-logos/judo-club-sgs-logo.png",
+    "imageAlt": "judo-club-sgs-logo.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/mma-club",
+    "status": 200,
+    "title": "MMA Club - RMIT University",
+    "heading": "MMA Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "mmaclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMITMMA/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSMMA-club-cover?wid=800",
+    "imageAlt": "SGSMMA-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/pickleball-club",
+    "status": 200,
+    "title": "Pickleball Club - RMIT University",
+    "heading": "Pickleball Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "pickleballclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RmitVietnamPickleballClub",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/saigon-south-campus-clubs/sgs-clubs-logos/sports-clubs-logos/SGSPickleball-club-cover.png",
+    "imageAlt": "SGSPickleball-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/shinsei-kendo-club",
+    "status": 200,
+    "title": "Shinsei Kendo Club - RMIT University",
+    "heading": "Shinsei Kendo Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "shinseikendoclub@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitshinsei",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/saigon-south-campus-clubs/sgs-clubs-logos/sports-clubs-logos/shinsei-kendo-club-logo.png",
+    "imageAlt": "shinsei-kendo-club-logo.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/strength-club",
+    "status": 200,
+    "title": "Strength Club - RMIT University",
+    "heading": "Strength Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "strengthclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitstrengthclub.sgs",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/saigon-south-campus-clubs/sgs-clubs-logos/sports-clubs-logos/strength-club-logo.png",
+    "imageAlt": "strength-club-logo.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/taekwondo-club",
+    "status": 200,
+    "title": "Taekwondo Club - RMIT University",
+    "heading": "Taekwondo Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "taekwondoclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmittaekwondo/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSTaekwondo-club-cover?wid=800",
+    "imageAlt": "SGSTaekwondo-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/tennis-club",
+    "status": 200,
+    "title": "Tennis Club - RMIT University",
+    "heading": "Tennis Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "tennisclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmit.tennis/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/saigon-south-campus-clubs/sgs-clubs-logos/sports-clubs-logos/sgs-tennis-club-logo.jpg",
+    "imageAlt": "sgs-tennis-club-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/ultimate-frisbee-club",
+    "status": 200,
+    "title": "Ultimate Frisbee Club - RMIT University",
+    "heading": "Ultimate Frisbee Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "frisbeeclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RUC.VietNam/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSUltimateFrisbee-club-cover?wid=800",
+    "imageAlt": "SGSUltimateFrisbee-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/volleyball-club-female",
+    "status": 200,
+    "title": "Volleyball Club (Female) - RMIT University",
+    "heading": "Volleyball Club (Female)",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "femalevolleyballclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMITVietnamVolleyballClub",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSFemaleVolleyballl-clubb-cover?wid=800",
+    "imageAlt": "SGSFemaleVolleyballl-clubb-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/active-clubs/volleyball-club-male",
+    "status": 200,
+    "title": "Volleyball Club (Male) - RMIT University",
+    "heading": "Volleyball Club (Male)",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "malevolleyballclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMITVietnamVolleyballClub/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSMaleVolleyball-club-cover?wid=800",
+    "imageAlt": "SGSMaleVolleyball-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/creative-collectives-clubs/dance-club",
+    "status": 200,
+    "title": "Dance Club - RMIT University",
+    "heading": "Dance Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "danceclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitsgsdctotheworld",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSDance-club-cover?wid=800",
+    "imageAlt": "SGSDance-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/creative-collectives-clubs/fashion-club",
+    "status": 200,
+    "title": "Fashion Club - RMIT University",
+    "heading": "Fashion Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "fashionclub.sgs@rmit.edu.vn",
+      "visualartclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/SGS.RFASH",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/sgs-fashion-club-logo?wid=800",
+    "imageAlt": "Fashion Club logo with snake crawling around a head statue "
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/creative-collectives-clubs/marketing-and-communications-club",
+    "status": 200,
+    "title": "Marketing and Communications Club - RMIT University",
+    "heading": "Marketing and Communications Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "marcommclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMIT.SGS.MarCom.Club/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/sgs-marcom-club-cover?wid=800",
+    "imageAlt": "sgs-marcom-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/creative-collectives-clubs/mass-media-club",
+    "status": 200,
+    "title": "Mass Media Club - RMIT University",
+    "heading": "Mass Media Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "massmediaclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMITMASSMEDIA/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/mass-media-club-sgs-logo?wid=800",
+    "imageAlt": "mass-media-club-sgs-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/creative-collectives-clubs/music-club",
+    "status": 200,
+    "title": "Music Club - Saigon South - RMIT University",
+    "heading": "Music Club - Saigon South",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "musicclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitsgsmusicclub/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSMusic-club-cover?wid=800",
+    "imageAlt": "SGSMusic-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/social-and-special-interest-clubs/boardgames-club",
+    "status": 200,
+    "title": "Boardgames Club - RMIT University",
+    "heading": "Boardgames Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "boardgamesclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMITBGC/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSBoardgames-club-cover?wid=800",
+    "imageAlt": "SGSBoardgames-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/social-and-special-interest-clubs/enactus-rmit-vietnam",
+    "status": 200,
+    "title": "Enactus RMIT Vietnam - RMIT University",
+    "heading": "Enactus RMIT Vietnam",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "enactusclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/EnactusRmitSgs/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSENACTUS-club-cover?wid=800",
+    "imageAlt": "SGSENACTUS-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/social-and-special-interest-clubs/green-generation-club",
+    "status": 200,
+    "title": "Green Generation Club - RMIT University",
+    "heading": "Green Generation Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "greengenerationclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/GreenGenerationVN/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSGreenGeneration-club-cover?wid=800",
+    "imageAlt": "SGSGreenGeneration-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/social-and-special-interest-clubs/international-club",
+    "status": 200,
+    "title": "International Club - RMIT University",
+    "heading": "International Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "internationalclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/IC.RMITSGS/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/SGSInternational-club-cover-19?wid=800",
+    "imageAlt": "SGSInternational-club-cover-19.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/social-and-special-interest-clubs/japanese-culture-club",
+    "status": 200,
+    "title": "Japanese Culture Club - RMIT University",
+    "heading": "Japanese Culture Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "japanesecultureclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/JCC.RMIT/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/japanese-culture-club-sgs-logo-1?wid=800",
+    "imageAlt": "japanese-culture-club-sgs-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/social-and-special-interest-clubs/mind-club",
+    "status": 200,
+    "title": "Mind Club - RMIT University",
+    "heading": "Mind Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "mindclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitmindclub.sgs",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/mind-club-sgs-logo?wid=800",
+    "imageAlt": "mind-club-sgs-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/social-and-special-interest-clubs/postgraduate-club",
+    "status": 200,
+    "title": "Postgraduate Club - RMIT University",
+    "heading": "Postgraduate Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "postgradsocial.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMITVietnamPostgraduateClub",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/saigon-south-campus-clubs/sgs-clubs-logos/social-and-special-interest-clubs-logos/postgrad-club-logo.jpg",
+    "imageAlt": "postgrad-club-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/saigon-south-campus-clubs/social-and-special-interest-clubs/pride-club",
+    "status": 200,
+    "title": "Pride Club - RMIT University",
+    "heading": "Pride Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "prideclub.sgs@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitprideclub.sgs",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/saigon-south-campus-clubs/sgs-clubs-logos/social-and-special-interest-clubs-logos/pride-club-logo.jpg",
+    "imageAlt": "pride-club-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/academic-clubs/business-finance-club",
+    "status": 200,
+    "title": "Business and Finance Club - RMIT University",
+    "heading": "Business and Finance Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "bfclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmitbfhn/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/business-finance-club-logo?wid=800",
+    "imageAlt": "business-finance-club-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/academic-clubs/innovation-and-entrepreneurship-club",
+    "status": 200,
+    "title": "Innovation and Entrepreneurship Club - RMIT University",
+    "heading": "Innovation and Entrepreneurship Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "ieclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://s7ap1.scene7.com/is/image/rmit/innovation-and-entrepreneur-club-hanoi?wid=800",
+    "imageAlt": "innovation-and-entrepreneur-club-hanoi.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/active-clubs/basketball-club",
+    "status": 200,
+    "title": "Basketball Club - RMIT University",
+    "heading": "Basketball Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "basketballclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RmitHanoiBasketballClub/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/active-clubs/basketball-club-hn-logo.jpg",
+    "imageAlt": "basketball-club-hn-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/active-clubs/football-club",
+    "status": 200,
+    "title": "Football Club - RMIT University",
+    "heading": "Football Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "footballclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/people/RMIT-Hanoi-Football-Club/61564330775730/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-arts-clubs/HNFootball-club-cover.png",
+    "imageAlt": "HNFootball-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/creative-collective-clubs/current-media-club",
+    "status": 200,
+    "title": "Current Media Club - RMIT University",
+    "heading": "Current Media Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "currentmedia.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/CurrentMediaRMIT/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-special-interests-clubs/HNCurrentMedia-club-cover.png",
+    "imageAlt": "HNCurrentMedia-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/creative-collective-clubs/dance-club",
+    "status": 200,
+    "title": "Dance Club - RMIT University",
+    "heading": "Dance Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "danceclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmithndanceclub/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-arts-clubs/HNDance-club-cover.png",
+    "imageAlt": "HNDance-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/creative-collective-clubs/music-club",
+    "status": 200,
+    "title": "Music Club - RMIT University",
+    "heading": "Music Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "musicclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmithnmusicclub/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-arts-clubs/HNMusic-club-cover.png",
+    "imageAlt": "HNMusic-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/creative-collective-clubs/musical-theatre-club",
+    "status": 200,
+    "title": "Musical Theatre Club - RMIT University",
+    "heading": "Musical Theatre Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "mtclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/theatrmithanoi",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-arts-clubs/musical-theatre-club-hanoi.jpg",
+    "imageAlt": "musical-theatre-club-hanoi.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/creative-collective-clubs/photography-club",
+    "status": 200,
+    "title": "Photography Club - RMIT University",
+    "heading": "Photography Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "photographyclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/photographyrmithn/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-arts-clubs/photography-club-logo.jpg",
+    "imageAlt": "photography-club-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/social-and-special-interest-clubs/charity-and-environment-club",
+    "status": 200,
+    "title": "Charity and Environment Club - RMIT University",
+    "heading": "Charity and Environment Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "ceclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/Ceclub.rmit.hn/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-special-interests-clubs/HNCharityEnviroment-club-cover.png",
+    "imageAlt": "HNCharityEnviroment-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/social-and-special-interest-clubs/event-club",
+    "status": 200,
+    "title": "Event Club - RMIT University",
+    "heading": "Event Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "eventclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmit.eventclub.hanoi/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-special-interests-clubs/HNEvent-club-cover.png",
+    "imageAlt": "HNEvent-club-cover.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/social-and-special-interest-clubs/japanese-culture-club",
+    "status": 200,
+    "title": "Japanese Culture Club - Hanoi - RMIT University",
+    "heading": "Japanese Culture Club - Hanoi",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "jcclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-special-interests-clubs/japanese-culture-club-hanoi.jpg",
+    "imageAlt": "japanese-culture-club-hanoi.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/social-and-special-interest-clubs/psyche-club",
+    "status": 200,
+    "title": "Psyche Club - RMIT University",
+    "heading": "Psyche Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "psycheclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/psycheclub.hn",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-special-interests-clubs/psyche-club-logo.jpg",
+    "imageAlt": "psyche-club-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/social-and-special-interest-clubs/rmit-mc-club",
+    "status": 200,
+    "title": "RMIT MC Club - RMIT University",
+    "heading": "RMIT MC Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "rmcclub.hn@rmit.edu.vn",
+      "rqaclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/profile.php?id=61584998093253",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/mc-club/rmit-hanoi-mc-club-logo.png",
+    "imageAlt": "rmit-hanoi-mc-club-logo.png"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/social-and-special-interest-clubs/rmit-queer-alliance-club",
+    "status": 200,
+    "title": "RMIT Queer &amp; Alliance Club - RMIT University",
+    "heading": "RMIT Queer &amp; Alliance Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "rqaclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rqachanoi",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-special-interests-clubs/rqac-logo.jpg",
+    "imageAlt": "rqac-logo.jpg"
+  },
+  {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/social-and-special-interest-clubs/sife-club",
+    "status": 200,
+    "title": "SIFE Club - RMIT University",
+    "heading": "SIFE Club",
+    "description": "",
+    "ogImage": "",
+    "emails": [
+      "sifeclub.hn@rmit.edu.vn",
+      "david.holinger@rmit.edu.au",
+      "webrmitvn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/sifermithn/",
+      "https://www.facebook.com/RMITUniversityVietnam",
+      "https://www.instagram.com/rmituniversityvietnam/"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-special-interests-clubs/HNSIFE-club-cover.png",
+    "imageAlt": "HNSIFE-club-cover.png"
+  }
+]

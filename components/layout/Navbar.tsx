@@ -1,17 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/lib/i18n/context";
 import {
-  Search,
   Sun,
   Moon,
   Globe,
-  Menu,
-  X,
   BookOpen,
   FolderTree,
   PhoneCall,
@@ -22,13 +19,12 @@ export function Navbar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
     { href: "/", label: t.nav.home },
-    { href: "/search", label: t.nav.search },
     { href: "/calendar", label: t.nav.calendar },
     { href: "/events", label: t.nav.events },
+    { href: "/clubs", label: t.nav.clubs },
     { href: "/guides", label: t.nav.guides },
     { href: "/facilities", label: language === "vi" ? "Giờ mở cửa" : "Campus Hours" },
     { href: "/topics", label: t.nav.topics },
@@ -58,14 +54,14 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0 md:flex lg:gap-1">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0 lg:flex lg:gap-1">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`min-h-11 whitespace-nowrap border-b-2 px-2 py-2 text-[11px] font-semibold leading-none transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 lg:px-2.5 ${
+                className={`min-h-11 whitespace-nowrap border-b-2 px-1.5 py-2 text-xs font-semibold leading-tight transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 lg:px-2 ${
                   isActive
                     ? "border-[var(--accent)] text-[var(--accent)]"
                     : "border-transparent text-[var(--secondary-text)] hover:border-[var(--border)] hover:text-[var(--main-text)]"
@@ -101,39 +97,28 @@ export function Navbar() {
             <Moon className="w-4 h-4 block dark:hidden text-slate-700" />
           </button>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="min-h-11 min-w-11 cursor-pointer text-[var(--secondary-text)] transition-colors duration-200 hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
-            aria-label="Toggle mobile menu"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
         </div>
       </div>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="space-y-1 border-b border-[var(--border)] bg-[var(--surface)] px-4 pb-4 pt-2 md:hidden">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`block min-h-11 border-l-2 px-3 py-2 text-base font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-                  isActive
-                    ? "border-[var(--accent)] text-[var(--accent)]"
-                    : "border-transparent text-[var(--secondary-text)] hover:border-[var(--border)] hover:text-[var(--main-text)]"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </div>
-      )}
+      {/* Mobile Navigation */}
+      <nav aria-label="Mobile navigation" className="space-y-1 border-b border-[var(--border)] bg-[var(--surface)] px-4 pb-4 pt-2 lg:hidden">
+        {navLinks.map((link) => {
+          const isActive = pathname === link.href;
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`block min-h-11 border-l-2 px-3 py-2 text-base font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                isActive
+                  ? "border-[var(--accent)] text-[var(--accent)]"
+                  : "border-transparent text-[var(--secondary-text)] hover:border-[var(--border)] hover:text-[var(--main-text)]"
+              }`}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
+      </nav>
     </header>
   );
 }

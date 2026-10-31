@@ -103,7 +103,8 @@ export default function HomePage() {
 
   return (
     <div className="pb-20">
-      <section className="bg-[var(--primary-navy)] text-white">
+      <section className="relative overflow-hidden bg-[var(--primary-navy)] text-white">
+        <span aria-hidden="true" className="pointer-events-none absolute -right-10 top-1/2 -translate-y-1/2 select-none font-sans text-[22rem] font-black leading-none text-[var(--accent)] opacity-[0.07] sm:-right-4 sm:text-[30rem] lg:right-8">R</span>
         <div className="mx-auto grid min-h-[560px] max-w-[1200px] grid-cols-1 gap-12 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:items-end lg:px-8 lg:py-24">
           <div className="lg:col-span-8">
             <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-[#FF807A]">{copy.eyebrow}</p>
@@ -113,14 +114,15 @@ export default function HomePage() {
               <label htmlFor="home-search" className="sr-only">{t.hero.searchPlaceholder}</label>
               <div className="flex flex-col gap-2 border border-white/30 bg-white p-2 sm:flex-row">
                 <div className="flex min-h-12 flex-1 items-center">
-                  <Search className="ml-3 h-5 w-5 shrink-0 text-[var(--secondary-text)]" aria-hidden="true" />
+                  <Search className="ml-3 h-5 w-5 shrink-0 text-[#667085]" aria-hidden="true" />
                   <input
                     id="home-search"
                     type="search"
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder={copy.searchPlaceholder}
-                    className="min-h-12 w-full bg-transparent px-3 text-sm text-[var(--main-text)] placeholder:text-[var(--secondary-text)] focus:outline-none sm:text-base"
+                    spellCheck={false}
+                    className="min-h-12 w-full bg-transparent px-3 text-sm text-[#20242B] placeholder:text-[#667085] focus:outline-none sm:text-base"
                   />
                 </div>
                 <button type="submit" className="min-h-12 cursor-pointer bg-[var(--accent)] px-6 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-white">

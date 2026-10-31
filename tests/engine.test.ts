@@ -7,6 +7,8 @@ import {
 import {
   isQueryInScope,
   buildRAGContext,
+  buildEventContext,
+  buildClubContext,
 } from "../lib/ai/gemini";
 import {
   generateVisitorId,
@@ -64,6 +66,12 @@ describe("Gemini AI Guardrails and Scope Filter", () => {
     expect(isQueryInScope("What are the library opening hours?").inScope).toBe(true);
     expect(isQueryInScope("Lịch học kỳ 3 RMIT").inScope).toBe(true);
   });
+  it("accepts practical student-life questions in both languages", () => {
+    expect(isQueryInScope("How can I make friends at RMIT?").inScope).toBe(true);
+    expect(isQueryInScope("How do I find a reliable assignment teammate?").inScope).toBe(true);
+    expect(isQueryInScope("Làm sao để tham gia câu lạc bộ và kết bạn?").inScope).toBe(true);
+  });
+
 
   it("rejects off-topic queries without calling Gemini", () => {
     expect(isQueryInScope("Write a Python program for bubble sort").inScope).toBe(false);
@@ -77,6 +85,31 @@ describe("Gemini AI Guardrails and Scope Filter", () => {
     expect(rag.sources.length).toBeGreaterThan(0);
     expect(rag.contextText).toContain("How to Change Your Program");
     expect(rag.sources[0].url).toContain("rmit.edu.vn");
+  });
+  it("retrieves verified upcoming events and registration sources", () => {
+    const events = buildEventContext("What events are happening this week?", "en");
+    expect(events.matchedEventTitles.length).toBeGreaterThan(0);
+    expect(events.sources.some((source) => source.url.includes("rmit.edu.vn"))).toBe(true);
+    expect(events.sources.some((source) => source.title.includes("Register"))).toBe(true);
+  });
+  it("prioritizes social and recreational events for meeting-people intent", () => {
+    const events = buildEventContext("Are there events this week where I can meet people?", "en");
+    expect(events.matchedEventTitles.some((title) => title.includes("Sustainability") || title.includes("Carnival") || title.includes("Experience Day"))).toBe(true);
+    expect(events.matchedEventTitles.some((title) => title.includes("Business Plan Competition"))).toBe(false);
+    expect(events.matchedEventTitles.some((title) => title.includes("Deloitte"))).toBe(false);
+  });
+  it("returns specific club information and social links for a named club", () => {
+    const clubs = buildClubContext("How can I join volleyball club?", "en");
+    expect(clubs.specificClub).toBe(true);
+    expect(clubs.matchedClubNames.some((name) => name.includes("Volleyball"))).toBe(true);
+    expect(clubs.sources.some((source) => source.title.includes("Facebook"))).toBe(true);
+  });
+  it("retrieves complete verified SGS academic club lists", () => {
+    const clubs = buildClubContext("List all academic clubs at SGS", "en");
+    expect(clubs.matchedClubNames.length).toBeGreaterThan(1);
+    expect(clubs.matchedClubNames).toContain("Analytics Club");
+    expect(clubs.matchedClubNames).toContain("FinTech Club");
+    expect(clubs.sources.some((source) => source.url.includes("saigon-south-campus-clubs"))).toBe(true);
   });
 });
 

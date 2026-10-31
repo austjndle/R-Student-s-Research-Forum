@@ -33,6 +33,7 @@ export interface Translations {
     search: string;
     calendar: string;
     events: string;
+    clubs: string;
     language: string;
     theme: string;
   };
@@ -170,6 +171,7 @@ export const translations: Record<Language, Translations> = {
       search: "Search",
       calendar: "Calendar",
       events: "Campus Events",
+      clubs: "Student Clubs",
       language: "Language",
       theme: "Theme",
     },
@@ -305,6 +307,7 @@ export const translations: Record<Language, Translations> = {
       search: "Tìm kiếm",
       calendar: "Lịch",
       events: "Sự kiện",
+      clubs: "CLB sinh viên",
       language: "Ngôn ngữ",
       theme: "Giao diện",
     },

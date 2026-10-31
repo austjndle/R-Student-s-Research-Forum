@@ -40,11 +40,6 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-sm text-[var(--secondary-text)]">
               <li>
-                <Link href="/search" className="hover:text-[var(--accent)] transition-colors">
-                  {t.nav.search}
-                </Link>
-              </li>
-              <li>
                 <Link href="/guides" className="hover:text-[var(--accent)] transition-colors">
                   {t.nav.guides}
                 </Link>

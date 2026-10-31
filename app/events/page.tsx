@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function EventsPage() {
-  return <CalendarExplorer defaultType="campus_event" />;
+  return <CalendarExplorer defaultType="campus_event" lockedType="campus_event" />;
 }

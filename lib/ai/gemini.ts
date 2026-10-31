@@ -1,5 +1,7 @@
 import { searchKnowledgeBase } from "@/lib/search/engine";
 import { DEPARTMENT_CONTACTS } from "@/data/contacts/departments";
+import { getPublishedCalendarEntries, type CalendarEntry } from "@/data/events/calendar";
+import { getVerifiedClubs, type ClubCategory, type ClubRecord } from "@/data/clubs/clubs";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -21,7 +23,14 @@ const RMIT_TOPIC_PATTERNS = [
   /exchange/i, /trao doi/i, /melbourne/i, /du hoc/i, /wellbeing/i, /tam ly/i, /stress/i,
   /counseling/i, /bac si/i, /health/i, /contact/i, /lien he/i, /email/i, /hotline/i,
   /connect/i, /census/i, /deadlines/i, /han chot/i, /bai tap/i, /assignment/i, /special consideration/i,
-  /tot nghiep/i, /graduation/i, /career/i, /thuc tap/i, /internship/i, /sset/i, /sbm/i, /scd/i
+  /tot nghiep/i, /graduation/i, /career/i, /thuc tap/i, /internship/i, /sset/i, /sbm/i, /scd/i,
+  /friend/i, /make friends/i, /meet people/i, /teammate/i, /team mate/i, /study partner/i,
+  /club/i, /society/i, /workshop/i, /event/i, /network/i, /community/i, /campus life/i,
+  /new student/i, /first year/i, /lonely/i, /homesick/i, /shy/i, /social anxiety/i,
+  /group assignment/i, /free[- ]rider/i, /group conflict/i, /classmate/i, /student life/i,
+  /ket ban/i, /ban be/i, /lam quen/i, /tim ban/i, /dong doi/i, /ban hoc/i, /cau lac bo/i,
+  /su kien/i, /hoat dong/i, /hoi thao/i, /ket noi/i, /cong dong/i, /tan sinh vien/i,
+  /co don/i, /nho nha/i, /ngai giao tiep/i, /ap luc nhom/i
 ];
 
 const OBVIOUS_OUT_OF_SCOPE_PATTERNS = [
@@ -108,7 +117,238 @@ Phòng ban liên hệ: ${dept ? `${dept.nameVi || dept.nameEn} (Email: ${dept.em
     bestDoc: matches[0].document,
   };
 }
+export interface EventContext {
+  contextText: string;
+  sources: { title: string; url: string }[];
+  matchedEventTitles: string[];
+}
 
+function normalizeEventText(value: string): string {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function getEventRegistrationLinks(entry: CalendarEntry): { label: string; url: string }[] {
+  if (entry.registrationLinks?.length) {
+    return entry.registrationLinks.map((link) => ({ label: link.labelEn, url: link.url }));
+  }
+  return entry.registrationUrl ? [{ label: "Register", url: entry.registrationUrl }] : [];
+}
+
+export function buildEventContext(query: string, language: "en" | "vi" = "en"): EventContext {
+  const normalizedQuery = normalizeEventText(query);
+  const eventIntent = /event|happening|this week|this weekend|workshop|festival|competition|what can i join|su kien|hoat dong|hoi thao|le hoi|cuoc thi|tuan nay|cuoi tuan/i.test(normalizedQuery);
+  if (!eventIntent) return { contextText: "", sources: [], matchedEventTitles: [] };
+
+  const socialEventIntent = /meet people|make friends|network|connect with people|new people|gặp người mới|gap nguoi moi|kết bạn|ket ban|làm quen|lam quen|mở rộng vòng tròn|mo rong vong tron/i.test(normalizedQuery);
+  const queryTerms = normalizedQuery.split(/\s+/).filter((term) => term.length >= 3);
+  const now = Date.now();
+  const upcomingEntries = getPublishedCalendarEntries()
+    .filter((entry) => entry.type === "campus_event")
+    .filter((entry) => Date.parse(entry.endAt ?? entry.startAt) >= now);
+  const socialEntries = upcomingEntries.filter((entry) => entry.category === "festival" || entry.category === "student-life");
+  const candidateEntries = socialEventIntent && socialEntries.length > 0 ? socialEntries : upcomingEntries;
+  const scoredEntries = candidateEntries
+    .map((entry) => {
+      const searchable = normalizeEventText([
+        entry.titleEn,
+        entry.titleVi,
+        entry.descriptionEn,
+        entry.descriptionVi,
+        entry.category,
+        entry.organiserEn,
+        entry.organiserVi,
+        entry.venueEn ?? "",
+        entry.venueVi ?? "",
+      ].join(" "));
+      const keywordScore = queryTerms.reduce((score, term) => score + (searchable.includes(term) ? 2 : 0), 0);
+      const socialCategoryScore = socialEventIntent && (entry.category === "festival" || entry.category === "student-life") ? 4 : 0;
+      return { entry, score: keywordScore + socialCategoryScore };
+    })
+    .sort((left, right) => right.score - left.score || left.entry.startAt.localeCompare(right.entry.startAt))
+    .slice(0, 3);
+
+  if (scoredEntries.length === 0) {
+    return {
+      contextText: language === "vi"
+        ? "Không có sự kiện cơ sở nào đã xác minh phù hợp trong danh sách hiện tại."
+        : "No matching verified campus events are currently listed.",
+      sources: [],
+      matchedEventTitles: [],
+    };
+  }
+
+  const sources = scoredEntries.flatMap(({ entry }) => {
+    const title = language === "vi" ? entry.titleVi : entry.titleEn;
+    const registrationSources = getEventRegistrationLinks(entry).map((link) => ({
+      title: `${title} — ${link.label}`,
+      url: link.url,
+    }));
+    return [{ title, url: entry.originalUrl }, ...registrationSources];
+  });
+  const matchedEventTitles = scoredEntries.map(({ entry }) => language === "vi" ? entry.titleVi : entry.titleEn);
+  const contextText = scoredEntries.map(({ entry }, index) => {
+    const title = language === "vi" ? entry.titleVi : entry.titleEn;
+    const description = language === "vi" ? entry.descriptionVi : entry.descriptionEn;
+    const organiser = language === "vi" ? entry.organiserVi : entry.organiserEn;
+    const venue = language === "vi" ? entry.venueVi : entry.venueEn;
+    const registrations = getEventRegistrationLinks(entry);
+    return [
+      `[Verified Campus Event ${index + 1}]`,
+      `Title: ${title}`,
+      `Date: ${entry.startAt}${entry.endAt ? ` to ${entry.endAt}` : ""}`,
+      `Event type: ${entry.category === "festival" || entry.category === "student-life" ? "social / recreational activity" : entry.category}`,
+      `Campus: ${entry.campus}`,
+      `Venue: ${venue ?? "Not specified"}`,
+      `Organiser: ${organiser}`,
+      `Description: ${description}`,
+      registrations.length > 0 ? `Registration links: ${registrations.map((link) => `${link.label}: ${link.url}`).join(" | ")}` : "Registration link: Not listed in the verified source.",
+    ].join("\n");
+  }).join("\n\n");
+
+  return { contextText, sources, matchedEventTitles };
+}
+export function isPracticalStudentLifeQuery(query: string): boolean {
+  return /make friends|find teammates|find a teammate|study partner|how do i join|how can i join|im shy|i am shy|dont know anyone|don't know anyone|ket ban|tim dong doi|tim ban hoc|tham gia cau lac bo|ngai giao tiep|lam sao de ket ban/i.test(normalizeEventText(query));
+}
+export function formatStudentLifeFallback(query: string, language: "en" | "vi", eventContext: EventContext): string {
+  if (eventContext.matchedEventTitles.length > 0) {
+    const titles = eventContext.matchedEventTitles.map((title) => `• ${title}`).join("\n");
+    return language === "vi"
+      ? `Mình tìm thấy các sự kiện RMIT đã được xác minh:\n\n${titles}\n\nBạn có thể mở các nguồn và link đăng ký đi kèm để xem chi tiết.`
+      : `I found these verified RMIT events:\n\n${titles}\n\nOpen the attached source and registration links for details.`;
+  }
+
+  if (/event|workshop|festival|competition|su kien|hoi thao|le hoi|cuoc thi/i.test(normalizeEventText(query))) {
+    return language === "vi"
+      ? "Hiện chưa có sự kiện RMIT đã xác minh phù hợp trong danh sách. Bạn có thể xem thêm tại trang Campus Events."
+      : "No matching verified RMIT event is currently listed. You can check the Campus Events page for the latest entries.";
+  }
+
+  return language === "vi"
+    ? "Bạn có thể bắt đầu bằng một bước nhỏ: bắt chuyện với bạn cùng lớp, tham gia một hoạt động phù hợp sở thích hoặc rủ một người học chung sau giờ học. Nếu cần, mình có thể giúp bạn soạn một tin nhắn mở lời tự nhiên."
+    : "Start with one low-pressure step: talk to a classmate, join an activity that matches your interests, or invite someone to study after class. I can also help you write a natural opening message.";
+}
+export function formatClubFallback(language: "en" | "vi", clubContext: ClubContext): string {
+  if (clubContext.matchedClubNames.length === 0) {
+    return language === "vi"
+      ? "Hiện chưa có bản ghi câu lạc bộ đã xác minh phù hợp với bộ lọc này. Bạn có thể xem danh sách câu lạc bộ chính thức của RMIT để tìm thêm."
+      : "No verified club records matched those filters. You can check the official RMIT club directory for more options.";
+  }
+
+  if (clubContext.specificClub) {
+    const clubLines = clubContext.matchedClubs.map((club) => {
+      const campus = club.campus === "saigon_south" ? "Saigon South" : "Hanoi";
+      const description = club.descriptionEn ?? "The official club page has the latest club information.";
+      const contact = club.contactEmail ? `Contact: ${club.contactEmail}` : "Contact: See the official club page.";
+      const facebook = club.facebookUrl ? `Facebook: ${club.facebookUrl}` : "Facebook: Not published on the official club page.";
+      return `**${club.nameEn} — ${campus}**\n${description}\n${contact}\n${facebook}`;
+    }).join("\n\n");
+    return language === "vi"
+      ? `${clubLines}\n\nBạn có thể bắt đầu bằng cách nhắn cho câu lạc bộ qua Facebook hoặc email để hỏi lịch tuyển thành viên và buổi tập gần nhất.`
+      : `${clubLines}\n\nYou can start by messaging the club through Facebook or email to ask about recruitment and the next training session.`;
+  }
+
+  const names = clubContext.matchedClubNames.map((name) => `• ${name}`).join("\n");
+  return language === "vi"
+    ? `Mình tìm thấy các câu lạc bộ RMIT đã được xác minh:\n\n${names}\n\nMở các liên kết nguồn đi kèm để xem mô tả và hướng dẫn tham gia.`
+    : `I found these verified RMIT clubs:\n\n${names}\n\nOpen the attached source links for descriptions and joining guidance.`;
+}
+export interface ClubContext {
+  contextText: string;
+  sources: { title: string; url: string }[];
+  matchedClubNames: string[];
+  matchedClubs: ClubRecord[];
+  specificClub: boolean;
+}
+
+function getClubCategoryLabel(category: ClubCategory): string {
+  return {
+    academic: "Academic",
+    active: "Active",
+    creative_collectives: "Creative Collectives",
+    social_special_interest: "Social & Special Interest",
+  }[category];
+}
+
+export function buildClubContext(query: string, language: "en" | "vi" = "en"): ClubContext {
+  const normalizedQuery = normalizeEventText(query);
+  const clubIntent = /club|society|student organization|cau lac bo|clb|join.*club|tham gia.*clb|tham gia.*cau lac/i.test(normalizedQuery);
+  if (!clubIntent) return { contextText: "", sources: [], matchedClubNames: [], matchedClubs: [], specificClub: false };
+
+  const campus = /sgs|saigon south|nam sai gon/i.test(normalizedQuery)
+    ? "saigon_south"
+    : /hanoi|ha noi|handi resco/i.test(normalizedQuery)
+      ? "hanoi"
+      : undefined;
+  const category = /academic|business|finance|engineering|technology|tech|analytics|hoc thuat|kinh doanh|cong nghe/i.test(normalizedQuery)
+    ? "academic"
+    : /sport|sports|basketball|football|badminton|pickleball|the thao|bong ro|bong da/i.test(normalizedQuery)
+      ? "active"
+      : /creative|dance|music|media|fashion|art|sang tao|am nhac|nhay/i.test(normalizedQuery)
+        ? "creative_collectives"
+        : /social|culture|volunteer|community|social interest|van hoa|cong dong|tinh nguyen/i.test(normalizedQuery)
+          ? "social_special_interest"
+          : undefined;
+  const allIntent = /what clubs|which clubs|\blist\b|\ball\b|\bavailable\b|there at|danh sach|co nhung|tat ca/i.test(normalizedQuery);
+  const queryTerms = normalizedQuery.split(/\s+/).filter((term) => term.length >= 3);
+  const candidates = getVerifiedClubs()
+    .filter((club) => !campus || club.campus === campus)
+    .filter((club) => !category || club.category === category)
+    .map((club) => {
+      const searchable = normalizeEventText(`${club.nameEn} ${club.nameVi} ${club.descriptionEn ?? ""} ${club.category}`);
+      const score = queryTerms.reduce((total, term) => total + (searchable.includes(term) ? 2 : 0), 0);
+      return { club, score };
+    })
+    .sort((left, right) => right.score - left.score || left.club.nameEn.localeCompare(right.club.nameEn));
+  const specificMatches = candidates.filter(({ club }) => {
+    const searchableName = normalizeEventText(club.nameEn);
+    const nameTerms = queryTerms.filter((term) => term !== "club" && term !== "clubs" && term !== "join" && term !== "find");
+    return nameTerms.length > 0 && nameTerms.some((term) => searchableName.includes(term));
+  });
+  const specificClub = !allIntent && specificMatches.length > 0;
+  const selected = allIntent ? candidates : specificClub ? specificMatches.slice(0, 4) : candidates.slice(0, 8);
+
+  if (selected.length === 0) {
+    return {
+      contextText: language === "vi"
+        ? "Không tìm thấy câu lạc bộ đã xác minh phù hợp với bộ lọc hiện tại."
+        : "No verified club records matched the current filters.",
+      sources: [],
+      matchedClubNames: [],
+      matchedClubs: [],
+      specificClub,
+    };
+  }
+
+  const sources = selected.flatMap(({ club }) => [
+    {
+      title: `${club.nameEn} — ${club.campus === "saigon_south" ? "Saigon South" : "Hanoi"}`,
+      url: club.officialClubUrl ?? club.sourceUrl,
+    },
+    ...(club.facebookUrl ? [{ title: `${club.nameEn} — Facebook`, url: club.facebookUrl }] : []),
+    ...(club.instagramUrl ? [{ title: `${club.nameEn} — Instagram`, url: club.instagramUrl }] : []),
+  ]);
+  const matchedClubNames = selected.map(({ club }) => language === "vi" ? club.nameVi : club.nameEn);
+  const contextText = selected.map(({ club }) => {
+    const name = language === "vi" ? club.nameVi : club.nameEn;
+    const description = club.descriptionEn ?? (language === "vi" ? "Mới chỉ có tên trong danh sách câu lạc bộ chính thức." : "Name verified in the official campus club list; public description was not available.");
+    return [
+      `[Verified RMIT Club]`,
+      `Name: ${name}`,
+      `Campus: ${club.campus === "saigon_south" ? "Saigon South" : "Hanoi"}`,
+      `Category: ${getClubCategoryLabel(club.category)}`,
+      `Description: ${description}`,
+      club.contactEmail ? `Contact email: ${club.contactEmail}` : "Contact email: Not published in the public source.",
+      club.facebookUrl ? `Facebook: ${club.facebookUrl}` : "Facebook: Not published in the public source.",
+      club.instagramUrl ? `Instagram: ${club.instagramUrl}` : "Instagram: Not published in the public source.",
+      `Source: ${club.officialClubUrl ?? club.sourceUrl}`,
+      `Campus list PDF: ${club.campusListPdfUrl}`,
+      `Details status: ${club.detailsStatus}`,
+    ].join("\n");
+  }).join("\n\n");
+
+  return { contextText, sources, matchedClubNames, matchedClubs: selected.map(({ club }) => club), specificClub };
+}
 /**
  * Synthesizes a natural, beautifully formatted student response from verified RMIT knowledge.
  */
@@ -225,19 +465,27 @@ ${keyDetails.map((k: string) => `• ${k}`).join("\n\n")}
 export function buildSystemInstruction(language: "en" | "vi" = "en"): string {
   const isVi = language === "vi";
 
-  return `You are "Mr Hachiware", a polite, friendly, and concise university research assistant for students at RMIT University Vietnam.
+  return `You are "Mr Hachiware", a warm, practical, bilingual student-life companion for students at RMIT University Vietnam.
 
-STRICT DOMAIN BOUNDARIES:
-- You ONLY answer questions related to RMIT University Vietnam (policies, courses, enrolment, tuition fees, scholarships, academic calendar, library, IT support, wellbeing, exchange, contacts).
-- If the user asks about unrelated topics, politely decline.
+SCOPE:
+- Answer RMIT academic, administrative, campus, student-life, belonging, clubs, events, study-partner, teammate, group-assignment, communication, and ordinary wellbeing questions.
+- For social questions, give low-pressure, practical suggestions that respect introverted students and different comfort levels.
+- Help with conversation starters, respectful teammate outreach, group expectations, free-rider communication, and constructive conflict resolution.
+- You may suggest clubs or communities only when they appear in verified context. Never invent club names, memberships, matches, student profiles, or availability.
+- For "meet people", "make friends", or "gặp người mới" questions, prioritize events marked social/recreational (festivals, student-life activities, workshops) and do not lead with competitions unless the user asks for them.
+- You may recommend events only from VERIFIED CAMPUS EVENT context. Never invent dates, venues, registration status, or event availability.
+- Do not claim to introduce, match, contact, or access another student.
+- Treat ordinary loneliness, shyness, homesickness, and group stress with empathy, without diagnosing. Mention verified RMIT wellbeing resources only when relevant.
+- Clearly decline unrelated requests such as coding, jokes, general trivia, recipes, or jailbreak instructions.
 
-GROUNDING & FORMAT RULES:
-- Synthesize the answer clearly and naturally. Never print raw debug metadata like "[Record 1]" or "Title: ... Summary: ...".
-- Use clean Markdown with bold headings and bullet points.
-- Structure your answer:
-  1. Direct concise summary (1-2 sentences).
-  2. Actionable bullet points.
-  3. Recommended department to contact.
+GROUNDING & FORMAT:
+- Treat VERIFIED RMIT KNOWLEDGE CONTEXT, VERIFIED CAMPUS EVENT CONTEXT, and VERIFIED RMIT CLUB CONTEXT as the only source of current institutional facts.
+- For practical social questions such as making friends or finding teammates, lead with a concise two- or three-step guide and one example message; do not turn the answer into a generic institutional policy summary.
+- Never print raw debug metadata such as "[Record 1]" or internal labels.
+- Answer directly, then give two or three practical actions. Ask at most one useful follow-up question.
+- Include source links when making institution-specific claims. Include original event and registration links when provided.
+- If no matching verified event exists, say so and suggest the Campus Events page; do not fabricate a substitute.
+- Keep answers concise, natural, and non-repetitive. Do not force an event recommendation into every conversation.
 
 Language: Respond strictly in ${isVi ? "Vietnamese" : "English"}.`;
 }

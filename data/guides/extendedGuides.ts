@@ -23,7 +23,7 @@ export const EXTENDED_GUIDES: ResearchGuide[] = [
     descriptionEn: "Complete roadmap on selecting complementary minors (48 credit points) across Business (TBS), Tech (SSET), and Design (SCD) aligned with your strengths and industry demand.",
     descriptionVi: "Cẩm nang chiến lược chọn Minor (48 tín chỉ / 4 môn) liên ngành: kết hợp Kinh doanh, Công nghệ và Truyền thông để nhân đôi lợi thế cạnh tranh khi tốt nghiệp.",
     readTimeMinutes: 6,
-    imageUrl: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/libraryvn-site/library-news/library-header.jpg",
     steps: [
       {
         number: 1,
@@ -73,7 +73,7 @@ export const EXTENDED_GUIDES: ResearchGuide[] = [
     descriptionEn: "Essential student walkthrough for RMIT Vietnam's learning portal: submitting assignments, checking Turnitin similarity reports, calculating grades, and setting notification alerts.",
     descriptionVi: "Hướng dẫn thực tế sử dụng hệ thống học tập Canvas LMS tại RMIT Việt Nam: cách nộp bài, đọc kết quả báo cáo Turnitin, tính điểm môn học và cài đặt thông báo hạn nộp bài.",
     readTimeMinutes: 5,
-    imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/pride-week.jpg",
     steps: [
       {
         number: 1,
@@ -118,7 +118,7 @@ export const EXTENDED_GUIDES: ResearchGuide[] = [
     descriptionEn: "Complete email templates for consultations, extensions, grade feedback, group work disputes, and recommendation letters.",
     descriptionVi: "Bộ văn mẫu chuẩn mực kèm khung điền sẵn: xin lịch hẹn consult, xin gia hạn nộp bài, hỏi nhận xét điểm số, xử lý thành viên nhóm không làm bài và xin thư giới thiệu.",
     readTimeMinutes: 6,
-    imageUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/x-day-2022.jpg",
     steps: [
       {
         number: 1,
@@ -155,7 +155,7 @@ export const EXTENDED_GUIDES: ResearchGuide[] = [
     descriptionEn: "Complete verified guide to student clubs, sports teams, and societies at RMIT Vietnam. How to register during Club Day and contact Student Life.",
     descriptionVi: "Danh bạ câu lạc bộ và đội tuyển thể thao chính thức tại RMIT Việt Nam (Nam Sài Gòn & Hà Nội). Cách đăng ký trong ngày hội Club Day và thông tin liên hệ phòng Student Life.",
     readTimeMinutes: 5,
-    imageUrl: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/sports-day-2022.jpg",
     steps: [
       {
         number: 1,

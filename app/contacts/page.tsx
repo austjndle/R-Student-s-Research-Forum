@@ -129,19 +129,16 @@ export default function ContactsPage() {
                         </span>
                       </div>
                       <button
+                        type="button"
                         onClick={() => handleCopyEmail(dept.email!)}
-                        className="min-h-11 shrink-0 border border-[var(--border)] bg-[var(--surface)] px-2 text-[11px] font-medium transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                        aria-label="Copy to clipboard"
+                        title={copiedEmail === dept.email ? (language === "vi" ? "Đã sao chép" : "Copied") : "Copy to clipboard"}
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         {copiedEmail === dept.email ? (
-                          <>
-                            <Check className="w-3 h-3 text-emerald-500" />
-                            <span>{t.common.copied}</span>
-                          </>
+                          <Check className="h-4 w-4 text-emerald-500" aria-hidden="true" />
                         ) : (
-                          <>
-                            <Copy className="w-3 h-3" />
-                            <span>{t.common.copy}</span>
-                          </>
+                          <Copy className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
                         )}
                       </button>
                     </div>

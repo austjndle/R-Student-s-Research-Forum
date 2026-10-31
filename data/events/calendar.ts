@@ -11,6 +11,12 @@ export type Campus = "saigon_south" | "hanoi" | "all";
 export type PublicationStatus = "published" | "draft" | "archived";
 export type EventVerification = "verified" | "tentative" | "manual_review_required";
 
+export interface RegistrationLink {
+  labelEn: string;
+  labelVi: string;
+  url: string;
+}
+
 export interface CalendarEntry {
   id: string;
   type: CalendarEntryType;
@@ -27,6 +33,7 @@ export interface CalendarEntry {
   startAt: string;
   endAt?: string;
   registrationUrl?: string;
+  registrationLinks?: RegistrationLink[];
   originalUrl: string;
   sourceId: string;
   sourceType: "official_website" | "official_facebook";
@@ -118,6 +125,18 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     campus: "all",
     startAt: "2026-10-31T00:00:00+07:00",
     endAt: "2026-11-08T23:59:59+07:00",
+    registrationLinks: [
+      {
+        labelEn: "Register SGS",
+        labelVi: "Đăng ký Nam Sài Gòn",
+        url: "https://apps.rmit.edu.vn/r/26Carnival-studentSGS",
+      },
+      {
+        labelEn: "Register Hanoi",
+        labelVi: "Đăng ký Hà Nội",
+        url: "https://apps.rmit.edu.vn/r/26Carnival-StudentHN",
+      },
+    ],
     originalUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/rmit-carnival-2026",
     sourceId: "rmit-student-activities",
     sourceType: "official_website",
@@ -138,6 +157,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     campus: "all",
     startAt: "2026-11-02T00:00:00+07:00",
     endAt: "2026-11-10T23:59:59+07:00",
+    registrationUrl: "https://apps.rmit.edu.vn/r/SUSWeek2026Registration",
     originalUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/sustainability-week",
     sourceId: "rmit-student-activities",
     sourceType: "official_website",
@@ -159,6 +179,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     venueEn: "RMIT Saigon South",
     venueVi: "RMIT Nam Sài Gòn",
     startAt: "2026-11-05T00:00:00+07:00",
+    registrationUrl: "https://rmit.tfaforms.net/forms/help/3237",
     originalUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/rmit-deloitte-hr-roundtable-2026",
     sourceId: "rmit-events",
     sourceType: "official_website",
@@ -179,7 +200,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     campus: "all",
     startAt: "2026-11-15T00:00:00+07:00",
     endAt: "2026-11-29T23:59:59+07:00",
-    registrationUrl: "https://teams.microsoft.com/l/message/19:2ce64469-f3ec-4813-a9ea-ccd22cfc0354_a173455c-1fa4-422e-8a7e-e6193b7fabc3@unq.gbl.spaces/1791798970300?context=%7B%22contextType%22%3A%22chat%22%7D",
+    registrationUrl: "https://experienceday.rmit.edu.vn/en/?utm_source=Website&utm_medium=Eventpage&utm_content=Event_ENG&utm_campaign=SGS_ExperienceDay_291126",
     originalUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/experience-day-2026",
     sourceId: "rmit-events",
     sourceType: "official_website",
@@ -200,6 +221,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     campus: "all",
     startAt: "2026-09-20T00:00:00+07:00",
     endAt: "2026-12-06T23:59:59+07:00",
+    registrationUrl: "https://www.rmit.edu.vn/events/all-events/2026/september-2026/rmit-business-plan-competition-2026#register",
     originalUrl: "https://www.rmit.edu.vn/events/all-events/2026/september-2026/rmit-business-plan-competition-2026",
     sourceId: "rmit-events",
     sourceType: "official_website",

@@ -36,7 +36,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-15",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/rmit-sgs-campus-facilities/2015-campus-photos/rmit-sgs-b2-inside-12.jpg",
     relatedDocIds: ["doc-student-connect", "doc-enrolment-deadlines", "doc-credit-transfer"]
   },
   {
@@ -73,7 +73,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-20",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1577495508048-b635879837f1?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/current-students/student-council.jpg",
     relatedDocIds: ["doc-change-major", "doc-enrolment-deadlines"]
   },
   {
@@ -110,8 +110,110 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-18",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/rmit-hanoi-campus-facilities/rmit-hanoi-campus-facilities-06.jpg",
     relatedDocIds: ["doc-tuition-payment", "doc-student-connect"]
+  },
+  {
+    id: "doc-scholarship-vice-chancellor",
+    slug: "rmit-vice-chancellor-scholarship",
+    titleEn: "RMIT Vice-Chancellor's Scholarship",
+    titleVi: "Học bổng Hiệu trưởng RMIT",
+    categoryId: "scholarships",
+    keywords: ["vice chancellor scholarship", "full scholarship", "100% tuition", "hoc bong hieu truong", "hoc bong toan phan"],
+    synonymsEn: ["RMIT full tuition scholarship", "leadership scholarship"],
+    synonymsVi: ["học bổng toàn phần RMIT", "học bổng lãnh đạo"],
+    summaryEn: "The Vice-Chancellor's Scholarship is listed by RMIT Vietnam as a 100% tuition scholarship for outstanding holistic student leaders.",
+    summaryVi: "Học bổng Hiệu trưởng được RMIT Việt Nam giới thiệu là học bổng 100% học phí dành cho sinh viên xuất sắc toàn diện và có tố chất lãnh đạo.",
+    detailedGuidanceEn: "Review the official scholarship directory for the current intake, eligibility rules, required English evidence, academic records, portfolio or video requirements, and submission deadline.",
+    detailedGuidanceVi: "Hãy xem cổng thông tin học bổng chính thức để kiểm tra đợt tuyển hiện tại, điều kiện, minh chứng tiếng Anh, bảng điểm, portfolio hoặc video và hạn nộp hồ sơ.",
+    keyDetailsEn: [
+      "Coverage: 100% tuition according to the curated RMIT record.",
+      "Profile: Outstanding holistic student leaders.",
+      "Documents: English evidence, academic transcripts, and supporting portfolio or video may be required.",
+      "Always confirm the current intake details on the official scholarship directory."
+    ],
+    keyDetailsVi: [
+      "Mức hỗ trợ: 100% học phí theo bản ghi RMIT đã xác minh.",
+      "Đối tượng: Sinh viên có thành tích nổi bật và tố chất lãnh đạo toàn diện.",
+      "Hồ sơ: Có thể cần chứng chỉ tiếng Anh, bảng điểm và portfolio hoặc video minh chứng.",
+      "Luôn đối chiếu đợt tuyển hiện tại trên cổng học bổng chính thức."
+    ],
+    officialSourceUrl: "https://www.rmit.edu.vn/vi/hoc-tap-tai-rmit/hoc-bong",
+    sourceTitle: "RMIT Vietnam Official Scholarships Directory",
+    departmentId: "dept-scholarships",
+    campus: "all",
+    lastVerifiedDate: "2026-10-18",
+    verificationStatus: "verified",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/career-fair-2022.jpg",
+    relatedDocIds: ["doc-scholarships-types"]
+  },
+  {
+    id: "doc-scholarship-academic-merit",
+    slug: "rmit-academic-merit-scholarship",
+    titleEn: "RMIT Academic Merit Scholarship",
+    titleVi: "Học bổng Thành tích học thuật RMIT",
+    categoryId: "scholarships",
+    keywords: ["academic merit scholarship", "25% scholarship", "50% scholarship", "hoc bong thanh tich hoc thuat", "gpa hoc bong"],
+    synonymsEn: ["academic excellence scholarship", "GPA scholarship"],
+    synonymsVi: ["học bổng GPA", "học bổng thành tích"],
+    summaryEn: "RMIT Vietnam's curated scholarship record describes Academic Merit awards as 25%–50% tuition deductions for high-performing students.",
+    summaryVi: "Bản ghi học bổng RMIT Việt Nam mô tả Học bổng Thành tích học thuật là mức miễn giảm 25%–50% học phí dành cho sinh viên có thành tích cao.",
+    detailedGuidanceEn: "Check the official scholarship portal for the current GPA threshold, intake deadline, English requirements, and documents. Scholarship continuation requirements can apply each semester.",
+    detailedGuidanceVi: "Kiểm tra cổng học bổng chính thức để biết ngưỡng GPA, hạn nộp, yêu cầu tiếng Anh và hồ sơ của đợt hiện tại. Học bổng có thể có điều kiện duy trì theo từng học kỳ.",
+    keyDetailsEn: [
+      "Coverage: 25%–50% tuition deduction according to the curated RMIT record.",
+      "Selection: Academic performance and the current published criteria.",
+      "Documents: Academic transcripts and valid English evidence may be required.",
+      "Confirm the exact semester cut-off date on the official portal."
+    ],
+    keyDetailsVi: [
+      "Mức hỗ trợ: Miễn giảm 25%–50% học phí theo bản ghi RMIT đã xác minh.",
+      "Xét duyệt: Thành tích học tập và tiêu chí được công bố cho từng đợt.",
+      "Hồ sơ: Có thể cần bảng điểm và chứng chỉ tiếng Anh hợp lệ.",
+      "Xem hạn nộp chính xác của từng học kỳ trên cổng chính thức."
+    ],
+    officialSourceUrl: "https://www.rmit.edu.vn/vi/hoc-tap-tai-rmit/hoc-bong",
+    sourceTitle: "RMIT Vietnam Official Scholarships Directory",
+    departmentId: "dept-scholarships",
+    campus: "all",
+    lastVerifiedDate: "2026-10-18",
+    verificationStatus: "verified",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/rmit-sgs-campus-facilities/2015-campus-photos/rmit-sgs-b2-inside-12.jpg",
+    relatedDocIds: ["doc-scholarships-types"]
+  },
+  {
+    id: "doc-scholarship-discipline-awards",
+    slug: "rmit-discipline-specific-scholarships",
+    titleEn: "RMIT Discipline-Specific Scholarships",
+    titleVi: "Học bổng theo chuyên ngành RMIT",
+    categoryId: "scholarships",
+    keywords: ["discipline specific scholarship", "program scholarship", "major scholarship", "hoc bong chuyen nganh", "hoc bong theo nganh"],
+    synonymsEn: ["subject scholarship", "program-specific award"],
+    synonymsVi: ["học bổng theo ngành", "học bổng chương trình"],
+    summaryEn: "RMIT Vietnam's scholarship overview includes discipline-specific awards alongside Vice-Chancellor's and Academic Merit scholarships.",
+    summaryVi: "Tổng quan học bổng RMIT Việt Nam bao gồm các học bổng theo chuyên ngành bên cạnh học bổng Hiệu trưởng và Thành tích học thuật.",
+    detailedGuidanceEn: "Use the official scholarship directory to check whether your intended program has a current discipline-specific award. Do not assume an award applies to every program or campus.",
+    detailedGuidanceVi: "Tra cứu cổng học bổng chính thức để kiểm tra chương trình của bạn có học bổng theo chuyên ngành trong đợt hiện tại hay không. Không mặc định học bổng áp dụng cho mọi chương trình hoặc cơ sở.",
+    keyDetailsEn: [
+      "Availability: Program and intake specific.",
+      "Eligibility: Follow the criteria published for the relevant discipline.",
+      "Application: Use the official RMIT scholarship channel for the current cycle.",
+      "Confirm coverage, deadline, and continuation rules before applying."
+    ],
+    keyDetailsVi: [
+      "Phạm vi: Phụ thuộc chương trình và đợt tuyển.",
+      "Điều kiện: Theo tiêu chí được công bố cho từng chuyên ngành.",
+      "Ứng tuyển: Sử dụng kênh học bổng chính thức của RMIT cho đợt hiện tại.",
+      "Xác nhận mức hỗ trợ, hạn nộp và điều kiện duy trì trước khi nộp."
+    ],
+    officialSourceUrl: "https://www.rmit.edu.vn/vi/hoc-tap-tai-rmit/hoc-bong",
+    sourceTitle: "RMIT Vietnam Official Scholarships Directory",
+    departmentId: "dept-scholarships",
+    campus: "all",
+    lastVerifiedDate: "2026-10-18",
+    verificationStatus: "verified",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/student-activities-01.jpg",
+    relatedDocIds: ["doc-scholarships-types"]
   },
   {
     id: "doc-tuition-payment",
@@ -147,7 +249,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-12",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/career-fair-2022.jpg",
     relatedDocIds: ["doc-scholarships-types", "doc-enrolment-deadlines"]
   },
   {
@@ -184,7 +286,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-22",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/headers/rmit-events-home-header.jpg",
     relatedDocIds: ["doc-academic-calendar", "doc-change-major"]
   },
   {
@@ -224,7 +326,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-30",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/2026/exp-day-2026/experience-day-2026-thumbnail-1200x800.jpg",
     relatedDocIds: ["doc-enrolment-deadlines"]
   },
   {
@@ -261,7 +363,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-19",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/libraryvn-site/library-news/library-header.jpg",
     relatedDocIds: ["doc-it-support", "doc-campus-facilities"]
   },
   {
@@ -298,7 +400,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-25",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/rmit-hanoi-campus-facilities/rmit-hanoi-campus-facilities-06.jpg",
     relatedDocIds: ["doc-library-services", "doc-student-connect"]
   },
   {
@@ -335,7 +437,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-14",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1514395462725-fb4566210144?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/student-activities-01.jpg",
     relatedDocIds: ["doc-enrolment-deadlines", "doc-tuition-payment"]
   },
   {
@@ -372,7 +474,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-21",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/wellbeing-day-2022.jpg",
     relatedDocIds: ["doc-student-connect"]
   },
   {
@@ -411,7 +513,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-16",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/2026/rbpc-2026/rbpc-2026-1200x800.jpg",
     relatedDocIds: ["doc-change-major", "doc-enrolment-deadlines"]
   },
   {
@@ -448,7 +550,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-24",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/pride-week.jpg",
     relatedDocIds: ["doc-grading-gpa-scale", "doc-wellbeing-counseling"]
   },
   {
@@ -488,7 +590,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-25",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/sports-day-2022.jpg",
   },
   {
     id: "doc-orientation-getting-started",
@@ -525,7 +627,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-28",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/welcome-day-22.jpg",
     relatedDocIds: ["doc-student-connect", "doc-it-support"],
   },
   {
@@ -562,7 +664,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-26",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/student-site/2026/carnival-2026/thumbnail-carnival-2026.jpg",
     relatedDocIds: ["doc-student-connect"],
   },
   {
@@ -600,7 +702,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-30",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://s7ap1.scene7.com/is/image/rmit/rmit-hanoi-campus-facilities-10?wid=800",
     relatedDocIds: ["doc-grading-gpa-scale", "doc-scholarships-types"],
   },
   {
@@ -638,7 +740,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-30",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/marketing/provincial-tour-2026/2026-provincial-thumbnail-1200x800.jpg",
     relatedDocIds: ["doc-canvas-lms-guide", "doc-student-connect"]
   },
   {
@@ -675,7 +777,7 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     campus: "all",
     lastVerifiedDate: "2026-10-30",
     verificationStatus: "verified",
-    imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/rmit-sgs-campus-facilities/indoor-general/students-hanging-out-4.jpg",
     relatedDocIds: ["doc-it-support", "doc-email-lecturers-consult"]
   }
 ];

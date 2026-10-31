@@ -140,11 +140,11 @@ export default function GuideDetailPage({
           </span>
         </div>
 
-        <h1 className="text-2xl sm:text-4xl font-extrabold text-[var(--main-text)] leading-tight">
+        <h1 className="max-w-5xl break-words text-2xl font-extrabold leading-tight text-[var(--main-text)] sm:text-4xl">
           {language === "vi" ? guide.titleVi : guide.titleEn}
         </h1>
 
-        <p className="text-sm sm:text-base text-[var(--secondary-text)] leading-relaxed">
+        <p className="editorial-copy max-w-4xl text-sm leading-relaxed text-[var(--secondary-text)] sm:text-base">
           {language === "vi" ? guide.descriptionVi : guide.descriptionEn}
         </p>
 

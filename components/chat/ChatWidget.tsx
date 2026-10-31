@@ -152,14 +152,14 @@ export function ChatWidget() {
   const sampleQuestions =
     language === "vi"
       ? [
-          "Thủ tục đổi ngành học RMIT như thế nào?",
-          "Lịch học kỳ và ngày Census Date gần nhất?",
-          "Cách đăng ký xét học bổng thành tích học tập?",
+          "Làm sao để kết bạn ở RMIT?",
+          "Tuần này có sự kiện nào để gặp bạn mới không?",
+          "Mình tìm teammate đáng tin cho bài tập như thế nào?",
         ]
       : [
-          "How do I apply for internal program transfer?",
-          "When is the upcoming Census Date?",
-          "What are the GPA requirements for scholarships?",
+          "How can I make friends at RMIT?",
+          "Are there events this week where I can meet people?",
+          "How do I find reliable assignment teammates?",
         ];
 
   return (
@@ -168,7 +168,7 @@ export function ChatWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-50 flex items-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-full bg-[var(--accent)] hover:opacity-95 text-white shadow-lg transition-all hover:scale-105 active:scale-95 group border border-white/20"
+          className="fixed bottom-20 right-4 z-50 flex items-center gap-1.5 rounded-full border border-white/20 bg-[var(--accent)] px-3 py-2 text-white shadow-lg transition-all hover:scale-105 hover:opacity-95 active:scale-95 group sm:bottom-5 sm:right-5 sm:px-3.5 sm:py-2.5"
           aria-label="Open AI Assistant"
         >
           <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white animate-pulse shrink-0" />
