@@ -32,7 +32,7 @@ export default function TopicDetailPage({
   const documents = KNOWLEDGE_DOCUMENTS.filter((d) => d.categoryId === category.id);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="editorial-shell space-y-8">
       {/* Back button */}
       <div>
         <Link
@@ -59,7 +59,7 @@ export default function TopicDetailPage({
         {documents.map((doc) => (
           <article
             key={doc.id}
-            className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] shadow-xs hover:border-[var(--accent)] hover:shadow-md transition-all overflow-hidden flex flex-col md:flex-row group"
+            className="editorial-card flex flex-col transition-colors hover:border-[var(--accent)] md:flex-row group"
           >
             {/* Card Image Thumbnail */}
             {doc.imageUrl && (
@@ -77,11 +77,11 @@ export default function TopicDetailPage({
             <div className="p-5 sm:p-6 flex-1 space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-medium text-[11px]">
+                  <span className="inline-flex items-center gap-1 border border-emerald-300/60 bg-emerald-50 px-2.5 py-1 font-medium text-[11px] text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-400">
                     <ShieldCheck className="w-3.5 h-3.5" />
                     <span>{t.common.verified} ({doc.lastVerifiedDate})</span>
                   </span>
-                  <span className="text-[11px] text-[var(--secondary-text)] uppercase font-mono px-2 py-0.5 rounded bg-[var(--surface-elevated)]">
+                  <span className="border border-[var(--border)] bg-[var(--surface-elevated)] px-2 py-1 text-[11px] uppercase text-[var(--secondary-text)] font-mono">
                     {doc.campus}
                   </span>
                 </div>
@@ -96,7 +96,7 @@ export default function TopicDetailPage({
               </div>
 
             {/* Key Details */}
-            <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] space-y-2">
+            <div className="editorial-info space-y-2 p-4">
               <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
                 {t.search.keyDetails}
               </h4>
@@ -131,7 +131,7 @@ export default function TopicDetailPage({
         ))}
 
         {documents.length === 0 && (
-          <div className="p-12 text-center rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] space-y-2">
+          <div className="editorial-panel space-y-2 p-12 text-center">
             <BookOpen className="w-10 h-10 text-[var(--secondary-text)] mx-auto opacity-50" />
             <p className="text-sm text-[var(--secondary-text)]">
               No specific documents cataloged under this topic yet.

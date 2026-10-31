@@ -38,7 +38,7 @@ export default function CampusHoursPage() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="editorial-shell space-y-8">
       {/* Header */}
       <div className="space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[var(--badge-border)] bg-[var(--badge-bg)] text-[var(--badge-text)] text-xs font-semibold">
@@ -58,12 +58,12 @@ export default function CampusHoursPage() {
       </div>
 
       {/* Campus Selector & Search */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-2 rounded-2xl bg-[var(--surface-elevated)] border border-[var(--border)]">
+      <div className="editorial-panel flex flex-col gap-4 p-2 sm:flex-row sm:items-center sm:justify-between">
         {/* Tabs */}
-        <div className="flex items-center gap-1 bg-[var(--surface)] p-1 rounded-xl border border-[var(--border)] self-start sm:self-auto">
+        <div className="flex items-center gap-1 border border-[var(--border)] bg-[var(--surface)] p-1">
           <button
             onClick={() => setActiveCampus("saigon_south")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`min-h-11 px-4 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
               activeCampus === "saigon_south"
                 ? "bg-[var(--accent)] text-white shadow-xs"
                 : "text-[var(--secondary-text)] hover:text-[var(--main-text)]"
@@ -73,7 +73,7 @@ export default function CampusHoursPage() {
           </button>
           <button
             onClick={() => setActiveCampus("hanoi")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`min-h-11 px-4 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
               activeCampus === "hanoi"
                 ? "bg-[var(--accent)] text-white shadow-xs"
                 : "text-[var(--secondary-text)] hover:text-[var(--main-text)]"
@@ -95,16 +95,16 @@ export default function CampusHoursPage() {
                 ? "Tìm tầng, thư viện, gym, phòng máy..."
                 : "Filter floor, library, gym, labs..."
             }
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] focus:outline-none focus:border-[var(--accent)]"
+            className="editorial-control w-full px-9 py-1.5 text-xs focus:outline-none"
           />
         </div>
       </div>
 
       {/* FEATURE BANNER: RMIT SPACE LIVE ROOM FINDER (FOR ALL CAMPUSES & ALL BUILDINGS) */}
-      <div className="p-5 sm:p-6 rounded-2xl border border-[var(--border)] bg-gradient-to-r from-red-600/10 via-[var(--surface-elevated)] to-[var(--surface-elevated)] flex flex-col md:flex-row md:items-center justify-between gap-5 shadow-xs">
+      <div className="editorial-card flex flex-col gap-5 bg-[var(--surface-elevated)] p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1.5 max-w-2xl">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--accent)] uppercase tracking-wider">
-            <span className="text-base select-none">🔍</span>
+            <Search className="h-4 w-4" aria-hidden="true" />
             <span>{language === "vi" ? "Công cụ tra cứu phòng học trống theo thời gian thực" : "Live Empty Classroom & Study Space Finder"}</span>
           </div>
           <h2 className="text-base sm:text-lg font-bold text-[var(--main-text)]">
@@ -144,7 +144,7 @@ export default function CampusHoursPage() {
           <a
             key={b.id}
             href={`#${b.id}`}
-            className="px-2.5 py-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] hover:border-[var(--accent)] hover:text-[var(--accent)] text-[var(--main-text)] transition-colors"
+            className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-2.5 text-xs text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             {language === "vi" ? b.nameVi.split("(")[0] : b.nameEn.split("(")[0]}
           </a>
@@ -157,7 +157,7 @@ export default function CampusHoursPage() {
           <div
             key={building.id}
             id={building.id}
-            className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] shadow-xs overflow-hidden scroll-mt-24 space-y-4"
+            className="editorial-card scroll-mt-24 space-y-4"
           >
             {/* Building Header & Action Links */}
             <div className="p-5 sm:p-6 border-b border-[var(--border)] bg-[var(--surface-elevated)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -181,9 +181,9 @@ export default function CampusHoursPage() {
                     href={building.floorPlanPdfUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-xl border border-[var(--border)] hover:border-[var(--accent)] bg-[var(--surface)] hover:bg-[var(--hover)] text-xs font-semibold text-[var(--main-text)] inline-flex items-center gap-1.5 transition-colors shadow-2xs"
+                    className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
-                    <span>🗺️ {language === "vi" ? "Sơ đồ mặt bằng (PDF)" : "Floor Plan (PDF)"}</span>
+                    <span className="inline-flex items-center gap-1.5"><MapPin className="h-3 w-3 text-[var(--accent)]" aria-hidden="true" />{language === "vi" ? "Sơ đồ mặt bằng (PDF)" : "Floor Plan (PDF)"}</span>
                     <ExternalLink className="w-3 h-3 text-[var(--accent)]" />
                   </a>
                 )}
@@ -192,7 +192,7 @@ export default function CampusHoursPage() {
                     href={building.googleMapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-3 py-1.5 rounded-xl border border-[var(--border)] hover:border-[var(--accent)] bg-[var(--surface)] hover:bg-[var(--hover)] text-xs font-semibold text-[var(--main-text)] inline-flex items-center gap-1.5 transition-colors shadow-2xs"
+                    className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <MapPin className="w-3 h-3 text-[var(--accent)]" />
                     <span>Google Maps</span>
@@ -202,7 +202,7 @@ export default function CampusHoursPage() {
             </div>
             {/* Floors Table */}
             {/* Floors Table with responsive horizontal scroll and generous column proportions */}
-            <div className="p-5 sm:p-6 pt-0 overflow-x-auto">
+            <div className="editorial-scroll p-5 pt-0 sm:p-6 sm:pt-0">
               <table className="w-full text-left text-xs sm:text-sm border-collapse min-w-[760px] md:min-w-full">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--secondary-text)]">
@@ -222,8 +222,8 @@ export default function CampusHoursPage() {
                       <td className="py-4 px-4 text-xs sm:text-sm text-[var(--secondary-text)] leading-relaxed align-top">
                         <div className="font-normal text-[var(--main-text)]/90">{language === "vi" ? floor.facilitiesVi : floor.facilitiesEn}</div>
                         {(floor.notesVi || floor.notesEn) && (
-                          <div className="mt-2.5 p-3 sm:p-3.5 rounded-xl bg-[var(--surface)] dark:bg-[var(--surface-elevated)] border border-[var(--border)] text-xs text-[var(--main-text)] leading-relaxed shadow-xs flex items-start gap-2.5 w-full">
-                            <span className="text-base select-none mt-[-2px] shrink-0">📌</span>
+                          <div className="editorial-info mt-2.5 flex w-full items-start gap-2.5 p-3 text-xs leading-relaxed sm:p-3.5">
+                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
                             <span className="flex-1 font-medium text-[var(--main-text)] leading-normal">{language === "vi" ? floor.notesVi : floor.notesEn}</span>
                           </div>
                         )}

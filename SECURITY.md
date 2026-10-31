@@ -14,19 +14,19 @@
 - Non-personalized Smart Search and static assets utilize edge caching (`Cache-Control: public, s-maxage=300, stale-while-revalidate=600`).
 
 ### WAF and `workers.dev` Domain Rules
-- **Subdomain Findings:** The active Cloudflare account has the worker subdomain `ledangquynhanh712`.
-- Direct `workers.dev` endpoints benefit from Cloudflare's platform-level DDoS filtering.
-- Account-level worker name: `r-students-research`.
-- Resulting Workers URL: `https://r-students-research.ledangquynhanh712.workers.dev`.
-- Custom domain purchase is strictly prohibited per requirements. Renaming the root account subdomain requires Cloudflare Dashboard action (`Workers & Pages` -> `Change Subdomain`), which may disrupt other deployed workers (`austin-le-portfolio`, `sac-mau-binh-dang-lgbt`).
+- The existing production URL remains `https://r-students-searchsite.rstuhub.workers.dev`.
+- No custom domain, unrelated Worker, or account-level subdomain is changed by this update.
+- Cloudflare's edge network provides platform-level DDoS filtering; application endpoints still enforce input validation and rate limits.
 
 ### Content Security Policy & HTTP Response Headers
-The application enforces strict defensive headers:
+The Worker applies defensive headers to static assets, API responses, and rendered pages:
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: strict-origin-when-cross-origin`
-- `Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://generativelanguage.googleapis.com;`
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+- `Content-Security-Policy` with same-origin defaults, `frame-ancestors 'none'`, `object-src 'none'`, HTTPS image sources, and a restricted Gemini connection target.
 
+The current Next.js/Vinext runtime still emits inline bootstrap and style content, so the CSP contains `unsafe-inline` for `script-src` and `style-src`. **TODO(security):** replace those allowances with framework-supported nonces or hashes before tightening this policy further.
 ---
 
 ## 2. API Protection & Fair-Use Rate Limiting
@@ -58,3 +58,30 @@ The application enforces strict defensive headers:
 Tested using Vitest & k6 scenarios:
 - **500 Concurrent Searches:** Completed in **< 150ms** with 0% error rate.
 - **Race Condition Resistance:** 20 simultaneous quota reservation attempts on a 10-quota visitor allowed exactly 10 and blocked exactly 10 without overdraft.
+## 5. Calendar Sources & Private Event Review
+
+- Public calendar entries are static, source-linked records from the verified registry in `data/events/sources.ts`.
+- Candidate events must use a registered source, HTTPS URLs, bounded text fields, valid ISO dates, and an allowed category/campus before storage.
+- The private `/api/admin/events` workflow requires a bearer token from the `EVENT_ADMIN_TOKEN` Cloudflare secret. Missing configuration fails closed.
+- Drafts and review status are stored in the `EventReviewDurableObject`; the public UI can read only published static entries.
+- Review actions are limited to `GET`, `POST`, and `PATCH`; unsupported HTTP methods are rejected by the Worker.
+- Facebook is manual/admin-assisted only. Personal credentials, cookies, access tokens, private messages, and authenticated browser sessions are never stored or sent to production.
+- **TODO(security):** connect admin identity to an organization-managed OIDC/RBAC provider before expanding the private workflow beyond a small maintainer group.
+
+---
+
+## 6. Verification Plan
+
+### Functional
+- Type-check the application and run all Vitest suites.
+- Build the Vinext output with the existing Wrangler configuration.
+- Exercise `/`, `/search`, `/calendar`, and `/events`.
+- Verify English/Vietnamese switching, light/dark themes, source links, filters, and view modes.
+- Confirm the existing Smart Search and Mr Hachiware routes remain available.
+
+### Security
+- Confirm unauthenticated requests to `/api/admin/events` return `401`.
+- Confirm missing `EVENT_ADMIN_TOKEN` cannot authorize a request.
+- Submit invalid event payloads and verify rejection of unregistered sources, non-HTTPS URLs, oversized fields, and invalid dates.
+- Verify no secrets, cookies, or tokens are rendered in public HTML or logged by the Worker.
+- Check security headers on rendered pages, static assets, and API responses.

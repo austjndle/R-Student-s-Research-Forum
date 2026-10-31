@@ -3,37 +3,39 @@
 @tailwind utilities;
 
 :root {
-  --background: #FFFFFF;
+  --background: #F7F7F5;
   --surface: #FFFFFF;
-  --surface-elevated: #F8FAFC;
-  --main-text: #0F172A;
-  --secondary-text: #475569;
-  --accent: #E60028; /* RMIT Red */
-  --accent-hover: #C50022;
-  --border: #E2E8F0;
-  --hover: #F8FAFC;
+  --surface-elevated: #EEF1F5;
+  --main-text: #20242B;
+  --secondary-text: #667085;
+  --primary-navy: #0B1F46;
+  --accent: #E2231A;
+  --accent-hover: #B91C14;
+  --border: #D9DDE3;
+  --hover: #F0F2F5;
   --card-bg: #FFFFFF;
-  --card-border: #E2E8F0;
-  --badge-bg: #FEF2F2;
-  --badge-text: #B91C1C;
-  --badge-border: #FECACA;
+  --card-border: #D9DDE3;
+  --badge-bg: #FBE9E7;
+  --badge-text: #A61B14;
+  --badge-border: #F2B8B5;
 }
 
 .dark {
-  --background: #09090B;
-  --surface: #121215;
-  --surface-elevated: #1C1C22;
-  --main-text: #F8FAFC;
-  --secondary-text: #94A3B8;
-  --accent: #FF334B;
-  --accent-hover: #E60028;
-  --border: #27272A;
-  --hover: #18181B;
-  --card-bg: #121215;
-  --card-border: #27272A;
-  --badge-bg: rgba(230, 0, 40, 0.15);
-  --badge-text: #FCA5A5;
-  --badge-border: rgba(239, 68, 68, 0.3);
+  --background: #101827;
+  --surface: #182438;
+  --surface-elevated: #21314A;
+  --main-text: #F5F6F8;
+  --secondary-text: #AEB9C9;
+  --primary-navy: #0B1F46;
+  --accent: #FF5B54;
+  --accent-hover: #FF807A;
+  --border: #34445D;
+  --hover: #22324A;
+  --card-bg: #182438;
+  --card-border: #34445D;
+  --badge-bg: rgba(255, 91, 84, 0.14);
+  --badge-text: #FFB2AD;
+  --badge-border: rgba(255, 91, 84, 0.35);
 }
 
 body {
@@ -43,4 +45,87 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+a,
+select,
+input {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+.editorial-shell {
+  width: min(100% - 2rem, 1200px);
+  margin-inline: auto;
+  padding-block: 2.5rem 5rem;
+}
+
+.editorial-card,
+.editorial-panel,
+.editorial-info {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.editorial-card {
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+}
+
+.editorial-panel {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.editorial-info {
+  border-left: 3px solid var(--accent);
+  background: var(--surface-elevated);
+}
+
+.editorial-copy,
+.editorial-copy a,
+.editorial-copy code,
+.editorial-card a,
+.editorial-info a {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.editorial-control {
+  min-height: 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0 !important;
+  background: var(--surface);
+  color: var(--main-text);
+}
+
+.editorial-control:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.editorial-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }

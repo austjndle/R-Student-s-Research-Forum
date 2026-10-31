@@ -24,6 +24,7 @@ import {
   Laptop,
   Trophy,
   Dumbbell,
+  Sparkles,
 } from "lucide-react";
 
 function SearchContent() {
@@ -69,7 +70,7 @@ function SearchContent() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="editorial-shell space-y-8">
       {/* Header and Search Controls */}
       <div className="space-y-4">
         <h1 className="text-3xl font-extrabold text-[var(--main-text)]">
@@ -88,7 +89,7 @@ function SearchContent() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t.hero.searchPlaceholder}
-              className="w-full pl-11 pr-4 py-3 text-sm rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] focus:outline-none focus:border-[var(--accent)] transition-colors shadow-xs"
+              className="editorial-control w-full px-11 py-3 text-sm focus:outline-none"
             />
           </div>
           {/* Modern Custom Category Dropdown */}
@@ -98,7 +99,7 @@ function SearchContent() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="appearance-none pl-9 pr-9 py-3 text-xs sm:text-sm font-medium rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--hover)] text-[var(--main-text)] focus:outline-none focus:border-[var(--accent)] transition-all cursor-pointer shadow-xs w-full sm:w-auto"
+                className="editorial-control w-full appearance-none px-9 py-3 text-xs font-medium focus:outline-none sm:w-auto sm:min-w-40"
               >
                 <option value="all" className="bg-[var(--surface)] text-[var(--main-text)]">
                   {t.search.allCategories}
@@ -120,8 +121,9 @@ function SearchContent() {
           <span>
             {results.length} {t.search.resultsFound} for &quot;{query}&quot;
           </span>
-          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">
-            ⚡ 100% Free Smart Search (Zero AI Quota Used)
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-600 dark:text-emerald-400">
+            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+            100% Free Smart Search (Zero AI Quota Used)
           </span>
         </div>
       )}
@@ -137,7 +139,7 @@ function SearchContent() {
           return (
             <article
               key={doc.id}
-              className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] shadow-xs hover:border-[var(--accent)] hover:shadow-md transition-all overflow-hidden flex flex-col md:flex-row group"
+              className="editorial-card flex flex-col transition-colors hover:border-[var(--accent)] md:flex-row group"
             >
               {/* Clickable Thumbnail Illustration */}
               {doc.imageUrl && (
@@ -162,7 +164,7 @@ function SearchContent() {
 
                   <div className="flex items-center gap-1.5 text-xs">
                     {isVerified && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-medium text-[11px]">
+                      <span className="inline-flex items-center gap-1 border border-emerald-300/60 bg-emerald-50 px-2.5 py-1 font-medium text-[11px] text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-400">
                         <ShieldCheck className="w-3.5 h-3.5" />
                         <span>{t.common.verified} ({doc.lastVerifiedDate})</span>
                       </span>
@@ -181,7 +183,7 @@ function SearchContent() {
 
                   <Link
                     href={detailUrl}
-                    className="px-4 py-2 rounded-xl bg-[var(--accent)] hover:opacity-95 active:scale-95 text-white text-xs font-semibold shrink-0 flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer w-max"
+                    className="min-h-11 shrink-0 bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <span>{language === "vi" ? "Xem chi tiết & Mẫu đáp án" : "View Answers & Templates"}</span>
                     <ChevronRight className="w-4 h-4" />
@@ -191,7 +193,7 @@ function SearchContent() {
                 {/* Best Answer Box (Clickable directly into guide/topic) */}
                 <Link
                   href={detailUrl}
-                  className="block p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] hover:bg-[var(--hover)] hover:border-[var(--accent)] transition-all space-y-1.5 cursor-pointer group/ans"
+                  className="editorial-info block cursor-pointer space-y-1.5 p-4 transition-colors hover:border-[var(--accent)]"
                 >
                   <div className="flex items-center justify-between text-xs font-semibold text-[var(--accent)] uppercase tracking-wider">
                     <span>{t.search.bestAnswer}</span>
@@ -236,7 +238,7 @@ function SearchContent() {
                   </button>
 
                   {isCardExpanded && (
-                    <div className="mt-3 p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] text-xs sm:text-sm text-[var(--main-text)] space-y-3 animate-in fade-in duration-200">
+                    <div className="editorial-info mt-3 space-y-3 p-4 text-xs text-[var(--main-text)] sm:text-sm">
                       <div className="whitespace-pre-line leading-relaxed">
                         {language === "vi" ? doc.detailedGuidanceVi : doc.detailedGuidanceEn}
                       </div>
@@ -312,7 +314,7 @@ function SearchContent() {
         {/* Empty state */}
         {/* If query has text but no matches found */}
         {query.trim() && results.length === 0 && (
-          <div className="p-12 text-center rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] space-y-4">
+          <div className="editorial-panel space-y-4 p-12 text-center">
             <HelpCircle className="w-10 h-10 text-[var(--secondary-text)] mx-auto opacity-60" />
             <div className="space-y-1">
               <h3 className="font-bold text-lg text-[var(--main-text)]">
@@ -329,8 +331,8 @@ function SearchContent() {
         {!query.trim() && results.length === 0 && (
           <div className="space-y-6 pt-2 animate-in fade-in duration-300">
             <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-[var(--secondary-text)] flex items-center gap-1.5">
-                <span className="text-[var(--accent)] font-bold text-base leading-none">✦</span>
+              <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--secondary-text)]">
+                <Sparkles className="h-4 w-4 text-[var(--accent)]" aria-hidden="true" />
                 <span>{language === "vi" ? "Gợi ý những chủ đề sinh viên RMIT hay thắc mắc nhất" : "Frequently Asked Questions & Trending Topics"}</span>
               </span>
             </div>
@@ -392,10 +394,10 @@ function SearchContent() {
                     setQuery(item.query);
                     executeSearch(item.query, selectedCategory);
                   }}
-                  className="p-5 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] hover:border-[var(--accent)] hover:shadow-md transition-all text-left flex flex-col justify-between group space-y-4 cursor-pointer"
+                  className="editorial-card flex cursor-pointer flex-col justify-between space-y-4 p-5 text-left transition-colors group hover:border-[var(--accent)]"
                 >
                   <div className="space-y-3">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--badge-bg)] text-[var(--accent)] flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <div className="flex h-10 w-10 items-center justify-center border border-[var(--badge-border)] bg-[var(--badge-bg)] text-[var(--accent)] transition-colors group-hover:border-[var(--accent)]">
                       <item.Icon className="w-5 h-5" />
                     </div>
                     <h3 className="font-bold text-sm sm:text-base text-[var(--main-text)] group-hover:text-[var(--accent)] transition-colors leading-snug">

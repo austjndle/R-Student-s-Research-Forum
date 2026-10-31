@@ -34,72 +34,70 @@ R-Students' Research Forum is a high-performance web platform built specifically
 ```text
 R-students' research hub/
 ├── app/
-│   ├── api/
-│   │   ├── chat/route.ts      # Gemini AI proxy + RAG + circuit breaker
-│   │   ├── search/route.ts    # Smart Search endpoint + burst limiter
-│   │   └── usage/route.ts     # Daily AI quota inspection
-│   ├── search/page.tsx        # Smart Search interface
-│   ├── guides/page.tsx        # Research Guides index
-│   ├── guides/[slug]/page.tsx # Detailed guide view
-│   ├── topics/page.tsx        # Topic categories
-│   ├── topics/[slug]/page.tsx # Detailed topic view
-│   ├── contacts/page.tsx      # Verified University Contact Directory
-│   ├── about/page.tsx         # About the project & mission
-│   ├── privacy/page.tsx       # Privacy & Cookie policy
-│   ├── globals.css            # Semantic theme design tokens
-│   ├── layout.tsx             # Root layout with Navbar & Footer
-│   └── page.tsx               # Homepage with Hero, Topics & Guides
+│   ├── api/                  # Existing Gemini, usage, and search routes
+│   ├── calendar/page.tsx     # Unified academic dates and campus events
+│   ├── events/page.tsx       # Campus events view
+│   ├── search/page.tsx       # Smart Search interface
+│   ├── guides/               # Research Guides
+│   ├── topics/               # Topic categories
+│   ├── contacts/             # Verified University Contact Directory
+│   ├── about/                # About, source registry, and independence notice
+│   ├── globals.css           # Swiss Academic semantic design tokens
+│   ├── layout.tsx            # Root layout with navigation, footer, and assistant
+│   └── page.tsx              # Search-first Swiss Academic homepage
 ├── components/
-│   ├── layout/
-│   │   ├── Navbar.tsx         # Responsive navbar with EN/VI and Theme toggles
-│   │   └── Footer.tsx         # Footer with official links and disclaimers
-│   ├── chat/
-│   │   └── ChatWidget.tsx     # Expandable Gemini AI Assistant widget
-│   └── Providers.tsx          # Language and Theme context providers
+│   ├── calendar/CalendarExplorer.tsx # Accessible calendar and event filters
+│   ├── layout/               # Responsive Navbar and Footer
+│   └── chat/                 # Existing Gemini AI Assistant widget
 ├── data/
-│   ├── knowledge/
-│   │   ├── schema.ts          # Knowledge schemas & categories
-│   │   └── documents.ts       # Verified RMIT records
-│   ├── contacts/
-│   │   └── departments.ts     # Verified department contact channels
-│   └── guides/
-│       └── guides.ts          # 7 step-by-step student research guides
+│   ├── events/               # Verified sources and curated calendar entries
+│   ├── knowledge/            # Verified RMIT records
+│   ├── contacts/             # Department contact channels
+│   └── guides/               # Student research guides
 ├── durable-objects/
-│   └── ai-quota.ts            # Cloudflare Durable Object for atomic 10/day quota
+│   ├── ai-quota.ts           # Atomic anonymous AI quota
+│   └── event-review.ts       # Private event draft and approval storage
 ├── lib/
-│   ├── ai/gemini.ts           # RAG pipeline, domain filtering, system prompts
-│   ├── search/engine.ts       # Diacritic stripping, synonym mapping, weighted scoring
-│   ├── rate-limit/session.ts  # HMAC signed visitor tokens & memory quota fallback
-│   ├── i18n/                  # Translations (EN & VI) and context
-│   └── utils.ts               # Class merging helpers
-├── load-tests/                # k6 load testing scripts
-├── tests/                     # Vitest unit & load tests
-├── wrangler.jsonc             # Cloudflare Workers configuration
-└── SECURITY.md                # Security and production hardening documentation
+│   ├── events/               # Admin token verification and candidate validation
+│   ├── ai/                   # Gemini proxy and RAG
+│   ├── search/               # Bilingual search engine
+│   └── i18n/                 # English/Vietnamese translations
+├── worker/                   # Cloudflare Worker entry and API router
+├── tests/                    # Vitest unit and concurrency tests
+├── wrangler.jsonc            # Cloudflare Workers configuration
+└── SECURITY.md               # Security and production hardening documentation
 ```
 ### Live Deployment
 - **Production URL:** [https://r-students-searchsite.rstuhub.workers.dev](https://r-students-searchsite.rstuhub.workers.dev)
 - **Cloudflare Worker:** `r-students-searchsite`
 - **Account Subdomain:** `rstuhub`
-bun install
-```
 
 ### Environment Variables
-Copy `.env.example` to `.dev.vars` or set environment secrets in Cloudflare:
+Copy `.env.example` to `.dev.vars` for local development. Production secrets must be stored with Wrangler:
+```bash
+npx wrangler secret put GEMINI_API_KEY
+npx wrangler secret put ANONYMOUS_SESSION_SECRET
+npx wrangler secret put EVENT_ADMIN_TOKEN
+```
+
+Non-secret variables are defined in `wrangler.jsonc`:
 ```env
-GEMINI_API_KEY=your_gemini_api_key_here
 GEMINI_MODEL=gemini-2.5-flash
-ANONYMOUS_SESSION_SECRET=your_hmac_secret_here
 AI_DAILY_LIMIT=10
 APP_TIMEZONE=Asia/Ho_Chi_Minh
 ```
 
+`EVENT_ADMIN_TOKEN` protects the private `/api/admin/events` review workflow. It is not needed by public visitors. Facebook event discovery is manual/admin-assisted; no personal Facebook credentials, cookies, or tokens enter the Worker.
+
 ### Running Tests
 ```bash
+bun run check
 bun run test --config vitest.config.ts
 ```
 
-### Cloudflare Deployment
+### Cloudflare Build
 ```bash
-npx wrangler deploy
+bun run build:vinext
 ```
+
+Deployment remains on the existing Worker and production URL. Do not deploy changes until an authorized maintainer explicitly approves the release.

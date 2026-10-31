@@ -106,7 +106,7 @@ export default function GuideDetailPage({
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <div className="editorial-shell space-y-10">
       {/* Back button */}
       <div>
         <Link
@@ -121,7 +121,7 @@ export default function GuideDetailPage({
       {/* Guide Header */}
       <header className="space-y-4">
         {guide.imageUrl && (
-          <div className="h-60 sm:h-72 w-full rounded-2xl overflow-hidden bg-[var(--surface-elevated)] relative mb-6">
+          <div className="editorial-card relative mb-6 h-60 w-full overflow-hidden sm:h-72">
             <img
               src={guide.imageUrl}
               alt={guide.titleEn}
@@ -158,24 +158,24 @@ export default function GuideDetailPage({
               <>
                 <a
                   href="#email-templates"
-                  className="px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] hover:border-[var(--accent)] hover:text-[var(--accent)] text-xs font-semibold text-[var(--main-text)] transition-colors inline-flex items-center gap-1 shadow-2xs"
+                  className="min-h-11 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
-                  <span>✉️ {language === "vi" ? "Văn mẫu Email Giảng viên" : "Email Templates"}</span>
+                  <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{language === "vi" ? "Văn mẫu Email Giảng viên" : "Email Templates"}</span>
                 </a>
                 <a
                   href="#ai-prompts"
-                  className="px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] hover:border-[var(--accent)] hover:text-[var(--accent)] text-xs font-semibold text-[var(--main-text)] transition-colors inline-flex items-center gap-1 shadow-2xs"
+                  className="min-h-11 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
-                  <span>✨ {language === "vi" ? "Mẫu AI Prompts học vụ" : "AI Prompts"}</span>
+                  <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{language === "vi" ? "Mẫu AI Prompts học vụ" : "AI Prompts"}</span>
                 </a>
               </>
             )}
             <a
               href="#guide-steps"
-              className="px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] hover:border-[var(--accent)] hover:text-[var(--accent)] text-xs font-semibold text-[var(--main-text)] transition-colors inline-flex items-center gap-1 shadow-2xs"
+              className="min-h-11 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
-              <span>📋 {
-                guide.slug.includes("calendar") 
+              <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{
+                guide.slug.includes("calendar")
                   ? (language === "vi" ? "Các mốc thời gian quan trọng" : "Key Milestones")
                   : guide.slug.startsWith("how-to") || guide.slug.startsWith("huong-dan")
                     ? (language === "vi" ? "Các bước thực hiện" : "Action Steps")
@@ -185,9 +185,9 @@ export default function GuideDetailPage({
             {guide.officialReferences.length > 0 && (
               <a
                 href="#official-references"
-                className="px-3 py-1.5 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] hover:border-[var(--accent)] hover:text-[var(--accent)] text-xs font-semibold text-[var(--main-text)] transition-colors inline-flex items-center gap-1 shadow-2xs"
+                className="min-h-11 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
-                <span>🔗 {t.guides.officialReferences}</span>
+                <span className="inline-flex items-center gap-1.5"><ExternalLink className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{t.guides.officialReferences}</span>
               </a>
             )}
           </div>
@@ -214,7 +214,7 @@ export default function GuideDetailPage({
               return (
                 <div
                   key={tpl.id}
-                  className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] shadow-xs overflow-hidden"
+                  className="editorial-card"
                 >
                   <div className="p-5 sm:p-6 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -229,7 +229,7 @@ export default function GuideDetailPage({
 
                       <button
                         onClick={() => handleCopy(`Subject: ${subject}\n\n${body}`, tpl.id)}
-                        className="px-3 py-1.5 rounded-xl border border-[var(--border)] hover:border-[var(--accent)] bg-[var(--surface-elevated)] hover:bg-[var(--hover)] text-xs font-semibold text-[var(--main-text)] flex items-center gap-1.5 transition-all self-start sm:self-auto shrink-0"
+                        className="min-h-11 shrink-0 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         {copiedId === tpl.id ? (
                           <>
@@ -250,10 +250,10 @@ export default function GuideDetailPage({
                     </p>
 
                     {/* Subject line preview */}
-                    <div className="p-3 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] flex items-center justify-between gap-3 text-xs">
+                    <div className="editorial-info flex items-center justify-between gap-3 p-3 text-xs">
                       <div className="flex items-center gap-2 truncate">
                         <span className="font-semibold text-[var(--secondary-text)] shrink-0">Subject:</span>
-                        <span className="font-mono text-[var(--main-text)] truncate">{subject}</span>
+                        <span className="min-w-0 break-words font-mono text-[var(--main-text)]">{subject}</span>
                       </div>
                       <button
                         onClick={() => handleCopy(subject, `sub-${tpl.id}`)}
@@ -264,7 +264,7 @@ export default function GuideDetailPage({
                     </div>
 
                     {/* Body preview */}
-                    <div className="p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] font-sans text-xs sm:text-sm text-[var(--main-text)] whitespace-pre-wrap leading-relaxed">
+                    <div className="editorial-copy whitespace-pre-wrap p-4 font-sans text-xs leading-relaxed text-[var(--main-text)] sm:text-sm">
                       {body}
                     </div>
 
@@ -312,7 +312,7 @@ export default function GuideDetailPage({
               return (
                 <div
                   key={p.id}
-                  className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] shadow-xs p-5 flex flex-col justify-between space-y-4 hover:border-[var(--accent)] transition-all"
+                  className="editorial-card flex flex-col justify-between space-y-4 p-5 transition-colors hover:border-[var(--accent)]"
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between gap-2">
@@ -322,7 +322,7 @@ export default function GuideDetailPage({
 
                       <button
                         onClick={() => handleCopy(promptText, p.id)}
-                        className="px-2.5 py-1 rounded-lg border border-[var(--border)] hover:border-[var(--accent)] bg-[var(--surface-elevated)] hover:bg-[var(--hover)] text-xs font-semibold text-[var(--main-text)] flex items-center gap-1 transition-all shrink-0"
+                        className="min-h-11 shrink-0 border border-[var(--border)] bg-[var(--surface-elevated)] px-2.5 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         {copiedId === p.id ? (
                           <>
@@ -345,7 +345,7 @@ export default function GuideDetailPage({
                       {purpose}
                     </p>
 
-                    <div className="p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)] font-mono text-[11px] leading-relaxed text-[var(--main-text)]/90 whitespace-pre-wrap max-h-48 overflow-y-auto">
+                    <div className="editorial-copy max-h-48 overflow-y-auto p-3.5 font-mono text-[11px] leading-relaxed text-[var(--main-text)]/90">
                       {promptText}
                     </div>
                   </div>
@@ -374,10 +374,10 @@ export default function GuideDetailPage({
           {guide.steps.map((step) => (
             <div
               key={step.number}
-              className="p-5 sm:p-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] space-y-3 shadow-2xs"
+              className="editorial-card space-y-3 p-5 sm:p-6"
             >
               <div className="flex items-center gap-3">
-                <span className="w-7 h-7 rounded-full bg-[var(--accent)] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--accent)] bg-[var(--accent)] font-bold text-xs text-white">
                   {step.number}
                 </span>
                 <h3 className="font-bold text-sm sm:text-base text-[var(--main-text)]">
@@ -393,7 +393,7 @@ export default function GuideDetailPage({
                     href={step.actionLink.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[var(--accent)] hover:opacity-90 text-white text-xs font-semibold shadow-2xs transition-all w-max"
+                    className="min-h-11 inline-flex items-center gap-1.5 bg-[var(--accent)] px-3.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     <span>{language === "vi" ? step.actionLink.labelVi : step.actionLink.labelEn}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -407,7 +407,7 @@ export default function GuideDetailPage({
 
       {/* Official References */}
       {guide.officialReferences.length > 0 && (
-        <section id="official-references" className="p-5 sm:p-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-elevated)] space-y-3 scroll-mt-24">
+        <section id="official-references" className="editorial-info space-y-3 p-5 scroll-mt-24 sm:p-6">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--main-text)]">
             {t.guides.officialReferences}
           </h3>
@@ -440,7 +440,7 @@ export default function GuideDetailPage({
               <Link
                 key={rel.id}
                 href={`/guides/${rel.slug}`}
-                className="p-4 rounded-xl border border-[var(--border)] bg-[var(--card-bg)] hover:border-[var(--accent)] transition-all flex items-center justify-between group"
+                className="editorial-card flex items-center justify-between p-4 transition-colors group hover:border-[var(--accent)]"
               >
                 <span className="text-xs sm:text-sm font-semibold text-[var(--main-text)] group-hover:text-[var(--accent)] transition-colors line-clamp-1">
                   {language === "vi" ? rel.titleVi : rel.titleEn}

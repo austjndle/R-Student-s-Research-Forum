@@ -31,6 +31,8 @@ export interface Translations {
     contacts: string;
     about: string;
     search: string;
+    calendar: string;
+    events: string;
     language: string;
     theme: string;
   };
@@ -166,6 +168,8 @@ export const translations: Record<Language, Translations> = {
       contacts: "Contact Directory",
       about: "About",
       search: "Search",
+      calendar: "Calendar",
+      events: "Campus Events",
       language: "Language",
       theme: "Theme",
     },
@@ -294,11 +298,13 @@ export const translations: Record<Language, Translations> = {
     },
     nav: {
       home: "Trang chủ",
-      guides: "Hướng dẫn tra cứu",
+      guides: "Hướng dẫn",
       topics: "Chủ đề",
-      contacts: "Danh bạ phòng ban",
+      contacts: "Danh bạ",
       about: "Giới thiệu",
       search: "Tìm kiếm",
+      calendar: "Lịch",
+      events: "Sự kiện",
       language: "Ngôn ngữ",
       theme: "Giao diện",
     },

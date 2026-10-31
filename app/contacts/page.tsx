@@ -50,7 +50,7 @@ export default function ContactsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="editorial-shell space-y-8">
       {/* Title & Filters */}
       <div className="space-y-4">
         <div className="space-y-2">
@@ -71,14 +71,14 @@ export default function ContactsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t.contacts.searchPlaceholder}
-              className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] focus:outline-none focus:border-[var(--accent)]"
+              className="editorial-control w-full px-10 pr-4 text-sm focus:outline-none"
             />
           </div>
 
           <select
             value={selectedCampus}
             onChange={(e) => setSelectedCampus(e.target.value)}
-            className="px-3 py-2.5 text-sm rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] focus:outline-none focus:border-[var(--accent)]"
+            className="editorial-control px-3 text-sm focus:outline-none"
           >
             <option value="all">{t.common.allCampuses}</option>
             <option value="saigon_south">{t.common.saigonSouth}</option>
@@ -95,7 +95,7 @@ export default function ContactsPage() {
           return (
             <div
               key={dept.id}
-              className="p-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] shadow-sm hover:border-[var(--accent)] transition-all space-y-5 flex flex-col justify-between"
+              className="editorial-card space-y-5 p-6 transition-colors hover:border-[var(--accent)]"
             >
               <div className="space-y-4">
                 {/* Header */}
@@ -121,16 +121,16 @@ export default function ContactsPage() {
                 {/* Primary Contacts */}
                 <div className="space-y-2 text-xs">
                   {dept.email && (
-                    <div className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)]">
+                    <div className="editorial-info flex items-center justify-between p-2.5">
                       <div className="flex items-center gap-2 truncate">
                         <Mail className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
-                        <span className="font-mono text-[var(--main-text)] truncate">
+                        <span className="min-w-0 break-words font-mono text-[var(--main-text)]">
                           {dept.email}
                         </span>
                       </div>
                       <button
                         onClick={() => handleCopyEmail(dept.email!)}
-                        className="px-2 py-1 rounded bg-[var(--surface)] border border-[var(--border)] text-[11px] font-medium hover:text-[var(--accent)] transition-colors shrink-0 flex items-center gap-1"
+                        className="min-h-11 shrink-0 border border-[var(--border)] bg-[var(--surface)] px-2 text-[11px] font-medium transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         {copiedEmail === dept.email ? (
                           <>
@@ -148,7 +148,7 @@ export default function ContactsPage() {
                   )}
 
                   {dept.phone && (
-                    <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border)]">
+                    <div className="editorial-info flex items-start gap-2 p-2.5">
                       <Phone className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
                       <span className="font-mono text-[var(--main-text)]">
                         {dept.phone}
@@ -169,12 +169,12 @@ export default function ContactsPage() {
 
                 {/* Expandable Responsibilities & Enquiries */}
                 {isExpanded && (
-                  <div className="space-y-3 pt-3 border-t border-[var(--border)] text-xs">
+                  <div id={`department-details-${dept.id}`} className="editorial-copy space-y-3 border-t border-[var(--border)] pt-3 text-xs">
                     <div className="space-y-1">
                       <h4 className="font-bold text-[var(--main-text)]">
                         {t.contacts.responsibilities}:
                       </h4>
-                      <ul className="list-disc pl-4 space-y-1 text-[var(--secondary-text)]">
+                      <ul className="list-disc space-y-1 pl-4 text-[var(--secondary-text)]">
                         {(language === "vi" ? dept.responsibilitiesVi : dept.responsibilitiesEn).map(
                           (item, i) => (
                             <li key={i}>{item}</li>
@@ -187,7 +187,7 @@ export default function ContactsPage() {
                       <h4 className="font-bold text-[var(--main-text)]">
                         {t.contacts.typicalEnquiries}:
                       </h4>
-                      <ul className="list-disc pl-4 space-y-1 text-[var(--secondary-text)]">
+                      <ul className="list-disc space-y-1 pl-4 text-[var(--secondary-text)]">
                         {(language === "vi" ? dept.typicalEnquiriesVi : dept.typicalEnquiriesEn).map(
                           (item, i) => (
                             <li key={i}>{item}</li>
@@ -200,10 +200,12 @@ export default function ContactsPage() {
               </div>
 
               {/* Card Footer Actions */}
-              <div className="pt-4 border-t border-[var(--border)] flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between border-t border-[var(--border)] pt-4 text-xs">
                 <button
                   onClick={() => toggleExpand(dept.id)}
-                  className="font-medium text-[var(--secondary-text)] hover:text-[var(--main-text)] flex items-center gap-1 transition-colors"
+                  aria-expanded={isExpanded}
+                  aria-controls={`department-details-${dept.id}`}
+                  className="inline-flex min-h-11 items-center gap-1 font-medium text-[var(--secondary-text)] transition-colors hover:text-[var(--main-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
                   <span>{isExpanded ? "Collapse" : t.contacts.responsibilities}</span>
                   {isExpanded ? (

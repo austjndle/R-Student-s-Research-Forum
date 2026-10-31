@@ -27,8 +27,10 @@ export function Navbar() {
   const navLinks = [
     { href: "/", label: t.nav.home },
     { href: "/search", label: t.nav.search },
+    { href: "/calendar", label: t.nav.calendar },
+    { href: "/events", label: t.nav.events },
     { href: "/guides", label: t.nav.guides },
-    { href: "/facilities", label: language === "vi" ? "Giờ mở cửa tòa nhà" : "Campus Hours" },
+    { href: "/facilities", label: language === "vi" ? "Giờ mở cửa" : "Campus Hours" },
     { href: "/topics", label: t.nav.topics },
     { href: "/contacts", label: t.nav.contacts },
   ];
@@ -41,35 +43,32 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[var(--border)] bg-[var(--surface)]/90 backdrop-blur-md transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full border-b border-[var(--border)] bg-[var(--surface)] transition-colors">
+      <div className="mx-auto flex h-[72px] max-w-[1200px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         {/* Brand Logo & Name */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-white border border-[var(--border)] shadow-xs flex items-center justify-center overflow-hidden p-0.5 group-hover:scale-105 transition-transform shrink-0">
-            <img src="/cat-meme.png" alt="Chiikawa Cat Meme" className="w-full h-full object-contain" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-semibold text-base sm:text-lg tracking-tight text-[var(--main-text)]">
-              R-Students
-            </span>
-            <span className="text-[10px] sm:text-xs text-[var(--secondary-text)] -mt-1 hidden sm:inline-block">
-              Research Forum
-            </span>
-          </div>
+        <Link href="/" className="group flex shrink-0 items-center gap-3 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center bg-[var(--primary-navy)] text-xl font-bold text-white transition-colors duration-200 group-hover:bg-[var(--accent)]" aria-hidden="true">
+            R
+            <span className="absolute bottom-1 right-1 h-1.5 w-1.5 bg-[var(--accent)] group-hover:bg-white" />
+          </span>
+          <span className="flex shrink-0 flex-col">
+            <span className="text-base font-semibold tracking-tight text-[var(--main-text)] sm:text-lg">R-Students</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--secondary-text)]">Research Forum</span>
+          </span>
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0 md:flex lg:gap-1">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`min-h-11 whitespace-nowrap border-b-2 px-2 py-2 text-[11px] font-semibold leading-none transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 lg:px-2.5 ${
                   isActive
-                    ? "bg-[var(--surface-elevated)] text-[var(--accent)]"
-                    : "text-[var(--secondary-text)] hover:text-[var(--main-text)] hover:bg-[var(--hover)]"
+                    ? "border-[var(--accent)] text-[var(--accent)]"
+                    : "border-transparent text-[var(--secondary-text)] hover:border-[var(--border)] hover:text-[var(--main-text)]"
                 }`}
               >
                 {link.label}
@@ -79,11 +78,11 @@ export function Navbar() {
         </nav>
 
         {/* Right Action Icons: Language & Theme Switchers */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {/* Language Switcher */}
           <button
             onClick={toggleLanguage}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--hover)] text-[var(--main-text)] transition-colors"
+            className="flex min-h-11 cursor-pointer items-center gap-1.5 border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
             title="Switch Language"
             aria-label="Switch Language"
           >
@@ -94,7 +93,7 @@ export function Navbar() {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--hover)] text-[var(--main-text)] transition-colors"
+            className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
             title="Toggle theme"
             aria-label="Toggle theme"
           >
@@ -105,7 +104,7 @@ export function Navbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-[var(--secondary-text)] hover:text-[var(--main-text)] hover:bg-[var(--hover)]"
+            className="min-h-11 min-w-11 cursor-pointer text-[var(--secondary-text)] transition-colors duration-200 hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
             aria-label="Toggle mobile menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -115,7 +114,7 @@ export function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-[var(--border)] bg-[var(--surface)] px-4 pt-2 pb-4 space-y-1">
+        <div className="space-y-1 border-b border-[var(--border)] bg-[var(--surface)] px-4 pb-4 pt-2 md:hidden">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -123,10 +122,10 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                className={`block min-h-11 border-l-2 px-3 py-2 text-base font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   isActive
-                    ? "bg-[var(--surface-elevated)] text-[var(--accent)]"
-                    : "text-[var(--secondary-text)] hover:text-[var(--main-text)] hover:bg-[var(--hover)]"
+                    ? "border-[var(--accent)] text-[var(--accent)]"
+                    : "border-transparent text-[var(--secondary-text)] hover:border-[var(--border)] hover:text-[var(--main-text)]"
                 }`}
               >
                 {link.label}

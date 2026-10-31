@@ -8,7 +8,7 @@ export default function PrivacyPage() {
   const { language } = useLanguage();
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
+    <div className="editorial-shell space-y-10">
       <div className="space-y-3">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--badge-border)] bg-[var(--badge-bg)] text-[var(--badge-text)] text-xs font-semibold">
           <ShieldCheck className="w-3.5 h-3.5" />
@@ -24,7 +24,7 @@ export default function PrivacyPage() {
 
       <div className="space-y-6 text-sm sm:text-base text-[var(--main-text)]">
         {/* Section 1 */}
-        <section className="p-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] space-y-3">
+        <section className="editorial-panel space-y-3 p-6">
           <div className="flex items-center gap-2 text-[var(--accent)] font-bold text-lg">
             <Lock className="w-5 h-5" />
             <h2>1. Zero Personal Data Collection</h2>
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* Section 2 */}
-        <section className="p-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] space-y-3">
+        <section className="editorial-panel space-y-3 p-6">
           <div className="flex items-center gap-2 text-[var(--accent)] font-bold text-lg">
             <Cookie className="w-5 h-5" />
             <h2>2. Anonymous Visitor Cookie & Daily AI Quota</h2>
@@ -52,7 +52,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* Section 3 */}
-        <section className="p-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] space-y-3">
+        <section className="editorial-panel space-y-3 p-6">
           <div className="flex items-center gap-2 text-[var(--accent)] font-bold text-lg">
             <Bot className="w-5 h-5" />
             <h2>3. AI Processing & Google Gemini API</h2>
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
         </section>
 
         {/* Section 4 */}
-        <section className="p-6 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] space-y-3">
+        <section className="editorial-panel space-y-3 p-6">
           <div className="flex items-center gap-2 text-[var(--accent)] font-bold text-lg">
             <RefreshCw className="w-5 h-5" />
             <h2>4. Traffic Security & DDoS Safeguards</h2>

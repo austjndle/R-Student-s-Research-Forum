@@ -4,7 +4,9 @@
   "main": "./worker/entry.ts",
   "compatibility_date": "2026-10-30",
   "compatibility_flags": ["nodejs_compat"],
-  "workers_dev": true,
+  "triggers": {
+    "crons": ["0 2 * * *"]
+  },
   "ai": {
     "binding": "AI"
   },
@@ -13,6 +15,10 @@
       {
         "name": "AI_QUOTA_DO",
         "class_name": "AiQuotaDurableObject"
+      },
+      {
+        "name": "EVENT_REVIEW_DO",
+        "class_name": "EventReviewDurableObject"
       }
     ]
   },
@@ -20,6 +26,10 @@
     {
       "tag": "v1",
       "new_sqlite_classes": ["AiQuotaDurableObject"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["EventReviewDurableObject"]
     }
   ],
   "vars": {

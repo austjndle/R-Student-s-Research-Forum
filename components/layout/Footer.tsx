@@ -50,12 +50,22 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/topics" className="hover:text-[var(--accent)] transition-colors">
+                <Link href="/calendar" className="transition-colors hover:text-[var(--accent)]">
+                  {t.nav.calendar}
+                </Link>
+              </li>
+              <li>
+                <Link href="/events" className="transition-colors hover:text-[var(--accent)]">
+                  {t.nav.events}
+                </Link>
+              </li>
+              <li>
+                <Link href="/topics" className="transition-colors hover:text-[var(--accent)]">
                   {t.nav.topics}
                 </Link>
               </li>
               <li>
-                <Link href="/contacts" className="hover:text-[var(--accent)] transition-colors">
+                <Link href="/contacts" className="transition-colors hover:text-[var(--accent)]">
                   {t.nav.contacts}
                 </Link>
               </li>

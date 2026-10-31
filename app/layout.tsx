@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 
-const jakarta = Plus_Jakarta_Sans({
+const plexSans = IBM_Plex_Sans({
   subsets: ["vietnamese", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--font-sans",
 });
@@ -18,6 +18,13 @@ const inter = Inter({
   weight: ["400", "500", "600", "700"],
   display: "swap",
   variable: "--font-body",
+});
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ["vietnamese", "latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
@@ -47,11 +54,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={`${jakarta.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body className="flex flex-col min-h-screen font-sans antialiased text-[var(--main-text)] bg-[var(--background)]">
+    <html lang="vi" className={`${plexSans.variable} ${inter.variable} ${plexMono.variable}`} suppressHydrationWarning>
+      <body className="flex min-h-screen flex-col bg-[var(--background)] font-body antialiased text-[var(--main-text)]">
         <Providers>
+          <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-[var(--primary-navy)] focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white">
+            Skip to main content
+          </a>
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <main id="main-content" className="flex-1">{children}</main>
           <Footer />
           <ChatWidget />
         </Providers>
