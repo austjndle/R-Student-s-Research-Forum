@@ -9,6 +9,7 @@ import {
   buildRAGContext,
   buildEventContext,
   buildClubContext,
+  formatClubFallback,
 } from "../lib/ai/gemini";
 import {
   generateVisitorId,
@@ -104,6 +105,20 @@ describe("Gemini AI Guardrails and Scope Filter", () => {
     expect(clubs.matchedClubNames.some((name) => name.includes("Volleyball"))).toBe(true);
     expect(clubs.sources.some((source) => source.title.includes("Facebook"))).toBe(true);
   });
+  it("maps Cineverse to its own verified RMIT and Facebook pages", () => {
+    const clubs = buildClubContext("Does Cineverse require an interview?", "en");
+    expect(clubs.specificClub).toBe(true);
+    expect(clubs.matchedClubs[0]?.officialClubUrl).toContain("/cineverse-club");
+    expect(clubs.matchedClubs[0]?.facebookUrl).toBe("https://www.facebook.com/rmithanoicineverseclub");
+    expect(clubs.matchedClubs[0]?.recruitment.interviewRequired).toBe("not_confirmed");
+    expect(formatClubFallback("en", clubs)).toContain("Not confirmed");
+  });
+  it("does not infer a universal interview requirement", () => {
+    const clubs = buildClubContext("Do RMIT clubs require interviews?", "en");
+    expect(clubs.specificClub).toBe(false);
+    expect(clubs.recruitmentIntent).toBe(true);
+    expect(formatClubFallback("en", clubs)).toContain("do not confirm a universal interview");
+  });
   it("retrieves complete verified SGS academic club lists", () => {
     const clubs = buildClubContext("List all academic clubs at SGS", "en");
     expect(clubs.matchedClubNames.length).toBeGreaterThan(1);
@@ -130,6 +145,10 @@ describe("Anonymous Visitor Quota & Session Integrity", () => {
     const tampered = signed.slice(0, -4) + "abcd";
     const failedVerify = await verifySignedVisitorToken(tampered, secret);
     expect(failedVerify).toBeNull();
+  });
+  it("fails closed when the session signing secret is missing", async () => {
+    await expect(signVisitorId("visitor", "")).rejects.toThrow("Session signing secret is required.");
+    expect(await verifySignedVisitorToken("visitor.signature", "")).toBeNull();
   });
 
   it("enforces 10 questions per day limit atomically", () => {

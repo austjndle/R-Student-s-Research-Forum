@@ -1,4 +1,5 @@
 import officialPageMetadata from "./official-pages.json";
+import { getClubRecruitment, type ClubRecruitment } from "./recruitment";
 export type ClubCampus = "saigon_south" | "hanoi";
 export type ClubCategory = "academic" | "active" | "creative_collectives" | "social_special_interest";
 export type ClubDetailsStatus = "verified_detail" | "directory_only";
@@ -18,6 +19,7 @@ export interface ClubRecord {
   imageAlt?: string;
   sourceUrl: string;
   campusListPdfUrl: string;
+  recruitment: ClubRecruitment;
   lastVerifiedDate: string;
   detailsStatus: ClubDetailsStatus;
 }
@@ -67,6 +69,7 @@ function makeClub(seed: ClubSeed): ClubRecord {
     imageAlt: seed.imageAlt ?? (metadata?.imageAlt || `${seed.name} official club logo`),
     sourceUrl: seed.sourceUrl,
     campusListPdfUrl: seed.pdfUrl,
+    recruitment: getClubRecruitment(seed.id, seed.officialClubUrl ?? seed.sourceUrl, VERIFIED_ON),
     lastVerifiedDate: VERIFIED_ON,
     detailsStatus: metadata?.status === 200 || seed.descriptionEn ? "verified_detail" : "directory_only",
   };
@@ -90,6 +93,7 @@ export const VERIFIED_CLUBS: ClubRecord[] = [
   makeClub({ id: "sgs-finance", name: "Finance Club", campus: "saigon_south", category: "academic", sourceUrl: SGS_ACADEMIC, pdfUrl: SGS_PDF, officialClubUrl: `${SGS_ACADEMIC}/finance-club`, descriptionEn: "Creates a space for Economics and Finance students to connect and discuss their discipline." }),
   makeClub({ id: "sgs-golden-flames", name: "Golden Flames Competition Club", campus: "saigon_south", category: "academic", sourceUrl: SGS_ACADEMIC, pdfUrl: SGS_PDF, contactEmail: "gfcompetitionclub.sgs@rmit.edu.vn", officialClubUrl: `${SGS_ACADEMIC}/golden-flames-competition-club`, descriptionEn: "Connects RMIT students with peers and resources for university-level competitions." }),
   makeClub({ id: "sgs-debate", name: "Debate Club", campus: "saigon_south", category: "academic", sourceUrl: SGS_ACADEMIC, pdfUrl: SGS_PDF, contactEmail: "debateclub.sgs@rmit.edu.vn" }),
+  makeClub({ id: "sgs-human-development", name: "Human Development Club", campus: "saigon_south", category: "academic", sourceUrl: SGS_ACADEMIC, pdfUrl: SGS_PDF, contactEmail: "hdclub.sgs@rmit.edu.vn", officialClubUrl: `${SGS_ACADEMIC}/human-development-club`, descriptionEn: "A flexible environment for students interested in Human Resources Management and people development." }),
   makeClub({ id: "sgs-rise", name: "Innovation and Social Entrepreneurship", campus: "saigon_south", category: "academic", sourceUrl: SGS_ACADEMIC, pdfUrl: SGS_PDF, contactEmail: "riseclub.sgs@rmit.edu.vn", officialClubUrl: `${SGS_ACADEMIC}/innovation-social-entrepreneurship`, descriptionEn: "A community for young leaders interested in entrepreneurship and social innovation." }),
   makeClub({ id: "sgs-logistics", name: "Logistics Club", campus: "saigon_south", category: "academic", sourceUrl: SGS_ACADEMIC, pdfUrl: SGS_PDF, contactEmail: "logisticsclub.sgs@rmit.edu.vn", officialClubUrl: `${SGS_ACADEMIC}/logistics-club`, descriptionEn: "Connects students interested in Logistics and Supply Chain." }),
   makeClub({ id: "sgs-neo-culture-tech", name: "Neo Culture Tech Club", campus: "saigon_south", category: "academic", sourceUrl: SGS_ACADEMIC, pdfUrl: SGS_PDF, contactEmail: "neoculturetechclub.sgs@rmit.edu.vn", officialClubUrl: `${SGS_ACADEMIC}/neoculture-tech-club`, descriptionEn: "A community fueled by passion for technology and innovation." }),
@@ -134,7 +138,7 @@ export const VERIFIED_CLUBS: ClubRecord[] = [
   makeClub({ id: "hn-innovation-entrepreneurship", name: "Innovation and Entrepreneurship Club", campus: "hanoi", category: "academic", sourceUrl: HANOI_ACADEMIC, pdfUrl: HANOI_PDF, contactEmail: "ieclub.hn@rmit.edu.vn", officialClubUrl: `${HANOI_ACADEMIC}/innovation-and-entrepreneurship-club`, descriptionEn: "Empowers students to become innovative and entrepreneurial leaders through real-life experiences." }),
   makeClub({ id: "hn-basketball", name: "Basketball Club", campus: "hanoi", category: "active", sourceUrl: HANOI_ACTIVE, pdfUrl: HANOI_PDF, contactEmail: "basketballclub.hn@rmit.edu.vn", officialClubUrl: `${HANOI_ACTIVE}/basketball-club`, descriptionEn: "A healthy playground for students to develop fitness and basketball skills." }),
   makeClub({ id: "hn-football", name: "Football Club", campus: "hanoi", category: "active", sourceUrl: HANOI_ACTIVE, pdfUrl: HANOI_PDF, contactEmail: "footballclub.hn@rmit.edu.vn", officialClubUrl: `${HANOI_ACTIVE}/football-club`, descriptionEn: "A community for students who share Vietnam's passion for football." }),
-  makeClub({ id: "hn-cineverse", name: "Cineverse Club", campus: "hanoi", category: "creative_collectives", sourceUrl: HANOI_CREATIVE, pdfUrl: HANOI_PDF, contactEmail: "cineverseclub.hn@rmit.edu.vn", officialClubUrl: `${HANOI_CREATIVE}/current-media-club`, imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-arts-clubs/cineverse-logo.jpg", imageAlt: "Cineverse Club official logo", descriptionEn: "Nurtures creativity and connects individuals who share a love for film." }),
+  makeClub({ id: "hn-cineverse", name: "Cineverse Club", campus: "hanoi", category: "creative_collectives", sourceUrl: HANOI_CREATIVE, pdfUrl: HANOI_PDF, contactEmail: "cineverseclub.hn@rmit.edu.vn", officialClubUrl: `${HANOI_CREATIVE}/cineverse-club`, imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-arts-clubs/cineverse-logo.jpg", imageAlt: "Cineverse Club official logo", descriptionEn: "Nurtures creativity and connects individuals who share a love for film." }),
   makeClub({ id: "hn-current-media", name: "Current Media Club", campus: "hanoi", category: "creative_collectives", sourceUrl: HANOI_CREATIVE, pdfUrl: HANOI_PDF, contactEmail: "currentmedia.hn@rmit.edu.vn", officialClubUrl: `${HANOI_CREATIVE}/current-media-club`, descriptionEn: "Creates positive impact through print, exhibitions, workshops and other art forms." }),
   makeClub({ id: "hn-dance", name: "Dance Club", campus: "hanoi", category: "creative_collectives", sourceUrl: HANOI_CREATIVE, pdfUrl: HANOI_PDF, contactEmail: "danceclub.hn@rmit.edu.vn", officialClubUrl: `${HANOI_CREATIVE}/dance-club`, descriptionEn: "Provides opportunities for students interested in dance to shine on stage." }),
   makeClub({ id: "hn-music", name: "Music Club", campus: "hanoi", category: "creative_collectives", sourceUrl: HANOI_CREATIVE, pdfUrl: HANOI_PDF, contactEmail: "musicclub.hn@rmit.edu.vn", officialClubUrl: `${HANOI_CREATIVE}/music-club`, descriptionEn: "Organises workshops, music events and training classes." }),

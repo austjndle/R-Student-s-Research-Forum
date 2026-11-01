@@ -237,15 +237,32 @@ export function formatClubFallback(language: "en" | "vi", clubContext: ClubConte
 
   if (clubContext.specificClub) {
     const clubLines = clubContext.matchedClubs.map((club) => {
-      const campus = club.campus === "saigon_south" ? "Saigon South" : "Hanoi";
-      const description = club.descriptionEn ?? "The official club page has the latest club information.";
-      const contact = club.contactEmail ? `Contact: ${club.contactEmail}` : "Contact: See the official club page.";
-      const facebook = club.facebookUrl ? `Facebook: ${club.facebookUrl}` : "Facebook: Not published on the official club page.";
-      return `**${club.nameEn} — ${campus}**\n${description}\n${contact}\n${facebook}`;
+      const campus = club.campus === "saigon_south" ? (language === "vi" ? "Nam Sài Gòn" : "Saigon South") : (language === "vi" ? "Hà Nội" : "Hanoi");
+      const description = club.descriptionEn ?? (language === "vi" ? "Trang CLB chính thức có thông tin mới nhất." : "The official club page has the latest club information.");
+      const recruitment = club.recruitment;
+      const status = {
+        recruiting: language === "vi" ? "Đang tuyển" : "Recruiting",
+        closed: language === "vi" ? "Đã đóng" : "Closed",
+        upcoming: language === "vi" ? "Sắp mở" : "Upcoming",
+        not_announced: language === "vi" ? "Chưa có thông báo" : "Not announced",
+        unverified: language === "vi" ? "Chưa xác minh" : "Unverified",
+      }[recruitment.recruitmentStatus];
+      const interview = recruitment.interviewRequired === "yes" ? (language === "vi" ? "Có" : "Yes") : recruitment.interviewRequired === "no" ? (language === "vi" ? "Không" : "No") : (language === "vi" ? "Chưa xác minh" : "Not confirmed");
+      const deadline = recruitment.applicationDeadline ?? (language === "vi" ? "Chưa có hạn hiện tại" : "No current deadline published");
+      const facebook = club.facebookUrl ? `Facebook: ${club.facebookUrl}` : (language === "vi" ? "Facebook: Chưa được công bố trong nguồn chính thức." : "Facebook: Not published in the official source.");
+      return language === "vi"
+        ? `**${club.nameVi} — ${campus}**\n${description}\nTrạng thái tuyển: ${status}\nPhỏng vấn: ${interview}\nHạn đăng ký: ${deadline}\n${facebook}`
+        : `**${club.nameEn} — ${campus}**\n${description}\nRecruitment status: ${status}\nInterview required: ${interview}\nDeadline: ${deadline}\n${facebook}`;
     }).join("\n\n");
     return language === "vi"
-      ? `${clubLines}\n\nBạn có thể bắt đầu bằng cách nhắn cho câu lạc bộ qua Facebook hoặc email để hỏi lịch tuyển thành viên và buổi tập gần nhất.`
-      : `${clubLines}\n\nYou can start by messaging the club through Facebook or email to ask about recruitment and the next training session.`;
+      ? `${clubLines}\n\nBạn có thể nhắn cho CLB qua Facebook hoặc email để hỏi đợt tuyển hiện tại. Nếu chưa có thông báo chính thức, đừng giả định rằng CLB đang tuyển hoặc bắt buộc phỏng vấn.`
+      : `${clubLines}\n\nMessage the club through Facebook or email to confirm the current intake. If no current announcement is published, do not assume that recruitment is open or that an interview is required.`;
+  }
+
+  if (clubContext.recruitmentIntent) {
+    return language === "vi"
+      ? "Thông tin công khai hiện tại chưa xác minh yêu cầu phỏng vấn, CV, portfolio hoặc tryout chung cho các CLB. Mỗi CLB có thể có quy trình riêng; hãy mở trang chi tiết của CLB và kiểm tra kênh chính thức trước khi đăng ký."
+      : "The current public records do not confirm a universal interview, CV, portfolio, or tryout requirement. Each club may use a different process, so check the club detail page and official channel before applying.";
   }
 
   const names = clubContext.matchedClubNames.map((name) => `• ${name}`).join("\n");
@@ -259,6 +276,7 @@ export interface ClubContext {
   matchedClubNames: string[];
   matchedClubs: ClubRecord[];
   specificClub: boolean;
+  recruitmentIntent: boolean;
 }
 
 function getClubCategoryLabel(category: ClubCategory): string {
@@ -272,8 +290,13 @@ function getClubCategoryLabel(category: ClubCategory): string {
 
 export function buildClubContext(query: string, language: "en" | "vi" = "en"): ClubContext {
   const normalizedQuery = normalizeEventText(query);
-  const clubIntent = /club|society|student organization|cau lac bo|clb|join.*club|tham gia.*clb|tham gia.*cau lac/i.test(normalizedQuery);
-  if (!clubIntent) return { contextText: "", sources: [], matchedClubNames: [], matchedClubs: [], specificClub: false };
+  const clubs = getVerifiedClubs();
+  const namedClubIntent = clubs.some((club) => {
+    const shortName = normalizeEventText(club.nameEn.replace(/\s+club$/i, ""));
+    return shortName.length >= 4 && normalizedQuery.includes(shortName);
+  });
+  const clubIntent = /club|society|student organization|cau lac bo|clb|join.*club|tham gia.*clb|tham gia.*cau lac/i.test(normalizedQuery) || namedClubIntent;
+  if (!clubIntent) return { contextText: "", sources: [], matchedClubNames: [], matchedClubs: [], specificClub: false, recruitmentIntent: false };
 
   const campus = /sgs|saigon south|nam sai gon/i.test(normalizedQuery)
     ? "saigon_south"
@@ -290,8 +313,9 @@ export function buildClubContext(query: string, language: "en" | "vi" = "en"): C
           ? "social_special_interest"
           : undefined;
   const allIntent = /what clubs|which clubs|\blist\b|\ball\b|\bavailable\b|there at|danh sach|co nhung|tat ca/i.test(normalizedQuery);
+  const recruitmentIntent = /recruit|interview|application|apply|committee|core team|cv|portfolio|tryout|tuyen|phong van|don/i.test(normalizedQuery);
   const queryTerms = normalizedQuery.split(/\s+/).filter((term) => term.length >= 3);
-  const candidates = getVerifiedClubs()
+  const candidates = clubs
     .filter((club) => !campus || club.campus === campus)
     .filter((club) => !category || club.category === category)
     .map((club) => {
@@ -302,7 +326,7 @@ export function buildClubContext(query: string, language: "en" | "vi" = "en"): C
     .sort((left, right) => right.score - left.score || left.club.nameEn.localeCompare(right.club.nameEn));
   const specificMatches = candidates.filter(({ club }) => {
     const searchableName = normalizeEventText(club.nameEn);
-    const nameTerms = queryTerms.filter((term) => term !== "club" && term !== "clubs" && term !== "join" && term !== "find");
+    const nameTerms = queryTerms.filter((term) => !new Set(["club", "clubs", "join", "find", "rmit", "require", "requires", "interview", "interviews", "do", "does", "what", "which", "how", "can", "i", "the", "a", "an", "is", "are", "there", "any", "this", "week"]).has(term));
     return nameTerms.length > 0 && nameTerms.some((term) => searchableName.includes(term));
   });
   const specificClub = !allIntent && specificMatches.length > 0;
@@ -317,6 +341,7 @@ export function buildClubContext(query: string, language: "en" | "vi" = "en"): C
       matchedClubNames: [],
       matchedClubs: [],
       specificClub,
+      recruitmentIntent,
     };
   }
 
@@ -327,6 +352,8 @@ export function buildClubContext(query: string, language: "en" | "vi" = "en"): C
     },
     ...(club.facebookUrl ? [{ title: `${club.nameEn} — Facebook`, url: club.facebookUrl }] : []),
     ...(club.instagramUrl ? [{ title: `${club.nameEn} — Instagram`, url: club.instagramUrl }] : []),
+    ...(club.recruitment.applicationUrl ? [{ title: `${club.nameEn} — Application`, url: club.recruitment.applicationUrl }] : []),
+    ...(club.recruitment.recruitmentAnnouncementUrl ? [{ title: `${club.nameEn} — Recruitment`, url: club.recruitment.recruitmentAnnouncementUrl }] : []),
   ]);
   const matchedClubNames = selected.map(({ club }) => language === "vi" ? club.nameVi : club.nameEn);
   const contextText = selected.map(({ club }) => {
@@ -343,11 +370,18 @@ export function buildClubContext(query: string, language: "en" | "vi" = "en"): C
       club.instagramUrl ? `Instagram: ${club.instagramUrl}` : "Instagram: Not published in the public source.",
       `Source: ${club.officialClubUrl ?? club.sourceUrl}`,
       `Campus list PDF: ${club.campusListPdfUrl}`,
+      `Recruitment status: ${club.recruitment.recruitmentStatus}`,
+      `Interview required: ${club.recruitment.interviewRequired}`,
+      `CV or portfolio required: ${club.recruitment.cvPortfolioRequired}`,
+      `Tryout or assessment required: ${club.recruitment.tryoutRequired}`,
+      `Application deadline: ${club.recruitment.applicationDeadline ?? "Not published"}`,
+      `Application link: ${club.recruitment.applicationUrl ?? "Not published"}`,
+      `Recruitment announcement: ${club.recruitment.recruitmentAnnouncementUrl ?? "Not published"}`,
       `Details status: ${club.detailsStatus}`,
     ].join("\n");
   }).join("\n\n");
 
-  return { contextText, sources, matchedClubNames, matchedClubs: selected.map(({ club }) => club), specificClub };
+  return { contextText, sources, matchedClubNames, matchedClubs: selected.map(({ club }) => club), specificClub, recruitmentIntent };
 }
 /**
  * Synthesizes a natural, beautifully formatted student response from verified RMIT knowledge.
@@ -465,6 +499,7 @@ ${keyDetails.map((k: string) => `• ${k}`).join("\n\n")}
 export function buildSystemInstruction(language: "en" | "vi" = "en"): string {
   const isVi = language === "vi";
 
+  // Keep recruitment facts grounded in structured records; never infer an opening or requirement.
   return `You are "Mr Hachiware", a warm, practical, bilingual student-life companion for students at RMIT University Vietnam.
 
 SCOPE:
@@ -480,6 +515,7 @@ SCOPE:
 
 GROUNDING & FORMAT:
 - Treat VERIFIED RMIT KNOWLEDGE CONTEXT, VERIFIED CAMPUS EVENT CONTEXT, and VERIFIED RMIT CLUB CONTEXT as the only source of current institutional facts.
+- For club recruitment questions, report the structured recruitment status, interview, CV/portfolio, tryout, deadline, and application-link fields exactly as provided. "not_announced" or "not_confirmed" means unknown; never turn it into yes/no or a current opening.
 - For practical social questions such as making friends or finding teammates, lead with a concise two- or three-step guide and one example message; do not turn the answer into a generic institutional policy summary.
 - Never print raw debug metadata such as "[Record 1]" or internal labels.
 - Answer directly, then give two or three practical actions. Ask at most one useful follow-up question.

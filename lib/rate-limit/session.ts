@@ -19,8 +19,9 @@ export function generateVisitorId(): string {
  * Creates an HMAC-SHA256 signature for the visitor ID to prevent client tampering.
  */
 export async function signVisitorId(visitorId: string, secret: string): Promise<string> {
+  if (!secret) throw new Error("Session signing secret is required.");
   const encoder = new TextEncoder();
-  const keyData = encoder.encode(secret || "default-secret-r-students");
+  const keyData = encoder.encode(secret);
   const key = await crypto.subtle.importKey(
     "raw",
     keyData,
@@ -42,7 +43,7 @@ export async function signVisitorId(visitorId: string, secret: string): Promise<
  * Verifies the signed visitor token and extracts the visitor ID.
  */
 export async function verifySignedVisitorToken(token: string, secret: string): Promise<string | null> {
-  if (!token || !token.includes(".")) return null;
+  if (!secret || !token || !token.includes(".")) return null;
   const [visitorId, signature] = token.split(".");
   if (!visitorId || !signature) return null;
 

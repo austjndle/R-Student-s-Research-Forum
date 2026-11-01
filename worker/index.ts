@@ -3,6 +3,7 @@ import { AiQuotaDurableObject } from "../durable-objects/ai-quota";
 import { EventReviewDurableObject } from "../durable-objects/event-review";
 import { searchKnowledgeBase } from "../lib/search/engine";
 import { isQueryInScope, buildRAGContext, buildEventContext, buildClubContext, buildSystemInstruction, formatKnowledgeAnswer, formatStudentLifeFallback, formatClubFallback, isPracticalStudentLifeQuery } from "../lib/ai/gemini";
+import { KNOWLEDGE_CATEGORIES } from "../data/knowledge/schema";
 import { verifyOfficialEndpoints } from "../lib/knowledge/sync";
 import { isAuthorizedEventAdmin } from "../lib/events/admin-auth";
 import { validateEventReviewCandidate, type EventReviewDraft } from "../lib/events/review";
@@ -35,21 +36,36 @@ const app = new Hono<{ Bindings: Env }>();
 
 // API: Search
 app.get("/api/search", (c) => {
-  const q = c.req.query("q") || "";
-  const categoryId = c.req.query("category") || "all";
-  const campus = c.req.query("campus") as "saigon_south" | "hanoi" | "all" | undefined;
-  const lang = (c.req.query("lang") as "en" | "vi") || "en";
-  const limit = Math.min(20, Math.max(1, parseInt(c.req.query("limit") || "10", 10)));
+  const q = (c.req.query("q") || "").trim();
+  const requestedCategory = c.req.query("category") || "all";
+  const requestedCampus = c.req.query("campus") || "all";
+  const requestedLanguage = c.req.query("lang") || "en";
+  const requestedLimit = c.req.query("limit") || "10";
+  const parsedLimit = Number(requestedLimit);
 
-  if (!q.trim()) {
+  if (q.length > 500) return c.json({ error: "Search query must be 500 characters or fewer." }, 400);
+  if (requestedCategory !== "all" && !KNOWLEDGE_CATEGORIES.some((category) => category.id === requestedCategory)) {
+    return c.json({ error: "Invalid search category." }, 400);
+  }
+  if (!["all", "saigon_south", "hanoi"].includes(requestedCampus)) {
+    return c.json({ error: "Invalid campus filter." }, 400);
+  }
+  if (!["en", "vi"].includes(requestedLanguage)) {
+    return c.json({ error: "Invalid language." }, 400);
+  }
+  if (!Number.isInteger(parsedLimit) || parsedLimit < 1 || parsedLimit > 20) {
+    return c.json({ error: "Limit must be an integer between 1 and 20." }, 400);
+  }
+
+  if (!q) {
     return c.json({ query: "", total: 0, results: [] });
   }
 
   const results = searchKnowledgeBase(q, {
-    categoryId,
-    campus,
-    language: lang,
-    limit,
+    categoryId: requestedCategory,
+    campus: requestedCampus as "saigon_south" | "hanoi" | "all",
+    language: requestedLanguage as "en" | "vi",
+    limit: parsedLimit,
   });
 
   return c.json(
@@ -205,14 +221,28 @@ app.post("/api/chat", async (c) => {
     isNew = true;
   }
 
-  let body: { message?: string; language?: "en" | "vi" };
+  const contentLength = Number(c.req.header("Content-Length") || "0");
+  if (Number.isFinite(contentLength) && contentLength > 65536) {
+    return c.json({ error: "Request body is too large." }, 413);
+  }
+
+  let rawBody: unknown;
   try {
-    body = await c.req.json();
+    rawBody = await c.req.json<unknown>();
   } catch {
     return c.json({ error: "Invalid JSON" }, 400);
   }
 
-  const message = body.message?.trim() || "";
+  if (typeof rawBody !== "object" || rawBody === null || Array.isArray(rawBody)) {
+    return c.json({ error: "Request body must be an object." }, 400);
+  }
+
+  const body = rawBody as { message?: unknown; language?: unknown };
+  const message = typeof body.message === "string" ? body.message.trim() : "";
+  if (body.language !== undefined && body.language !== "en" && body.language !== "vi") {
+    return c.json({ error: "Language must be en or vi." }, 400);
+  }
+
   // Detect language: if query contains Vietnamese diacritics or body.language is 'vi', respond in Vietnamese
   const hasVietnamese = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(message);
   const language: "en" | "vi" = hasVietnamese || body.language === "vi" ? "vi" : "en";
@@ -303,15 +333,17 @@ app.post("/api/chat", async (c) => {
     }
 
     if (!answerText) {
-      answerText = isPracticalStudentLifeQuery(message)
-        ? formatStudentLifeFallback(message, language, eventContext)
-        : clubContext.matchedClubNames.length > 0
-          ? formatClubFallback(language, clubContext)
-          : eventContext.matchedEventTitles.length > 0
-            ? formatStudentLifeFallback(message, language, eventContext)
-            : rag.bestDoc
-              ? formatKnowledgeAnswer(rag.bestDoc, message, language)
-              : formatStudentLifeFallback(message, language, eventContext);
+      answerText = clubContext.specificClub
+        ? formatClubFallback(language, clubContext)
+        : isPracticalStudentLifeQuery(message)
+          ? formatStudentLifeFallback(message, language, eventContext)
+          : clubContext.matchedClubNames.length > 0
+            ? formatClubFallback(language, clubContext)
+            : eventContext.matchedEventTitles.length > 0
+              ? formatStudentLifeFallback(message, language, eventContext)
+              : rag.bestDoc
+                ? formatKnowledgeAnswer(rag.bestDoc, message, language)
+                : formatStudentLifeFallback(message, language, eventContext);
     }
 
     const currentRemaining = stub ? remaining : checkMemoryQuota(visitorId).remaining;

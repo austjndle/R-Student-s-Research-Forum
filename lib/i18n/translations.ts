@@ -36,6 +36,8 @@ export interface Translations {
     clubs: string;
     language: string;
     theme: string;
+    mobileMenu: string;
+    closeMenu: string;
   };
   hero: {
     heading: string;
@@ -125,6 +127,33 @@ export interface Translations {
     officialReferences: string;
     relatedGuides: string;
   };
+  clubs: {
+    howToJoin: string;
+    membershipType: string;
+    generalMember: string;
+    committeeCoreTeam: string;
+    applicationProcess: string;
+    interviewRequired: string;
+    cvPortfolio: string;
+    eligibility: string;
+    tryout: string;
+    recruitmentStatus: string;
+    deadline: string;
+    applicationLink: string;
+    recruitmentAnnouncement: string;
+    officialChannels: string;
+    notConfirmed: string;
+    notAnnounced: string;
+    recruiting: string;
+    closed: string;
+    upcoming: string;
+    unverified: string;
+    noDeadline: string;
+    noCurrentAnnouncement: string;
+    source: string;
+    searchPlaceholder: string;
+    noMatches: string;
+  };
   footer: {
     aboutText: string;
     quickLinks: string;
@@ -174,6 +203,8 @@ export const translations: Record<Language, Translations> = {
       clubs: "Student Clubs",
       language: "Language",
       theme: "Theme",
+      mobileMenu: "Open navigation",
+      closeMenu: "Close navigation",
     },
     hero: {
       heading: "Research smarter, not harder.",
@@ -263,6 +294,33 @@ export const translations: Record<Language, Translations> = {
       officialReferences: "Official References",
       relatedGuides: "Related Guides",
     },
+    clubs: {
+      howToJoin: "How to Join",
+      membershipType: "Membership type",
+      generalMember: "General member",
+      committeeCoreTeam: "Committee / core team",
+      applicationProcess: "Application process",
+      interviewRequired: "Interview required",
+      cvPortfolio: "CV or portfolio",
+      eligibility: "Eligibility",
+      tryout: "Tryout or assessment",
+      recruitmentStatus: "Recruitment status",
+      deadline: "Application deadline",
+      applicationLink: "Application link",
+      recruitmentAnnouncement: "Recruitment announcement",
+      officialChannels: "Official channels",
+      notConfirmed: "Not confirmed",
+      notAnnounced: "Not announced",
+      recruiting: "Recruiting",
+      closed: "Closed",
+      upcoming: "Upcoming",
+      unverified: "Unverified",
+      noDeadline: "No current deadline published",
+      noCurrentAnnouncement: "No current recruitment announcement",
+      source: "Source",
+      searchPlaceholder: "Search club names, interests, or activities...",
+      noMatches: "No verified clubs match these filters.",
+    },
     footer: {
       aboutText: "An independent, bilingual research and information discovery platform created by students for students at RMIT University Vietnam.",
       quickLinks: "Quick Navigation",
@@ -310,6 +368,8 @@ export const translations: Record<Language, Translations> = {
       clubs: "CLB sinh viên",
       language: "Ngôn ngữ",
       theme: "Giao diện",
+      mobileMenu: "Mở điều hướng",
+      closeMenu: "Đóng điều hướng",
     },
     hero: {
       heading: "Nghiên cứu thông minh, giải đáp nhanh chóng.",
@@ -398,6 +458,33 @@ export const translations: Record<Language, Translations> = {
       steps: "Các bước thực hiện",
       officialReferences: "Tài liệu tham khảo chính thức",
       relatedGuides: "Hướng dẫn liên quan",
+    },
+    clubs: {
+      howToJoin: "Hướng dẫn tham gia CLB",
+      membershipType: "Hình thức tham gia",
+      generalMember: "Thành viên thường",
+      committeeCoreTeam: "Ban điều hành / core team",
+      applicationProcess: "Quy trình đăng ký",
+      interviewRequired: "Có yêu cầu phỏng vấn",
+      cvPortfolio: "CV hoặc portfolio",
+      eligibility: "Điều kiện tham gia",
+      tryout: "Tryout hoặc đánh giá",
+      recruitmentStatus: "Trạng thái tuyển thành viên",
+      deadline: "Hạn đăng ký",
+      applicationLink: "Link đăng ký",
+      recruitmentAnnouncement: "Thông báo tuyển thành viên",
+      officialChannels: "Kênh chính thức",
+      notConfirmed: "Chưa xác minh",
+      notAnnounced: "Chưa có thông báo",
+      recruiting: "Đang tuyển",
+      closed: "Đã đóng",
+      upcoming: "Sắp mở",
+      unverified: "Chưa xác minh",
+      noDeadline: "Chưa có hạn đăng ký hiện tại",
+      noCurrentAnnouncement: "Chưa có thông báo tuyển hiện tại",
+      source: "Nguồn",
+      searchPlaceholder: "Tìm tên CLB, sở thích hoặc hoạt động...",
+      noMatches: "Không có CLB đã xác minh phù hợp với bộ lọc.",
     },
     footer: {
       aboutText: "Nền tảng tra cứu và khám phá thông tin song ngữ độc lập do sinh viên RMIT phát triển nhằm hỗ trợ cộng đồng sinh viên.",

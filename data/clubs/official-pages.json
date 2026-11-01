@@ -942,6 +942,22 @@
     "imageAlt": "HNFootball-club-cover.png"
   },
   {
+    "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/creative-collective-clubs/cineverse-club",
+    "status": 200,
+    "title": "Cineverse Club - RMIT University",
+    "heading": "Cineverse Club",
+    "description": "RMIT Cineverse Club nurtures creativity, connect individuals who share a love for film.",
+    "ogImage": "https://www.rmit.edu.au/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-arts-clubs/cineverse-logo.jpg",
+    "emails": [
+      "cineverseclub.hn@rmit.edu.vn"
+    ],
+    "social": [
+      "https://www.facebook.com/rmithanoicineverseclub"
+    ],
+    "imageUrl": "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/hanoi-campus-clubs/hanoi-club-logos-2021/logos/sports-and-arts-clubs/cineverse-logo.jpg",
+    "imageAlt": "cineverse-logo.jpg"
+  },
+  {
     "url": "https://www.rmit.edu.vn/students/campus-life/clubs/hanoi-city-campus-clubs/creative-collective-clubs/current-media-club",
     "status": 200,
     "title": "Current Media Club - RMIT University",

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowUpRight, ExternalLink, Mail } from "lucide-react";
+import { ArrowUpRight, ExternalLink, Mail, Search } from "lucide-react";
 import { VERIFIED_CLUBS, type ClubCampus, type ClubCategory } from "@/data/clubs/clubs";
 import { useLanguage } from "@/lib/i18n/context";
 
@@ -41,15 +41,28 @@ function officialImageFallback(clubName: string) {
 }
 
 export function ClubDirectory() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [campus, setCampus] = useState<ClubCampus>("saigon_south");
   const [category, setCategory] = useState<ClubCategory | "all">("all");
+  const [query, setQuery] = useState("");
   const labels = categoryLabels[language];
 
   const clubs = useMemo(
     () => VERIFIED_CLUBS.filter((club) => club.campus === campus && (category === "all" || club.category === category)),
     [campus, category]
   );
+
+  const filteredClubs = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+    if (!normalizedQuery) return clubs;
+    return clubs.filter((club) =>
+      [club.nameEn, club.nameVi, club.descriptionEn, club.category]
+        .filter(Boolean)
+        .join(" ")
+        .toLocaleLowerCase()
+        .includes(normalizedQuery)
+    );
+  }, [clubs, query]);
 
   return (
     <div className="editorial-shell space-y-8">
@@ -94,17 +107,33 @@ export function ClubDirectory() {
             </button>
           ))}
         </div>
+        <label className="flex min-h-11 items-center gap-2 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--secondary-text)] sm:max-w-xl">
+          <Search className="h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+          <span className="sr-only">{t.clubs.searchPlaceholder}</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t.clubs.searchPlaceholder}
+            className="min-w-0 flex-1 bg-transparent py-2 text-[var(--main-text)] outline-none placeholder:text-[var(--secondary-text)]"
+            autoComplete="off"
+          />
+        </label>
       </section>
 
       <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 text-xs text-[var(--secondary-text)]">
-        <span>{clubs.length} {language === "vi" ? "câu lạc bộ được xác minh" : "verified clubs"}</span>
+        <span>{filteredClubs.length} {language === "vi" ? "câu lạc bộ phù hợp" : "matching verified clubs"}</span>
         <Link href="https://www.rmit.edu.vn/students/campus-life/clubs" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
           {language === "vi" ? "Nguồn RMIT" : "RMIT source"}<ArrowUpRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>
 
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-live="polite">
-        {clubs.map((club) => (
+        {filteredClubs.length === 0 ? (
+          <p className="border border-dashed border-[var(--border)] px-5 py-8 text-sm text-[var(--secondary-text)]">
+            {t.clubs.noMatches}
+          </p>
+        ) : filteredClubs.map((club) => (
           <article key={club.id} className="editorial-card flex min-w-0 flex-col overflow-hidden">
             <div className="aspect-square w-full border-b border-[var(--border)] bg-[var(--surface)]">
               {club.imageUrl ? (

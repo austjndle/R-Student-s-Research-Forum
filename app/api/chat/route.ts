@@ -42,7 +42,10 @@ function isBurstLimited(visitorId: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const secret = process.env.ANONYMOUS_SESSION_SECRET || "default-secret-r-students";
+  const secret = process.env.ANONYMOUS_SESSION_SECRET;
+  if (!secret) {
+    return NextResponse.json({ error: "Assistant service is unavailable." }, { status: 503 });
+  }
   const cookieValue = request.cookies.get(COOKIE_NAME)?.value;
 
   let visitorId: string | null = null;

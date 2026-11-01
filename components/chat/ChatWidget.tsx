@@ -34,6 +34,7 @@ export function ChatWidget() {
   const [quotaLimit, setQuotaLimit] = useState<number>(10);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Fetch quota on component mount and on chat open, cached in localStorage
   useEffect(() => {
@@ -68,6 +69,9 @@ export function ChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    if (isOpen) inputRef.current?.focus();
+  }, [isOpen]);
   const handleSendMessage = async (customText?: string) => {
     const textToSend = customText || inputValue;
     if (!textToSend.trim() || isLoading) return;
@@ -185,7 +189,7 @@ export function ChatWidget() {
 
       {/* Chat Window Panel */}
       {isOpen && (
-        <div className="fixed inset-x-4 bottom-4 top-16 sm:inset-auto sm:right-6 sm:bottom-6 sm:w-[440px] sm:h-[620px] z-50 flex flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl overflow-hidden transition-all">
+        <div role="dialog" aria-modal="true" aria-labelledby="hachiware-chat-title" className="fixed inset-x-2 bottom-2 top-14 z-50 flex min-h-0 flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl transition-all sm:inset-auto sm:right-6 sm:bottom-6 sm:h-[620px] sm:w-[440px] sm:rounded-2xl">
           {/* Header */}
           <div className="px-4 py-3.5 border-b border-[var(--border)] bg-[var(--surface-elevated)] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -193,7 +197,7 @@ export function ChatWidget() {
                 <img src="/cat-meme.png" alt="Cat Meme Assistant" className="w-full h-full object-contain" />
               </div>
               <div>
-                <h3 className="font-semibold text-sm text-[var(--main-text)] flex items-center gap-1.5">
+                <h3 id="hachiware-chat-title" className="flex items-center gap-1.5 text-sm font-semibold text-[var(--main-text)]">
                   <span>{t.ai.name}</span>
                   <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-[var(--badge-bg)] text-[var(--accent)]">
                     Gemini Flash
@@ -211,16 +215,18 @@ export function ChatWidget() {
 
             <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={clearChat}
-                className="p-1.5 rounded-lg text-[var(--secondary-text)] hover:text-[var(--main-text)] hover:bg-[var(--hover)] transition-colors"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-[var(--secondary-text)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--main-text)]"
                 title={t.ai.clearChat}
                 aria-label="Clear chat"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
               <button
+                type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg text-[var(--secondary-text)] hover:text-[var(--main-text)] hover:bg-[var(--hover)] transition-colors"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-[var(--secondary-text)] transition-colors hover:bg-[var(--hover)] hover:text-[var(--main-text)]"
                 title={t.common.close}
                 aria-label="Close chat"
               >
@@ -230,7 +236,7 @@ export function ChatWidget() {
           </div>
 
           {/* Messages Feed */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 text-sm">
+          <div aria-live="polite" className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 text-sm">
             {/* Intro Welcome Card */}
             {messages.length === 0 && (
               <div className="space-y-4">
@@ -253,9 +259,10 @@ export function ChatWidget() {
                   <div className="space-y-1.5">
                     {sampleQuestions.map((q, idx) => (
                       <button
+                        type="button"
                         key={idx}
                         onClick={() => handleSendMessage(q)}
-                        className="w-full text-left p-2.5 rounded-lg border border-[var(--border)] hover:border-[var(--accent)] bg-[var(--surface)] hover:bg-[var(--hover)] text-xs text-[var(--main-text)] flex items-center justify-between group transition-colors"
+                        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2.5 text-left text-xs text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:bg-[var(--hover)]"
                       >
                         <span className="line-clamp-1">{q}</span>
                         <ChevronRight className="w-3.5 h-3.5 text-[var(--secondary-text)] group-hover:text-[var(--accent)] shrink-0" />
@@ -275,7 +282,7 @@ export function ChatWidget() {
                 }`}
               >
                 <div
-                  className={`max-w-[90%] p-4 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                  className={`min-w-0 max-w-[90%] break-words p-4 text-xs leading-relaxed sm:text-sm ${
                     msg.sender === "user"
                       ? "bg-[var(--accent)] text-white rounded-br-xs font-medium shadow-xs"
                       : "bg-[var(--surface-elevated)] text-[var(--main-text)] border border-[var(--border)] rounded-bl-xs space-y-3 shadow-xs"
@@ -366,8 +373,9 @@ export function ChatWidget() {
                   {msg.sender === "bot" && (
                     <div className="pt-1 flex justify-end">
                       <button
+                        type="button"
                         onClick={() => copyToClipboard(msg.text, msg.id)}
-                        className="text-[10px] text-[var(--secondary-text)] hover:text-[var(--main-text)] flex items-center gap-1 transition-colors"
+                        className="flex min-h-11 items-center gap-1 rounded px-2 text-[10px] text-[var(--secondary-text)] transition-colors hover:text-[var(--main-text)]"
                       >
                         {copiedId === msg.id ? (
                           <>
@@ -423,18 +431,21 @@ export function ChatWidget() {
                 className="flex items-center gap-2"
               >
                 <input
+                  ref={inputRef}
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder={t.ai.placeholder}
+                  aria-label={t.ai.placeholder}
+                  inputMode="text"
                   maxLength={2000}
                   disabled={isLoading}
-                  className="flex-1 px-3 py-2 text-xs sm:text-sm rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] text-[var(--main-text)] focus:outline-none focus:border-[var(--accent)] transition-colors"
+                  className="min-h-11 min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-2 text-base text-[var(--main-text)] outline-none transition-colors focus:border-[var(--accent)] sm:text-sm"
                 />
                 <button
                   type="submit"
                   disabled={isLoading || !inputValue.trim()}
-                  className="p-2.5 rounded-xl bg-[var(--accent)] text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-[var(--accent)] p-2.5 text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                   aria-label="Send message"
                 >
                   <Send className="w-4 h-4" />
