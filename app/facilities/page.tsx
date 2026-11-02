@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useLanguage } from "@/lib/i18n/context";
-import { RMIT_CAMPUS_HOURS, type BuildingInfo } from "@/data/facilities/campusHours";
+import { RMIT_CAMPUS_HOURS, getLocalizedFloorLabel, getLocalizedScheduleLabel } from "@/data/facilities/campusHours";
 import {
   Clock,
   Building2,
@@ -14,20 +14,20 @@ import {
   ChevronRight,
   ExternalLink,
 } from "lucide-react";
-const QUICK_BUILDING_LABELS: Record<string, string> = {
-  "sgs-b1": "B1",
-  "sgs-b2": "B2",
-  "sgs-sports": "Sports",
-  "sgs-b10": "B10",
-  "hn-main": "Hanoi",
+const QUICK_BUILDING_LABELS: Record<string, { en: string; vi: string }> = {
+  "sgs-b1": { en: "B1", vi: "B1" },
+  "sgs-b2": { en: "B2", vi: "B2" },
+  "sgs-sports": { en: "B8", vi: "B8" },
+  "sgs-b10": { en: "B10", vi: "B10" },
+  "hn-main": { en: "Hanoi", vi: "Hà Nội" },
 };
-
-function getQuickBuildingLabel(buildingId: string): string {
-  return QUICK_BUILDING_LABELS[buildingId] ?? buildingId;
+function getQuickBuildingLabel(buildingId: string, language: "en" | "vi"): string {
+  return QUICK_BUILDING_LABELS[buildingId]?.[language] ?? buildingId;
 }
 
+
 export default function CampusHoursPage() {
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
   const [activeCampus, setActiveCampus] = useState<"saigon_south" | "hanoi">("saigon_south");
   const [activeBuildingId, setActiveBuildingId] = useState<string | null>("sgs-b1");
   const [searchFilter, setSearchFilter] = useState("");
@@ -55,7 +55,7 @@ export default function CampusHoursPage() {
       <div className="space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[var(--badge-border)] bg-[var(--badge-bg)] text-[var(--badge-text)] text-xs font-semibold">
           <Clock className="w-3.5 h-3.5" />
-          <span>Official RMIT Vietnam Building Access Schedule</span>
+          <span>{language === "vi" ? "Lịch giờ mở cửa tòa nhà RMIT Việt Nam" : "Official RMIT Vietnam Building Access Schedule"}</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-[var(--main-text)]">
           {language === "vi"
@@ -84,7 +84,7 @@ export default function CampusHoursPage() {
                 : "text-[var(--secondary-text)] hover:text-[var(--main-text)]"
             }`}
           >
-            Nam Sài Gòn (Saigon South)
+            {language === "vi" ? "Nam Sài Gòn" : "Saigon South"}
           </button>
           <button
             onClick={() => {
@@ -97,7 +97,7 @@ export default function CampusHoursPage() {
                 : "text-[var(--secondary-text)] hover:text-[var(--main-text)]"
             }`}
           >
-            Hà Nội (Handi Resco Tower)
+            {language === "vi" ? "Hà Nội" : "Hanoi"}
           </button>
         </div>
 
@@ -170,7 +170,7 @@ export default function CampusHoursPage() {
                 : "border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] hover:border-[var(--accent)] hover:text-[var(--accent)]"
             }`}
           >
-            {getQuickBuildingLabel(b.id)}
+            {getQuickBuildingLabel(b.id, language)}
           </a>
         ))}
       </div>
@@ -188,7 +188,7 @@ export default function CampusHoursPage() {
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--badge-bg)] text-[var(--accent)]">
                   <Building2 className="w-3 h-3" />
-                  <span>{building.campus === "saigon_south" ? "Saigon South Campus" : "Hanoi Campus"}</span>
+                  <span>{language === "vi" ? (building.campus === "saigon_south" ? "Cơ sở Nam Sài Gòn" : "Cơ sở Hà Nội") : (building.campus === "saigon_south" ? "Saigon South Campus" : "Hanoi Campus")}</span>
                 </div>
                 <h2 className="text-lg sm:text-xl font-bold text-[var(--main-text)]">
                   {language === "vi" ? building.nameVi : building.nameEn}
@@ -229,6 +229,7 @@ export default function CampusHoursPage() {
             <div
               className="editorial-scroll p-5 pt-0 sm:p-6 sm:pt-0"
               role="region"
+              dir="ltr"
               aria-label={language === "vi" ? "Bảng giờ mở cửa, vuốt ngang để xem đầy đủ" : "Opening-hours table, scroll horizontally to view all columns"}
               tabIndex={0}
             >
@@ -239,7 +240,7 @@ export default function CampusHoursPage() {
               <table className="w-full text-left text-xs sm:text-sm border-collapse min-w-[760px] md:min-w-full">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--secondary-text)]">
-                    <th className="py-3.5 pr-4 font-semibold w-[22%] min-w-[170px]">{language === "vi" ? "Tầng / Khu vực" : "Floor / Facility"}</th>
+                    <th className="sticky left-0 z-20 w-[22%] min-w-[170px] bg-[var(--surface)] py-3.5 pr-4 font-semibold">{language === "vi" ? "Tầng / Khu vực" : "Floor / Facility"}</th>
                     <th className="py-3.5 px-4 font-semibold w-[42%] min-w-[320px]">{language === "vi" ? "Cơ sở vật chất & Ghi chú phòng ban" : "Key Facilities & Operational Notes"}</th>
                     <th className="py-3.5 px-3 font-semibold w-[12%] min-w-[105px] whitespace-nowrap">{language === "vi" ? "Thứ 2 - Thứ 6" : "Mon - Fri"}</th>
                     <th className="py-3.5 px-3 font-semibold w-[12%] min-w-[105px] whitespace-nowrap">{language === "vi" ? "Thứ 7" : "Saturday"}</th>
@@ -249,12 +250,12 @@ export default function CampusHoursPage() {
                 <tbody className="divide-y divide-[var(--border)]">
                   {building.floors.map((floor, fIdx) => (
                     <tr key={fIdx} className="hover:bg-[var(--surface-elevated)] transition-colors">
-                      <td className="py-3.5 pr-4 font-bold text-[var(--main-text)] whitespace-nowrap align-top">
-                        {floor.floor}
+                      <td className="sticky left-0 z-10 w-[22%] min-w-[170px] max-w-[240px] break-words whitespace-normal bg-[var(--surface)] py-3.5 pr-4 align-top font-bold text-[var(--main-text)]">
+                        {getLocalizedFloorLabel(floor, language)}
                       </td>
                       <td className="py-4 px-4 text-xs sm:text-sm text-[var(--secondary-text)] leading-relaxed align-top">
                         <div className="font-normal text-[var(--main-text)]/90">{language === "vi" ? floor.facilitiesVi : floor.facilitiesEn}</div>
-                        {(floor.notesVi || floor.notesEn) && (
+                        {(language === "vi" ? floor.notesVi : floor.notesEn) && (
                           <div className="editorial-info mt-2.5 flex w-full items-start gap-2.5 p-3 text-xs leading-relaxed sm:p-3.5">
                             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
                             <span className="flex-1 font-medium text-[var(--main-text)] leading-normal">{language === "vi" ? floor.notesVi : floor.notesEn}</span>
@@ -262,13 +263,13 @@ export default function CampusHoursPage() {
                         )}
                       </td>
                       <td className="py-4 px-3 font-mono font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap align-top">
-                        {floor.weekdayHours}
+                        {getLocalizedScheduleLabel(floor, "weekdayHours", language)}
                       </td>
                       <td className="py-4 px-3 font-mono text-[var(--main-text)] whitespace-nowrap align-top">
-                        {floor.saturdayHours}
+                        {getLocalizedScheduleLabel(floor, "saturdayHours", language)}
                       </td>
                       <td className="py-4 pl-3 font-mono text-[var(--main-text)] whitespace-nowrap align-top">
-                        {floor.sundayHours}
+                        {getLocalizedScheduleLabel(floor, "sundayHours", language)}
                       </td>
                     </tr>
                   ))}

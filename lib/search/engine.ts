@@ -56,6 +56,33 @@ const BILINGUAL_SYNONYM_MAP: Record<string, string[]> = {
   "gpa": ["thang diem", "grading scale", "diem trung binh", "hd", "di", "cr", "pa", "nn"],
   "gia han": ["special consideration", "extension", "nop tre", "hoan canh dac biet"]
 };
+type NormalizedTerm = { value: string; normalized: string };
+type SearchDocumentIndex = {
+  document: KnowledgeDocument;
+  titleEn: string;
+  titleVi: string;
+  summaryEn: string;
+  summaryVi: string;
+  keywords: NormalizedTerm[];
+  synonyms: NormalizedTerm[];
+};
+
+const NORMALIZED_SYNONYMS = Object.entries(BILINGUAL_SYNONYM_MAP).map(([phrase, synonyms]) => ({
+  phrase,
+  synonyms: synonyms.map(removeVietnameseDiacritics),
+}));
+
+const SEARCH_DOCUMENT_INDEX: SearchDocumentIndex[] = KNOWLEDGE_DOCUMENTS.map((document) => ({
+  document,
+  titleEn: removeVietnameseDiacritics(document.titleEn),
+  titleVi: removeVietnameseDiacritics(document.titleVi),
+  summaryEn: removeVietnameseDiacritics(document.summaryEn),
+  summaryVi: removeVietnameseDiacritics(document.summaryVi),
+  keywords: document.keywords.map((value) => ({ value, normalized: removeVietnameseDiacritics(value) })),
+  synonyms: [...document.synonymsEn, ...document.synonymsVi].map((value) => ({ value, normalized: removeVietnameseDiacritics(value) })),
+}));
+
+const DEPARTMENT_BY_ID = new Map(DEPARTMENT_CONTACTS.map((department) => [department.id, department]));
 
 export interface SearchFilterOptions {
   categoryId?: string;
@@ -92,9 +119,9 @@ export function processQuery(query: string): {
   const expandedTerms = new Set<string>();
 
   // Check phrase synonym matches
-  for (const [key, synonyms] of Object.entries(BILINGUAL_SYNONYM_MAP)) {
-    if (diacriticFree.includes(key)) {
-      synonyms.forEach((syn) => expandedTerms.add(removeVietnameseDiacritics(syn)));
+  for (const { phrase, synonyms } of NORMALIZED_SYNONYMS) {
+    if (diacriticFree.includes(phrase)) {
+      synonyms.forEach((synonym) => expandedTerms.add(synonym));
     }
   }
 
@@ -118,13 +145,14 @@ export function searchKnowledgeBase(
   }
 
   const { language = "en", categoryId, campus, limit = 10 } = options;
-  const { normalized, diacriticFree, tokens, expandedTerms } = processQuery(query);
+  const { diacriticFree, tokens } = processQuery(query);
+  const tokenMatchers = tokens.map((token) => new RegExp(`\\b${token}\\b`, "i"));
 
-  const departmentMap = new Map(DEPARTMENT_CONTACTS.map((dept) => [dept.id, dept]));
 
   const scoredResults: SearchResultItem[] = [];
 
-  for (const doc of KNOWLEDGE_DOCUMENTS) {
+  for (const indexed of SEARCH_DOCUMENT_INDEX) {
+    const doc = indexed.document;
     // 1. Filter by category if requested
     if (categoryId && categoryId !== "all" && doc.categoryId !== categoryId) {
       continue;
@@ -136,59 +164,55 @@ export function searchKnowledgeBase(
     }
 
     let score = 0;
-    const matchedKeywords: string[] = [];
+    let matchedKeywords: string[] | undefined;
 
-    const titleEnClean = removeVietnameseDiacritics(doc.titleEn);
-    const titleViClean = removeVietnameseDiacritics(doc.titleVi);
-    const summaryEnClean = removeVietnameseDiacritics(doc.summaryEn);
-    const summaryViClean = removeVietnameseDiacritics(doc.summaryVi);
+    const titleEnClean = indexed.titleEn;
+    const titleViClean = indexed.titleVi;
+    const summaryEnClean = indexed.summaryEn;
+    const summaryViClean = indexed.summaryVi;
 
     // 1. Full phrase matching (Super high weight)
     if (titleEnClean === diacriticFree || titleViClean === diacriticFree) {
       score += 250;
-      matchedKeywords.push(query);
+      (matchedKeywords ??= []).push(query);
     } else if (titleEnClean.includes(diacriticFree) || titleViClean.includes(diacriticFree)) {
       score += 150;
-      matchedKeywords.push(query);
+      (matchedKeywords ??= []).push(query);
     }
 
     // 2. Keyword exact sequence match
-    for (const kw of doc.keywords) {
-      const cleanKw = removeVietnameseDiacritics(kw);
-      if (cleanKw === diacriticFree) {
+    for (const keyword of indexed.keywords) {
+      if (keyword.normalized === diacriticFree) {
         score += 200;
-        matchedKeywords.push(kw);
-      } else if (diacriticFree.includes(cleanKw) || cleanKw.includes(diacriticFree)) {
+        (matchedKeywords ??= []).push(keyword.value);
+      } else if (diacriticFree.includes(keyword.normalized) || keyword.normalized.includes(diacriticFree)) {
         score += 80;
-        matchedKeywords.push(kw);
+        (matchedKeywords ??= []).push(keyword.value);
       }
     }
 
     // 3. Synonyms & translations match
-    for (const syn of [...doc.synonymsEn, ...doc.synonymsVi]) {
-      const cleanSyn = removeVietnameseDiacritics(syn);
-      if (diacriticFree.includes(cleanSyn) || cleanSyn.includes(diacriticFree)) {
+    for (const synonym of indexed.synonyms) {
+      if (diacriticFree.includes(synonym.normalized) || synonym.normalized.includes(diacriticFree)) {
         score += 70;
-        matchedKeywords.push(syn);
+        (matchedKeywords ??= []).push(synonym.value);
       }
     }
 
     // 4. Word boundary token level matching (only full words)
     let matchedTokenCount = 0;
-    for (const token of tokens) {
-      const tokenRegex = new RegExp(`\\b${token}\\b`, "i");
+    for (const tokenRegex of tokenMatchers) {
       let matchedThisToken = false;
 
       if (tokenRegex.test(titleEnClean) || tokenRegex.test(titleViClean)) {
         score += 35;
         matchedThisToken = true;
       }
-      for (const kw of doc.keywords) {
-        const cleanKw = removeVietnameseDiacritics(kw);
-        if (tokenRegex.test(cleanKw)) {
+      for (const keyword of indexed.keywords) {
+        if (tokenRegex.test(keyword.normalized)) {
           score += 30;
           matchedThisToken = true;
-          if (!matchedKeywords.includes(kw)) matchedKeywords.push(kw);
+          if (!matchedKeywords?.includes(keyword.value)) (matchedKeywords ??= []).push(keyword.value);
         }
       }
       if (tokenRegex.test(summaryEnClean) || tokenRegex.test(summaryViClean)) {
@@ -215,7 +239,7 @@ export function searchKnowledgeBase(
     if (score >= 45) {
       const bestAnswer = language === "vi" ? doc.summaryVi : doc.summaryEn;
       const keyDetails = language === "vi" ? doc.keyDetailsVi : doc.keyDetailsEn;
-      const relevantDepartment = departmentMap.get(doc.departmentId);
+      const relevantDepartment = DEPARTMENT_BY_ID.get(doc.departmentId);
 
       // Related questions based on language
       const relatedQuestions =
@@ -236,7 +260,7 @@ export function searchKnowledgeBase(
         score,
         bestAnswer,
         keyDetails,
-        matchedKeywords: Array.from(new Set(matchedKeywords)),
+        matchedKeywords: matchedKeywords ? Array.from(new Set(matchedKeywords)) : [],
         relevantDepartment,
         relatedQuestions,
       });

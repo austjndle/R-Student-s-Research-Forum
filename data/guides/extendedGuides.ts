@@ -1,4 +1,9 @@
 import { GuideStep } from "./guides";
+import {
+  GLOBAL_EXPERIENCE_HERO_IMAGE,
+  GLOBAL_EXPERIENCE_LAST_VERIFIED,
+  GLOBAL_EXPERIENCE_OFFICIAL_REFERENCES,
+} from "./globalExperience";
 
 export interface ResearchGuide {
   id: string;
@@ -9,6 +14,8 @@ export interface ResearchGuide {
   descriptionVi: string;
   readTimeMinutes: number;
   imageUrl?: string;
+  imageAlt?: string;
+  lastVerifiedDate?: string;
   steps: GuideStep[];
   officialReferences: { title: string; url: string }[];
   relatedGuideSlugs: string[];
@@ -185,5 +192,56 @@ export const EXTENDED_GUIDES: ResearchGuide[] = [
       { title: "RMIT Hanoi Campus Club List (PDF)", url: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/documents/pdfs/students/student-clubs/hn-club-list.pdf" }
     ],
     relatedGuideSlugs: ["orientation-student-card-campus-access", "how-to-write-an-effective-university-enquiry"]
+  },
+  {
+    id: "guide-global-experience",
+    slug: "exchange-study-abroad-rmit-melbourne",
+    titleEn: "Global Experience: Exchange & Study Abroad",
+    titleVi: "Trải nghiệm Toàn cầu: Trao đổi & Du học",
+    descriptionEn: "Compare RMIT Vietnam's Partner Exchange, temporary Cross-campus study at RMIT Melbourne, Interlocation in Asia and Global Short Programs. Check eligibility, current intake dates, Study Plan steps and funding sources.",
+    descriptionVi: "So sánh Partner Exchange, chương trình Cross-campus tạm thời tại RMIT Melbourne, Interlocation tại châu Á và Global Short Programs của RMIT Việt Nam. Xem điều kiện, lịch tuyển đã công bố, Study Plan và nguồn hỗ trợ tài chính.",
+    readTimeMinutes: 12,
+    imageUrl: GLOBAL_EXPERIENCE_HERO_IMAGE,
+    imageAlt: "RMIT Melbourne City campus, including the Design Hub and surrounding city buildings.",
+    lastVerifiedDate: GLOBAL_EXPERIENCE_LAST_VERIFIED,
+    steps: [
+      {
+        number: 1,
+        titleEn: "Choose the right pathway",
+        titleVi: "Chọn đúng lộ trình",
+        contentEn: "Compare the four temporary study options by destination, duration, eligibility and tuition arrangement. Cross-campus study is not permanent transfer.",
+        contentVi: "So sánh bốn lựa chọn học tập tạm thời theo điểm đến, thời lượng, điều kiện và học phí. Cross-campus không phải chuyển tiếp vĩnh viễn.",
+      },
+      {
+        number: 2,
+        titleEn: "Check eligibility and live host listings",
+        titleVi: "Kiểm tra điều kiện và danh sách trường hiện tại",
+        contentEn: "GPA, credit-point thresholds, host places, course availability, language and visa rules vary by pathway and partner.",
+        contentVi: "GPA, tín chỉ, chỉ tiêu, môn học, ngôn ngữ và visa thay đổi theo lộ trình và trường đối tác.",
+      },
+      {
+        number: 3,
+        titleEn: "Prepare the application and Study Plan",
+        titleVi: "Chuẩn bị hồ sơ và Study Plan",
+        contentEn: "Use the correct Mobi or StudyLink process and submit the program-specific Study Plan early. RMIT nomination does not guarantee host acceptance or course availability.",
+        contentVi: "Dùng đúng quy trình Mobi hoặc StudyLink và nộp Study Plan theo chương trình từ sớm. Được RMIT đề cử không đảm bảo trường tiếp nhận chấp nhận hoặc còn chỗ môn học.",
+      },
+      {
+        number: 4,
+        titleEn: "Check each intake deadline",
+        titleVi: "Kiểm tra hạn của từng đợt",
+        contentEn: "Only use published dates for the named intake. The next intake may not yet be announced; portal availability is not proof that applications are open.",
+        contentVi: "Chỉ dùng ngày đã công bố cho đúng đợt. Đợt tiếp theo có thể chưa được thông báo; cổng truy cập được không chứng minh hồ sơ đang mở.",
+      },
+      {
+        number: 5,
+        titleEn: "Explore grants and student stories",
+        titleVi: "Tìm hiểu học bổng và trải nghiệm sinh viên",
+        contentEn: "Some grants are partner- and intake-specific or invitation-based. Review the current official notice rather than reusing a past award.",
+        contentVi: "Một số khoản hỗ trợ chỉ dành cho đối tác/đợt cụ thể hoặc theo thư mời. Hãy xem thông báo hiện tại, không dùng lại học bổng của đợt cũ.",
+      },
+    ],
+    officialReferences: GLOBAL_EXPERIENCE_OFFICIAL_REFERENCES,
+    relatedGuideSlugs: [],
   }
 ];

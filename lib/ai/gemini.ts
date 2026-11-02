@@ -1,7 +1,18 @@
-import { searchKnowledgeBase } from "@/lib/search/engine";
+import { processQuery, removeVietnameseDiacritics, searchKnowledgeBase } from "@/lib/search/engine";
 import { DEPARTMENT_CONTACTS } from "@/data/contacts/departments";
-import { getPublishedCalendarEntries, type CalendarEntry } from "@/data/events/calendar";
+import { CAMPUS_ACTIVITY_HIGHLIGHTS, getPublishedCalendarEntries, type CalendarEntry } from "@/data/events/calendar";
 import { getVerifiedClubs, type ClubCategory, type ClubRecord } from "@/data/clubs/clubs";
+import {
+  GLOBAL_EXPERIENCE_LAST_VERIFIED,
+  GLOBAL_EXPERIENCE_PROGRAMS,
+  GLOBAL_EXPERIENCE_SCHOLARSHIPS,
+  GLOBAL_EXPERIENCE_STUDY_PLAN,
+  GLOBAL_EXPERIENCE_URLS,
+  formatGlobalExperienceDate,
+  getApplicationCycleStatus,
+  getDeadlineStatus,
+  type GlobalExperienceProgramId,
+} from "@/data/guides/globalExperience";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -24,15 +35,35 @@ const RMIT_TOPIC_PATTERNS = [
   /counseling/i, /bac si/i, /health/i, /contact/i, /lien he/i, /email/i, /hotline/i,
   /connect/i, /census/i, /deadlines/i, /han chot/i, /bai tap/i, /assignment/i, /special consideration/i,
   /tot nghiep/i, /graduation/i, /career/i, /thuc tap/i, /internship/i, /sset/i, /sbm/i, /scd/i,
-  /friend/i, /make friends/i, /meet people/i, /teammate/i, /team mate/i, /study partner/i,
+  /friend/i, /make friends/i, /meet people/i, /meet students/i, /new people/i, /teammate/i, /team mate/i, /groupmate/i, /group mate/i, /groupmates/i, /study partner/i,
   /club/i, /society/i, /workshop/i, /event/i, /network/i, /community/i, /campus life/i,
   /new student/i, /first year/i, /lonely/i, /homesick/i, /shy/i, /social anxiety/i,
   /group assignment/i, /free[- ]rider/i, /group conflict/i, /classmate/i, /student life/i,
   /ket ban/i, /ban be/i, /lam quen/i, /tim ban/i, /dong doi/i, /ban hoc/i, /cau lac bo/i,
   /su kien/i, /hoat dong/i, /hoi thao/i, /ket noi/i, /cong dong/i, /tan sinh vien/i,
-  /co don/i, /nho nha/i, /ngai giao tiep/i, /ap luc nhom/i
+  /co don/i, /nho nha/i, /ngai giao tiep/i, /ap luc nhom/i,
+  /global experience/i, /study abroad/i, /overseas study/i, /study overseas/i,
+  /partner exchange/i, /cross[- ]campus/i, /interlocation/i, /study plan/i,
+  /permanent transfer/i, /erasmus/i, /seed/i, /study in melbourne/i,
+  /du hoc/i, /du học/i, /trao doi/i, /trao đổi/i, /hoc o nuoc ngoai/i,
+  /kế hoạch học tập/i, /chuyển tiếp/i,
 ];
 
+const GENERIC_CHAT_RETRIEVAL_TERMS = new Set([
+  "rmit", "vietnam", "viet", "nam", "university", "universities", "student", "students",
+  "sinh", "vien", "course", "courses", "program", "programs", "class", "classes",
+  "assignment", "assignments", "academic", "study", "studies", "mon", "hoc",
+]);
+function normalizeChatRetrievalTerm(term: string): string {
+  const normalized = removeVietnameseDiacritics(term);
+  if (normalized.length > 4 && normalized.endsWith("ies")) {
+    return `${normalized.slice(0, -3)}y`;
+  }
+  if (normalized.length > 4 && normalized.endsWith("s") && !normalized.endsWith("ss")) {
+    return normalized.slice(0, -1);
+  }
+  return normalized;
+}
 const OBVIOUS_OUT_OF_SCOPE_PATTERNS = [
   /write (a|an)? python/i, /viet code/i, /viet chuong trinh/i, /write code/i,
   /who won the world cup/i, /ai thang world cup/i, /tell me a (funny )?joke/i, /joke/i, /ke chuyen cuoi/i,
@@ -40,6 +71,14 @@ const OBVIOUS_OUT_OF_SCOPE_PATTERNS = [
   /recipe/i, /cong thuc nau an/i, /crypto/i, /bitcoin/i, /ignore previous instructions/i,
   /jailbreak/i, /act as DAN/i
 ];
+const VIETNAMESE_LANGUAGE_MARKERS =
+  /\b(?:lam sao|toi|tui|minh|ban be|ban hoc|sinh vien|cau lac bo|hoc phi|hoc bong|dang ky|dang tuyen|tuyen thanh vien|ket ban|tim ban|dong doi|su kien|hoat dong|lich hoc|ngoai khoa|giang vien|hong|khong)\b/i;
+
+export function detectChatLanguage(message: string, preferredLanguage: "en" | "vi"): "en" | "vi" {
+  const hasVietnameseDiacritics = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(message);
+  const hasVietnameseWords = VIETNAMESE_LANGUAGE_MARKERS.test(removeVietnameseDiacritics(message));
+  return hasVietnameseDiacritics || hasVietnameseWords ? "vi" : preferredLanguage;
+}
 
 export function isQueryInScope(query: string): { inScope: boolean; reason?: string } {
   const trimmed = query.trim();
@@ -63,14 +102,23 @@ export function isQueryInScope(query: string): { inScope: boolean; reason?: stri
     return { inScope: true };
   }
 
-  // 3. Match explicit RMIT university topical keywords
+  // 3. Recognize verified club names even when the user omits "RMIT" or "club".
+  const normalizedQuery = normalizeEventText(trimmed);
+  if (getVerifiedClubs().some((club) => {
+    const shortName = normalizeEventText(club.nameEn.replace(/\s+club$/i, ""));
+    return shortName.length >= 4 && normalizedQuery.includes(shortName);
+  })) {
+    return { inScope: true };
+  }
+
+  // 4. Match explicit RMIT university topical keywords
   for (const pattern of RMIT_TOPIC_PATTERNS) {
     if (pattern.test(trimmed)) {
       return { inScope: true };
     }
   }
 
-  // 4. Default: Reject any question not related to RMIT
+  // 5. Default: Reject any question not related to RMIT
   return {
     inScope: false,
     reason: "Out of scope: Please ask a question related to RMIT University Vietnam (e.g., courses, enrolment, scholarships, tuition, or campus contacts).",
@@ -78,16 +126,51 @@ export function isQueryInScope(query: string): { inScope: boolean; reason?: stri
 }
 
 export function buildRAGContext(query: string, language: "en" | "vi" = "en"): GroundedContext {
-  const matches = searchKnowledgeBase(query, { language, limit: 3 });
-
-  if (matches.length === 0) {
+  if (isPracticalStudentLifeQuery(query)) {
+    const assignmentAdvice = isAssignmentPerformanceAdviceQuery(query);
     return {
-      contextText: "No specific knowledge records matched this query directly.",
-      sources: [{ title: "RMIT Vietnam Official Website", url: "https://www.rmit.edu.vn" }],
+      contextText: assignmentAdvice
+        ? language === "vi"
+          ? "Đây là câu hỏi xin lời khuyên học tập chung, không phải quy định chấm điểm của RMIT. Đưa ra gợi ý thực tế, không bảo đảm điểm số và không chuyển sang hướng dẫn nộp bài Canvas hoặc nộp trễ."
+          : "This is a request for general study-strategy advice, not an RMIT marking policy. Give practical, non-guaranteed suggestions; do not substitute Canvas submission or late-penalty instructions."
+        : language === "vi"
+          ? "Không cần tài liệu quy định cho câu hỏi thực tế về đời sống sinh viên này. Trả lời trực tiếp bằng hướng dẫn chung, không thay thế bằng một quy trình học vụ không liên quan."
+          : "No policy document is required for this practical student-life question. Answer with general guidance and do not substitute an unrelated academic procedure guide.",
+      sources: assignmentAdvice ? [] : [{ title: "RMIT Vietnam Student Life", url: "https://www.rmit.edu.vn/students/campus-life" }],
       matchedDocTitles: [],
     };
   }
+  if (isGlobalExperienceQuery(query)) {
+    return {
+      contextText: "",
+      sources: [],
+      matchedDocTitles: [],
+    };
+  }
+  const candidates = searchKnowledgeBase(query, { language, limit: 3 });
+  const queryTerms = processQuery(query).tokens
+    .map(normalizeChatRetrievalTerm)
+    .filter((term) => !GENERIC_CHAT_RETRIEVAL_TERMS.has(term));
+  const queryTermSet = new Set(queryTerms);
+  const matches = queryTermSet.size > 0
+    ? candidates.filter((candidate) =>
+        candidate.matchedKeywords.some((keyword) =>
+          normalizeChatRetrievalTerm(keyword)
+            .split(/\s+/)
+            .some((term) => queryTermSet.has(term))
+        )
+      )
+    : [];
 
+  if (matches.length === 0) {
+    return {
+      contextText: language === "vi"
+        ? "Không tìm thấy tài liệu RMIT đã xác minh có độ liên quan đủ cao. Không suy đoán chính sách hoặc thông tin cụ thể; hãy hỏi lại để làm rõ hoặc nêu rõ giới hạn thông tin."
+        : "No high-confidence verified RMIT record matches this question. Do not infer policies or specific facts; ask for clarification or state the information limit.",
+      sources: [],
+      matchedDocTitles: [],
+    };
+  }
   const deptMap = new Map(DEPARTMENT_CONTACTS.map((d) => [d.id, d]));
   const sources: { title: string; url: string; departmentName?: string }[] = [];
   const matchedDocTitles: string[] = [];
@@ -117,14 +200,225 @@ Phòng ban liên hệ: ${dept ? `${dept.nameVi || dept.nameEn} (Email: ${dept.em
     bestDoc: matches[0].document,
   };
 }
+export interface GlobalExperienceContext {
+  contextText: string;
+  sources: { title: string; url: string }[];
+  matchedProgramIds: GlobalExperienceProgramId[];
+  matchedProgramTitles: string[];
+  matchedScholarshipIds: string[];
+  matchedScholarshipTitles: string[];
+  hasScholarshipIntent: boolean;
+  hasStudyPlanIntent: boolean;
+  hasPermanentTransferIntent: boolean;
+}
+
+export function isGlobalExperienceQuery(query: string): boolean {
+  const normalized = normalizeEventText(query);
+  return /global experience|global scholarship|study abroad|overseas study|study overseas|outbound mobility|exchange|cross[- ]campus|interlocation|international exchange|semester abroad|study plan|credit transfer|permanent transfer|erasmus|seed|du hoc|trao doi|hoc o nuoc ngoai|ke hoach hoc tap|chuyen tiep vinh vien/i.test(normalized)
+    || (/canada|australia|singapore|hong kong|melbourne/i.test(normalized) && /study|exchange|program|du hoc|trao doi|hoc/i.test(normalized));
+}
+
+export function buildGlobalExperienceContext(query: string, language: "en" | "vi" = "en"): GlobalExperienceContext {
+  const empty: GlobalExperienceContext = {
+    contextText: "",
+    sources: [],
+    matchedProgramIds: [],
+    matchedProgramTitles: [],
+    matchedScholarshipIds: [],
+    matchedScholarshipTitles: [],
+    hasScholarshipIntent: false,
+    hasStudyPlanIntent: false,
+    hasPermanentTransferIntent: false,
+  };
+  if (!isGlobalExperienceQuery(query)) return empty;
+
+  const normalized = normalizeEventText(query);
+  const hasScholarshipIntent = /scholarship|grant|erasmus|seed|hoc bong|tro cap/i.test(normalized);
+  const hasStudyPlanIntent = /study plan|studyplan|credit transfer|cong nhan tin chi|ke hoach hoc tap/i.test(normalized);
+  const hasPermanentTransferIntent = /permanent transfer|transfer permanently|complete.*degree.*melbourne|chuyen tiep vinh vien|chuyen truong.*melbourne/i.test(normalized);
+  const explicitCrossCampus = /cross[- ]campus|rmit melbourne|study in melbourne|exchange.*melbourne|melbourne.*(exchange|semester|study)/i.test(normalized);
+  const explicitInterlocation = /interlocation|singapore|hong kong|hongkong|asia|chau a|vtc shape|hong kong arts/i.test(normalized);
+  const explicitShortProgram = /short program|short course|global summer|summer program|winter program|stx/i.test(normalized);
+  const explicitPartnerExchange = /partner exchange|exchange.*partner|partner.*universit|worldwide exchange|canada/i.test(normalized);
+  const selectedIds = new Set<GlobalExperienceProgramId>();
+  if (explicitCrossCampus) selectedIds.add("cross-campus-melbourne");
+  if (explicitInterlocation) selectedIds.add("interlocation-asia");
+  if (explicitShortProgram) selectedIds.add("global-short-programs");
+  if (explicitPartnerExchange) selectedIds.add("partner-exchange");
+  if (hasPermanentTransferIntent && /difference|versus|\bvs\b|compare|khac|so sanh/i.test(normalized)) {
+    selectedIds.add("cross-campus-melbourne");
+  }
+  if (
+    selectedIds.size === 0 &&
+    !hasScholarshipIntent &&
+    !hasStudyPlanIntent &&
+    !hasPermanentTransferIntent
+  ) {
+    GLOBAL_EXPERIENCE_PROGRAMS.forEach((program) => selectedIds.add(program.id));
+  }
+
+  const programs = GLOBAL_EXPERIENCE_PROGRAMS.filter((program) => selectedIds.has(program.id));
+  const scholarships = hasScholarshipIntent
+    ? GLOBAL_EXPERIENCE_SCHOLARSHIPS.filter((scholarship) => {
+        const title = normalizeEventText(scholarship.title.en);
+        if (/seed/i.test(normalized)) return scholarship.id === "seed-canada-asean";
+        if (/erasmus/i.test(normalized)) return scholarship.id.startsWith("erasmus");
+        const namedHost = ["aarhus", "aalto", "amfi", "amsterdam"].some((host) => normalized.includes(host));
+        return !namedHost || title.split(/\s+/).some((word) => word.length > 3 && normalized.includes(word));
+      })
+    : [];
+
+  const sources = new Map<string, { title: string; url: string }>();
+  const addSource = (title: string, url: string) => {
+    if (url) sources.set(url, { title, url });
+  };
+  addSource(language === "vi" ? "RMIT Global Experience" : "RMIT Global Experience", GLOBAL_EXPERIENCE_URLS.overview);
+  for (const program of programs) {
+    addSource(program.title[language], program.informationUrl);
+    if (program.instructionsUrl) addSource(language === "vi" ? "Hướng dẫn đăng ký RMIT" : "RMIT application instructions", program.instructionsUrl);
+    addSource(program.applicationPortalLabel[language], program.applicationPortalUrl);
+  }
+  if (hasPermanentTransferIntent) {
+    addSource(language === "vi" ? "Chuyển tiếp vĩnh viễn sang Melbourne" : "Permanent transfer to Melbourne", GLOBAL_EXPERIENCE_URLS.permanentTransfer);
+  }
+  if (hasScholarshipIntent) addSource(language === "vi" ? "Học bổng và hỗ trợ Global Experience" : "Global Experience scholarships and grants", GLOBAL_EXPERIENCE_URLS.scholarships);
+  if (hasStudyPlanIntent) {
+    addSource(language === "vi" ? "Global Experience Study Plan" : "Global Experience Study Plan", GLOBAL_EXPERIENCE_URLS.studyPlan);
+    addSource(language === "vi" ? "Student Connect Online Portal" : "Student Connect Online Portal", GLOBAL_EXPERIENCE_URLS.studyPlanSubmission);
+  }
+
+  const blocks = [`Global Experience information last checked against official RMIT sources: ${GLOBAL_EXPERIENCE_LAST_VERIFIED}.`];
+  for (const program of programs) {
+    const cycles = program.cycles.length
+      ? program.cycles.map((cycle) => {
+          const status = getApplicationCycleStatus(cycle);
+          const opens = cycle.opensOn ? formatGlobalExperienceDate(cycle.opensOn, language) : "not announced";
+          const closes = cycle.closesOn ? formatGlobalExperienceDate(cycle.closesOn, language) : "not announced";
+          return `${cycle.label[language]}: opens ${opens}, closes ${closes} at 11:59 pm Melbourne time; status ${status}.`;
+        }).join("\n")
+      : (language === "vi" ? "Ngày tuyển hiện tại: tùy hồ sơ Mobi; không có hạn chung được công bố." : "Current dates: listing-specific in Mobi; no general deadline is published.");
+    const steps = /how|apply|application|register|deadline|when|nộp|đăng ký|hạn|khi nào/i.test(normalized)
+      ? `\nApplication steps:\n- ${program.applicationSteps.map((step) => step[language]).join("\n- ")}`
+      : "";
+    blocks.push([
+      `Program: ${program.title[language]}`,
+      `Summary: ${program.summary[language]}`,
+      `Destination and duration: ${program.destination[language]}; ${program.duration[language]}.`,
+      `Tuition and costs: ${program.tuitionAndCosts[language]}`,
+      `Eligibility: ${program.eligibility.map((item) => item[language]).join(" ")}`,
+      `Published intake dates: ${cycles}`,
+      program.notes ? `Source note: ${program.notes[language]}` : "",
+      steps,
+      `Official information: ${program.informationUrl}`,
+      program.instructionsUrl ? `Application instructions: ${program.instructionsUrl}` : "",
+      `Application portal (portal access does not indicate an open intake): ${program.applicationPortalUrl}`,
+    ].filter(Boolean).join("\n"));
+  }
+
+  if (hasScholarshipIntent) {
+    blocks.push(`Global Experience scholarships and grants:\n${scholarships.map((scholarship) => {
+      const deadline = scholarship.partnerDeadline
+        ? ` Partner Exchange prerequisite cutoff: ${formatGlobalExperienceDate(scholarship.partnerDeadline, language)}; current status ${getDeadlineStatus(scholarship.partnerDeadline)}. This is not a separate scholarship deadline.`
+        : "";
+      return `- ${scholarship.title[language]} (${scholarship.intake[language]}): ${scholarship.amount[language]} Eligibility: ${scholarship.eligibility[language]} Application: ${scholarship.application[language]}${deadline}`;
+    }).join("\n")}\nRMIT scholarship source: ${GLOBAL_EXPERIENCE_URLS.scholarships}`);
+  }
+
+  if (hasStudyPlanIntent) {
+    blocks.push([
+      `Study Plan: ${GLOBAL_EXPERIENCE_STUDY_PLAN.overview[language]}`,
+      `Steps:\n- ${GLOBAL_EXPERIENCE_STUDY_PLAN.steps.map((step) => step[language]).join("\n- ")}`,
+      `Program loads:\n- ${GLOBAL_EXPERIENCE_STUDY_PLAN.programLoads.map((item) => item[language]).join("\n- ")}`,
+      `Processing:\n- ${GLOBAL_EXPERIENCE_STUDY_PLAN.processingTimes.map((item) => item[language]).join("\n- ")}`,
+      `Study Plan page: ${GLOBAL_EXPERIENCE_URLS.studyPlan}`,
+      `Submission: ${GLOBAL_EXPERIENCE_URLS.studyPlanSubmission}`,
+      `Forms: ${GLOBAL_EXPERIENCE_URLS.crossCampusStudyPlanForm}; ${GLOBAL_EXPERIENCE_URLS.partnerStudyPlanForm}`,
+    ].join("\n"));
+  }
+
+  if (hasPermanentTransferIntent) {
+    blocks.push(`Permanent transfer is a separate pathway for completing a degree in Melbourne, not a temporary Cross-campus semester. Official information: ${GLOBAL_EXPERIENCE_URLS.permanentTransfer}`);
+  }
+
+  return {
+    contextText: blocks.join("\n\n"),
+    sources: [...sources.values()],
+    matchedProgramIds: programs.map((program) => program.id),
+    matchedProgramTitles: programs.map((program) => program.title[language]),
+    matchedScholarshipIds: scholarships.map((scholarship) => scholarship.id),
+    matchedScholarshipTitles: scholarships.map((scholarship) => scholarship.title[language]),
+    hasScholarshipIntent,
+    hasStudyPlanIntent,
+    hasPermanentTransferIntent,
+  };
+}
+
+export function formatGlobalExperienceFallback(
+  query: string,
+  language: "en" | "vi",
+  context: GlobalExperienceContext,
+): string {
+  if (context.hasStudyPlanIntent) {
+    return language === "vi"
+      ? "Study Plan là bước để RMIT Việt Nam duyệt các môn dự kiến được công nhận. Hãy kiểm tra yêu cầu chương trình còn lại, chọn môn phù hợp ở đúng học kỳ, chuẩn bị đề cương và nộp đúng biểu mẫu qua Student Connect. Thời gian xử lý thường là 15 ngày làm việc với Partner Exchange và 10 ngày với Cross-campus, Interlocation hoặc STX. Được duyệt không đảm bảo trường tiếp nhận còn môn hoặc chấp nhận đăng ký."
+      : "A Study Plan is RMIT Vietnam’s approval of proposed courses for credit. Check your remaining program requirements, choose host courses for the correct term, prepare course outlines, and submit the right form through Student Connect. Processing is usually 15 working days for Partner Exchange and 10 for Cross-campus, Interlocation or STX. Approval does not guarantee host-course availability or acceptance.";
+  }
+  if (context.hasScholarshipIntent) {
+    const scholarships = GLOBAL_EXPERIENCE_SCHOLARSHIPS.filter((scholarship) => context.matchedScholarshipIds.includes(scholarship.id));
+    const listAll = /all|every|list|danh sach|toan bo/i.test(normalizeEventText(query));
+    const lines = scholarships.map((scholarship) => `• ${scholarship.title[language]}: ${scholarship.amount[language]} ${scholarship.application[language]}`).join("\n");
+    const intro = language === "vi"
+      ? "Học bổng Global Experience phụ thuộc trường đối tác và đợt tuyển. Các khoản cụ thể có thể theo thư mời; hạn Partner Exchange của các khoản năm 2027 đã qua. RMIT chưa công bố đợt học bổng 2028 trên trang đã kiểm tra."
+      : "Global Experience funding depends on the host partner and intake. Specific grants may be invitation-based; the prerequisite Partner Exchange cutoffs for listed 2027 awards have passed. The checked RMIT page has no 2028 grant intake dates.";
+    const shown = listAll ? lines : scholarships.slice(0, 3).map((scholarship) => `• ${scholarship.title[language]}: ${scholarship.amount[language]} ${scholarship.application[language]}`).join("\n");
+    return `${intro}${shown ? `\n\n${shown}` : ""}`;
+  }
+  if (context.hasPermanentTransferIntent) {
+    return language === "vi"
+      ? "Chuyển tiếp vĩnh viễn sang Melbourne là lộ trình riêng để hoàn tất bằng tại RMIT Melbourne. Cross-campus chỉ là học tạm thời 1–2 học kỳ, vẫn đăng ký toàn thời gian và đóng học phí RMIT Việt Nam."
+      : "Permanent transfer to Melbourne is a separate pathway to complete your degree at RMIT Melbourne. Cross-campus is temporary study for 1–2 semesters while you remain enrolled full-time and pay RMIT Vietnam tuition.";
+  }
+
+  const programs = GLOBAL_EXPERIENCE_PROGRAMS.filter((program) => context.matchedProgramIds.includes(program.id));
+  if (programs.length === 1) {
+    const program = programs[0];
+    const status = program.cycles.map((cycle) => {
+      const applicationStatus = getApplicationCycleStatus(cycle);
+      const statusLabel = language === "vi"
+        ? { open: "đang mở", upcoming: "sắp mở", closed: "đã đóng", not_announced: "chưa công bố" }[applicationStatus]
+        : { open: "open", upcoming: "upcoming", closed: "closed", not_announced: "not announced" }[applicationStatus];
+      const range = cycle.opensOn && cycle.closesOn
+        ? ` (${formatGlobalExperienceDate(cycle.opensOn, language)}–${formatGlobalExperienceDate(cycle.closesOn, language)}, ${language === "vi" ? "giờ Melbourne" : "Melbourne time"})`
+        : "";
+      return `${cycle.label[language]}: ${statusLabel}${range}`;
+    }).join("; ");
+    return `${program.title[language]}: ${program.summary[language]}\n\n${language === "vi" ? "Điều kiện chính" : "Main eligibility"}: ${program.eligibility.slice(0, 2).map((item) => item[language]).join(" ")}\n\n${status ? `${language === "vi" ? "Các đợt đã công bố" : "Published intakes"}: ${status}.` : (language === "vi" ? "Ngày và điều kiện tùy hồ sơ chương trình hiện hành." : "Dates and eligibility are specific to current program listings.")} ${language === "vi" ? "Mở nguồn chính thức kèm theo để xem cổng và hồ sơ." : "Open the attached official sources for the application portal and instructions."}`;
+  }
+  const overview = programs.length > 0 ? programs : GLOBAL_EXPERIENCE_PROGRAMS;
+  return language === "vi"
+    ? `RMIT có bốn lộ trình Global Experience khác nhau:\n\n${overview.map((program) => `• ${program.title.vi}: ${program.summary.vi}`).join("\n")}\n\nHãy chọn lộ trình phù hợp rồi kiểm tra điều kiện, Study Plan và hạn của đúng đợt trên nguồn RMIT.`
+    : `RMIT offers four distinct Global Experience pathways:\n\n${overview.map((program) => `• ${program.title.en}: ${program.summary.en}`).join("\n")}\n\nChoose a pathway, then verify its eligibility, Study Plan and intake deadline on the official RMIT sources.`;
+}
+
 export interface EventContext {
   contextText: string;
   sources: { title: string; url: string }[];
   matchedEventTitles: string[];
+  matchedActivityTitles: string[];
 }
 
 function normalizeEventText(value: string): string {
-  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/đ/g, "d");
+}
+
+function isAssignmentPerformanceAdviceQuery(query: string): boolean {
+  const normalized = normalizeEventText(query);
+  const assignmentTask = /\b(?:assignments?|assessments?|coursework|projects?|bai tap|bai lam)\b/i.test(normalized);
+  const gradeGoal = /\b(?:high|higher|good|better|top)\s+(?:scores?|marks?|grades?)\b|\b(?:score|mark|grade)\s+(?:high|better|well)\b|\b(?:improve|raise|boost|achieve|get|earn)\b.{0,35}\b(?:scores?|marks?|grades?)\b|\bdiem cao\b|\bdat diem cao\b|\bcai thien diem\b/i.test(normalized);
+  return assignmentTask && gradeGoal;
+}
+function isClubDayActivityQuery(query: string): boolean {
+  return /club day|clubs day|ngay hoi cau lac bo|ngay hoi clb/i.test(normalizeEventText(query));
 }
 
 function getEventRegistrationLinks(entry: CalendarEntry): { label: string; url: string }[] {
@@ -136,8 +430,28 @@ function getEventRegistrationLinks(entry: CalendarEntry): { label: string; url: 
 
 export function buildEventContext(query: string, language: "en" | "vi" = "en"): EventContext {
   const normalizedQuery = normalizeEventText(query);
-  const eventIntent = /event|happening|this week|this weekend|workshop|festival|competition|what can i join|su kien|hoat dong|hoi thao|le hoi|cuoc thi|tuan nay|cuoi tuan/i.test(normalizedQuery);
-  if (!eventIntent) return { contextText: "", sources: [], matchedEventTitles: [] };
+  const eventIntent = /event|happening|this week|this weekend|workshop|festival|competition|what can i join|su kien|hoat dong|hoi thao|le hoi|cuoc thi|tuan nay|cuoi tuan/i.test(normalizedQuery) || isClubDayActivityQuery(normalizedQuery);
+  if (!eventIntent) return { contextText: "", sources: [], matchedEventTitles: [], matchedActivityTitles: [] };
+  if (isClubDayActivityQuery(normalizedQuery)) {
+    const clubDay = CAMPUS_ACTIVITY_HIGHLIGHTS.find((activity) => activity.id === "activity-club-day");
+    const contextText = language === "vi"
+      ? "[Hoạt động định kỳ RMIT đã xác minh]\nTên: Club Day.\nTần suất và cơ sở: Trang lưu trữ chính thức của RMIT cho biết Club Day diễn ra mỗi học kỳ tại cả Nam Sài Gòn và Hà Nội.\nNội dung: Sinh viên có thể tham quan gian hàng câu lạc bộ, gặp thành viên, tìm hiểu hoạt động và hỏi về cơ hội tham gia.\nLịch hiện tại: Các nguồn hoạt động/sự kiện chính thức đã kiểm tra chưa công bố ngày hiện tại cho từng cơ sở. Hãy nói lịch chưa được công bố; không suy ra ngày từ bài viết cũ hoặc bịa link đăng ký.\nBước tiếp theo: xem trang thông báo hoạt động RMIT, danh bạ câu lạc bộ chính thức và hướng dẫn tham gia."
+      : "[Verified recurring RMIT activity]\nName: Club Day.\nFrequency and campuses: RMIT's official archive says Club Day is held every semester at both Saigon South and Hanoi.\nWhat students can do: Explore club booths, meet members, discover activities, and ask about membership opportunities.\nCurrent schedule: The official activities/events sources checked do not announce a current date for either campus. Say the date is TBA; do not infer dates from old posts or invent registration links.\nNext steps: check RMIT's activity announcements, the official club directory, and the How to Join guide.";
+    return {
+      contextText,
+      sources: [
+        { title: language === "vi" ? "Hoạt động và sự kiện sinh viên RMIT" : "RMIT Student Activities and Events", url: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events" },
+        { title: language === "vi" ? "Club Day Fun Day — bài viết lưu trữ RMIT" : "Club Day Fun Day — RMIT official archive", url: "https://www.rmit.edu.vn/news/all-news/2017/mar/club-day-fun-day" },
+        { title: language === "vi" ? "Game On! Club Day — gian hàng câu lạc bộ" : "Game On! Club Day goes full ‘RCADE’ with booth decorations", url: clubDay?.sourceUrl ?? "https://www.rmit.edu.vn/students/student-news-and-events/student-news/2025/club-day-goes-full-rcade-with-booth-decorations/cl" },
+        { title: "Newbie 101: Clubs and Societies", url: "https://www.rmit.edu.vn/students/student-news-and-events/student-news/student-news-2024/newbie-101-clubs-and-societies" },
+        { title: language === "vi" ? "Danh bạ câu lạc bộ RMIT" : "RMIT Student Clubs directory", url: "https://www.rmit.edu.vn/students/campus-life/clubs" },
+        { title: language === "vi" ? "Khám phá câu lạc bộ" : "Explore Student Clubs", url: "/clubs" },
+        { title: language === "vi" ? "Hướng dẫn tham gia CLB" : "How to Join a Club", url: "/guides/danh-sach-cau-lac-bo-rmit-viet-nam" },
+      ],
+      matchedEventTitles: [],
+      matchedActivityTitles: [language === "vi" ? (clubDay?.titleVi ?? "Club Day") : (clubDay?.titleEn ?? "Club Day")],
+    };
+  }
 
   const socialEventIntent = /meet people|make friends|network|connect with people|new people|gặp người mới|gap nguoi moi|kết bạn|ket ban|làm quen|lam quen|mở rộng vòng tròn|mo rong vong tron/i.test(normalizedQuery);
   const queryTerms = normalizedQuery.split(/\s+/).filter((term) => term.length >= 3);
@@ -174,6 +488,7 @@ export function buildEventContext(query: string, language: "en" | "vi" = "en"): 
         : "No matching verified campus events are currently listed.",
       sources: [],
       matchedEventTitles: [],
+      matchedActivityTitles: [],
     };
   }
 
@@ -205,12 +520,23 @@ export function buildEventContext(query: string, language: "en" | "vi" = "en"): 
     ].join("\n");
   }).join("\n\n");
 
-  return { contextText, sources, matchedEventTitles };
+  return { contextText, sources, matchedEventTitles, matchedActivityTitles: [] };
 }
 export function isPracticalStudentLifeQuery(query: string): boolean {
-  return /make friends|find teammates|find a teammate|study partner|how do i join|how can i join|im shy|i am shy|dont know anyone|don't know anyone|ket ban|tim dong doi|tim ban hoc|tham gia cau lac bo|ngai giao tiep|lam sao de ket ban/i.test(normalizeEventText(query));
+  const normalizedQuery = normalizeEventText(query);
+  return isAssignmentPerformanceAdviceQuery(query) || /make friends|meet people|meet students|new people|other majors|students from|find teammates|find a teammate|teammate|team mate|teammates|groupmate|group mate|groupmates|team members|find a group|reliable.*(team|group)|group assignment|study partner|how do i join|how can i join|im shy|i am shy|dont know anyone|don't know anyone|ket ban|tim dong doi|tim ban hoc|tim teammate|tim nhom|ban cung nhom|ban chung nganh|kiem ban chung nganh|lam viec nhom|tham gia cau lac bo|ngai giao tiep|lam sao de ket ban/i.test(normalizedQuery) || isClubDayActivityQuery(normalizedQuery);
 }
 export function formatStudentLifeFallback(query: string, language: "en" | "vi", eventContext: EventContext): string {
+  if (isAssignmentPerformanceAdviceQuery(query)) {
+    return language === "vi"
+      ? "Hãy dùng đề bài và rubric làm checklist trước khi bắt đầu. Đáp ứng từng tiêu chí, hỗ trợ luận điểm bằng nguồn đáng tin và trích dẫn đúng; dành thời gian viết nháp, hỏi giảng viên khi cần và rà soát trước khi nộp. Kiểm tra yêu cầu riêng của môn học; không có cách chung nào bảo đảm một mức điểm."
+      : "Use the assignment brief and rubric as a checklist before you start. Address each criterion, support claims with credible evidence and correct citations, and leave time for a draft, feedback or consultation, and proofreading. Check the course-specific requirements; no general approach can guarantee a particular mark.";
+  }
+  if (eventContext.matchedActivityTitles.some((title) => /club day/i.test(title))) {
+    return language === "vi"
+      ? "Club Day là ngày hội câu lạc bộ diễn ra mỗi học kỳ tại Nam Sài Gòn và Hà Nội. Bạn có thể tham quan gian hàng, gặp thành viên và hỏi trực tiếp về hoạt động/cách tham gia. Lịch hiện tại của từng cơ sở chưa được công bố; hãy theo dõi trang Hoạt động và sự kiện RMIT. Bạn cũng có thể xem Danh bạ CLB hoặc Hướng dẫn tham gia để chuẩn bị."
+      : "Club Day is held each semester at Saigon South and Hanoi. Visit club booths, meet members, and ask about activities and how to join. Current dates for either campus have not been announced; check RMIT's Student Activities and Events page. The Club Directory and How to Join guide can help you prepare.";
+  }
   if (eventContext.matchedEventTitles.length > 0) {
     const titles = eventContext.matchedEventTitles.map((title) => `• ${title}`).join("\n");
     return language === "vi"
@@ -222,6 +548,21 @@ export function formatStudentLifeFallback(query: string, language: "en" | "vi", 
     return language === "vi"
       ? "Hiện chưa có sự kiện RMIT đã xác minh phù hợp trong danh sách. Bạn có thể xem thêm tại trang Campus Events."
       : "No matching verified RMIT event is currently listed. You can check the Campus Events page for the latest entries.";
+  }
+
+  const normalizedQuery = normalizeEventText(query);
+  const teammateIntent = /teammate|team mate|teammates|groupmate|group mate|groupmates|team members|find a group|group assignment|reliable.*(team|group)|tim teammate|tim nhom|ban cung nhom|lam viec nhom/i.test(normalizedQuery);
+  if (teammateIntent) {
+    return language === "vi"
+      ? "Để tìm teammate đáng tin cậy, bạn có thể:\n\n• Bắt đầu từ bạn cùng lớp hoặc tutorial; hỏi về lịch rảnh, cách giao tiếp và mức độ cam kết.\n• Thống nhất sớm vai trò, deadline nội bộ và cách cập nhật tiến độ.\n• Kiểm tra quy định của giảng viên về cách lập nhóm trước khi chốt thành viên.\n\nBạn có thể nhắn: “Bạn đã có nhóm cho bài này chưa? Mình muốn tìm teammate có thể lên kế hoạch và chia việc rõ ràng.” Nếu teammate không phản hồi, lưu lại các lần liên hệ và báo giảng viên theo quy định môn học."
+      : "To find reliable teammates:\n\n• Start with classmates or tutorial partners and ask about availability, communication style, and commitment.\n• Agree on roles, internal deadlines, and progress updates before forming the group.\n• Check your lecturer's group-formation rules before finalising members.\n\nYou could write: “Have you found a group for this assignment? I'm looking for teammates who can plan the work and communicate clearly.” If someone becomes unresponsive, keep a record of your attempts and contact the lecturer according to the course rules.";
+  }
+
+  const friendshipIntent = /make friends|meet people|meet students|new people|other majors|students from|lonely|shy|dont know anyone|don't know anyone|ket ban|lam quen|tim ban|ban be|ban chung nganh|ngai giao tiep/i.test(normalizedQuery);
+  if (friendshipIntent) {
+    return language === "vi"
+      ? "Bạn có thể mở rộng vòng tròn bạn bè bằng vài bước thực tế:\n\n• Bắt chuyện với bạn cùng lớp sau tutorial bằng một câu hỏi về môn học hoặc bài tập.\n• Rủ một người học chung, ăn trưa hoặc tham gia một hoạt động nhỏ.\n• Chọn CLB, workshop hoặc sự kiện phù hợp sở thích để gặp người mới tự nhiên hơn.\n\nNếu bạn hơi ngại, hãy bắt đầu bằng một tin nhắn ngắn và một hoạt động có mục tiêu rõ ràng."
+      : "A few practical ways to expand your circle:\n\n• Start with classmates after a tutorial by asking about the subject or assignment.\n• Invite someone to study, have lunch, or join a small activity.\n• Try a club, workshop, or campus event that matches your interests so conversation happens naturally.\n\nIf you are shy, start with one short message and an activity with a clear purpose.";
   }
 
   return language === "vi"
@@ -290,6 +631,9 @@ function getClubCategoryLabel(category: ClubCategory): string {
 
 export function buildClubContext(query: string, language: "en" | "vi" = "en"): ClubContext {
   const normalizedQuery = normalizeEventText(query);
+  if (isClubDayActivityQuery(normalizedQuery)) {
+    return { contextText: "", sources: [], matchedClubNames: [], matchedClubs: [], specificClub: false, recruitmentIntent: false };
+  }
   const clubs = getVerifiedClubs();
   const namedClubIntent = clubs.some((club) => {
     const shortName = normalizeEventText(club.nameEn.replace(/\s+club$/i, ""));
@@ -508,16 +852,18 @@ SCOPE:
 - Help with conversation starters, respectful teammate outreach, group expectations, free-rider communication, and constructive conflict resolution.
 - You may suggest clubs or communities only when they appear in verified context. Never invent club names, memberships, matches, student profiles, or availability.
 - For "meet people", "make friends", or "gặp người mới" questions, prioritize events marked social/recreational (festivals, student-life activities, workshops) and do not lead with competitions unless the user asks for them.
-- You may recommend events only from VERIFIED CAMPUS EVENT context. Never invent dates, venues, registration status, or event availability.
+${isVi ? "- Với Club Day, phân biệt hoạt động diễn ra mỗi học kỳ với sự kiện có ngày cụ thể. Nếu chưa có lịch hiện tại, nói rõ ngày chưa công bố và dẫn đến thông báo RMIT; không suy ra lịch từ bài cũ." : "- For Club Day, distinguish a semesterly activity from a specifically dated event. If no current schedule is available, say the date is TBA and link official RMIT announcements; do not infer dates from historical posts."}
 - Do not claim to introduce, match, contact, or access another student.
 - Treat ordinary loneliness, shyness, homesickness, and group stress with empathy, without diagnosing. Mention verified RMIT wellbeing resources only when relevant.
 - Clearly decline unrelated requests such as coding, jokes, general trivia, recipes, or jailbreak instructions.
 
 GROUNDING & FORMAT:
-- Treat VERIFIED RMIT KNOWLEDGE CONTEXT, VERIFIED CAMPUS EVENT CONTEXT, and VERIFIED RMIT CLUB CONTEXT as the only source of current institutional facts.
+- Treat VERIFIED RMIT KNOWLEDGE CONTEXT, VERIFIED CAMPUS EVENT / ACTIVITY CONTEXT, VERIFIED RMIT CLUB CONTEXT, and VERIFIED RMIT GLOBAL EXPERIENCE CONTEXT as the only source of current institutional facts.
+- For Global Experience, use only matching program records and distinguish temporary Cross-campus study from permanent transfer. Match dates to the exact intake and time zone; do not imply that a reachable portal is accepting applications.
 - For club recruitment questions, report the structured recruitment status, interview, CV/portfolio, tryout, deadline, and application-link fields exactly as provided. "not_announced" or "not_confirmed" means unknown; never turn it into yes/no or a current opening.
 - For practical social questions such as making friends or finding teammates, lead with a concise two- or three-step guide and one example message; do not turn the answer into a generic institutional policy summary.
-- Never print raw debug metadata such as "[Record 1]" or internal labels.
+- For teammate or groupmate questions, do not cite Canvas, Turnitin, submission, or grading guides unless the user explicitly asks about those systems.
+- For assignment-mark improvement questions, give general study-strategy advice from the brief and rubric; never promise a grade or substitute Canvas submission or late-penalty guidance unless asked.
 - Answer directly, then give two or three practical actions. Ask at most one useful follow-up question.
 - Include source links when making institution-specific claims. Include original event and registration links when provided.
 - If no matching verified event exists, say so and suggest the Campus Events page; do not fabricate a substitute.

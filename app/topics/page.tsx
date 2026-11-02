@@ -72,7 +72,7 @@ export default function TopicsPage() {
                 <div className="h-44 w-full overflow-hidden bg-[var(--surface-elevated)] relative">
                   <img
                     src={cat.imageUrl}
-                    alt={cat.nameEn}
+                    alt={language === "vi" ? cat.nameVi : cat.nameEn}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                   />
@@ -87,7 +87,7 @@ export default function TopicsPage() {
                     </div>
                     <span className="flex items-center gap-1 border border-[var(--border)] bg-[var(--surface-elevated)] px-2.5 py-1 text-xs font-semibold text-[var(--secondary-text)]">
                       <FileText className="w-3.5 h-3.5 text-[var(--accent)]" />
-                      <span>{docsCount} {docsCount === 1 ? "record" : "records"}</span>
+                      <span>{docsCount} {docsCount === 1 ? t.common.record : t.common.records}</span>
                     </span>
                   </div>
 

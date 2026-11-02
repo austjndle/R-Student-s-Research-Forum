@@ -2,7 +2,20 @@ import { Hono } from "hono";
 import { AiQuotaDurableObject } from "../durable-objects/ai-quota";
 import { EventReviewDurableObject } from "../durable-objects/event-review";
 import { searchKnowledgeBase } from "../lib/search/engine";
-import { isQueryInScope, buildRAGContext, buildEventContext, buildClubContext, buildSystemInstruction, formatKnowledgeAnswer, formatStudentLifeFallback, formatClubFallback, isPracticalStudentLifeQuery } from "../lib/ai/gemini";
+import {
+  detectChatLanguage,
+  isQueryInScope,
+  buildRAGContext,
+  buildEventContext,
+  buildClubContext,
+  buildGlobalExperienceContext,
+  buildSystemInstruction,
+  formatKnowledgeAnswer,
+  formatStudentLifeFallback,
+  formatClubFallback,
+  formatGlobalExperienceFallback,
+  isPracticalStudentLifeQuery,
+} from "../lib/ai/gemini";
 import { KNOWLEDGE_CATEGORIES } from "../data/knowledge/schema";
 import { verifyOfficialEndpoints } from "../lib/knowledge/sync";
 import { isAuthorizedEventAdmin } from "../lib/events/admin-auth";
@@ -243,9 +256,7 @@ app.post("/api/chat", async (c) => {
     return c.json({ error: "Language must be en or vi." }, 400);
   }
 
-  // Detect language: if query contains Vietnamese diacritics or body.language is 'vi', respond in Vietnamese
-  const hasVietnamese = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(message);
-  const language: "en" | "vi" = hasVietnamese || body.language === "vi" ? "vi" : "en";
+  const language = detectChatLanguage(message, body.language === "vi" ? "vi" : "en");
 
   if (!message || message.length > 2000) {
     return c.json({ error: "Message must be between 1 and 2,000 characters." }, 400);
@@ -297,26 +308,42 @@ app.post("/api/chat", async (c) => {
     const rag = buildRAGContext(message, language);
     const eventContext = buildEventContext(message, language);
     const clubContext = buildClubContext(message, language);
+    const globalExperienceContext = buildGlobalExperienceContext(message, language);
     const verifiedContext = [
       rag.contextText ? `VERIFIED RMIT KNOWLEDGE CONTEXT:\n${rag.contextText}` : "",
-      eventContext.contextText ? `VERIFIED CAMPUS EVENT CONTEXT:\n${eventContext.contextText}` : "",
+      eventContext.contextText ? `VERIFIED CAMPUS EVENT / ACTIVITY CONTEXT:\n${eventContext.contextText}` : "",
       clubContext.contextText ? `VERIFIED RMIT CLUB CONTEXT:\n${clubContext.contextText}` : "",
+      globalExperienceContext.contextText ? `VERIFIED RMIT GLOBAL EXPERIENCE CONTEXT:\n${globalExperienceContext.contextText}` : "",
     ].filter(Boolean).join("\n\n");
     const systemPrompt = buildSystemInstruction(language);
     const apiKey = c.env.GEMINI_API_KEY;
     const model = c.env.GEMINI_MODEL || "gemini-2.5-flash";
 
     let answerText = "";
-    if (apiKey) {
+    let answerMode: "gemini" | "workers_ai" | "deterministic_fallback" = "deterministic_fallback";
+    const usePracticalFallback = isPracticalStudentLifeQuery(message);
+    if (apiKey && !usePracticalFallback) {
       const ai = new GoogleGenAI({ apiKey });
       const prompt = `Student Question: ${message}\n\n${verifiedContext}`;
-      const response = await ai.models.generateContent({
-        model,
-        contents: prompt,
-        config: { systemInstruction: systemPrompt, temperature: 0.2, maxOutputTokens: 1024 },
-      });
-      answerText = response.text || "";
-    } else if (c.env.AI) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            systemInstruction: systemPrompt,
+            temperature: 0.2,
+            maxOutputTokens: 1024,
+            httpOptions: { timeout: 25000 },
+          },
+        });
+        answerText = typeof response.text === "string" ? response.text.trim() : "";
+        if (answerText) answerMode = "gemini";
+      } catch (providerError: unknown) {
+        console.error("[worker/api/chat] Gemini request failed", {
+          errorName: providerError instanceof Error ? providerError.name : "unknown",
+        });
+      }
+    } else if (c.env.AI && !usePracticalFallback) {
       try {
         const aiRes = await c.env.AI.run("@cf/meta/llama-3.2-3b-instruct", {
           messages: [
@@ -326,43 +353,79 @@ app.post("/api/chat", async (c) => {
           max_tokens: 1024,
           temperature: 0.2,
         });
-        answerText = aiRes?.response || "";
-      } catch (aiErr) {
-        console.error("Workers AI error:", aiErr);
+        answerText = typeof aiRes?.response === "string" ? aiRes.response.trim() : "";
+        if (answerText) answerMode = "workers_ai";
+      } catch (providerError: unknown) {
+        console.error("[worker/api/chat] Workers AI request failed", {
+          errorName: providerError instanceof Error ? providerError.name : "unknown",
+        });
       }
     }
 
     if (!answerText) {
       answerText = clubContext.specificClub
         ? formatClubFallback(language, clubContext)
-        : isPracticalStudentLifeQuery(message)
+        : usePracticalFallback
           ? formatStudentLifeFallback(message, language, eventContext)
-          : clubContext.matchedClubNames.length > 0
-            ? formatClubFallback(language, clubContext)
-            : eventContext.matchedEventTitles.length > 0
-              ? formatStudentLifeFallback(message, language, eventContext)
-              : rag.bestDoc
-                ? formatKnowledgeAnswer(rag.bestDoc, message, language)
-                : formatStudentLifeFallback(message, language, eventContext);
+          : globalExperienceContext.contextText
+            ? formatGlobalExperienceFallback(message, language, globalExperienceContext)
+            : clubContext.matchedClubNames.length > 0
+              ? formatClubFallback(language, clubContext)
+              : (eventContext.matchedEventTitles.length > 0 || eventContext.matchedActivityTitles.length > 0)
+                ? formatStudentLifeFallback(message, language, eventContext)
+                : rag.bestDoc
+                  ? formatKnowledgeAnswer(rag.bestDoc, message, language)
+                  : (language === "vi"
+                    ? "Chưa tìm thấy thông tin RMIT đã xác minh phù hợp. Bạn có thể thử từ khóa khác hoặc liên hệ phòng ban phụ trách."
+                    : "No matching verified RMIT information was found. Try a different search or contact the relevant department.");
+      answerMode = "deterministic_fallback";
     }
-
     const currentRemaining = stub ? remaining : checkMemoryQuota(visitorId).remaining;
     const signed = await signVisitorId(visitorId, secret);
     c.header("Set-Cookie", `r_forum_uid=${signed}; HttpOnly; Secure; SameSite=Lax; Max-Age=31536000; Path=/`);
     return c.json({
       answer: answerText,
+      answerMode,
       remaining: currentRemaining,
       limit: parseInt(c.env.AI_DAILY_LIMIT || "10", 10),
-      sources: [...rag.sources, ...eventContext.sources, ...clubContext.sources].filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index),
-      matchedTopics: [...rag.matchedDocTitles, ...eventContext.matchedEventTitles, ...clubContext.matchedClubNames],
+      sources: [...rag.sources, ...eventContext.sources, ...clubContext.sources, ...globalExperienceContext.sources].filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index),
+      matchedTopics: [...rag.matchedDocTitles, ...eventContext.matchedEventTitles, ...eventContext.matchedActivityTitles, ...clubContext.matchedClubNames, ...globalExperienceContext.matchedProgramTitles, ...globalExperienceContext.matchedScholarshipTitles],
     });
   } catch (err: unknown) {
+    const quotaLimit = parseInt(c.env.AI_DAILY_LIMIT || "10", 10);
+    let remainingAfterRefund = remaining;
     if (stub) {
-      await stub.fetch("https://ai-quota/refund", { method: "POST" }).catch(() => {});
+      const refundResponse = await stub.fetch("https://ai-quota/refund", { method: "POST" }).catch(() => null);
+      if (refundResponse) {
+        const refundData: unknown = await refundResponse.json().catch(() => null);
+        if (
+          typeof refundData === "object" &&
+          refundData !== null &&
+          "remaining" in refundData &&
+          typeof refundData.remaining === "number"
+        ) {
+          remainingAfterRefund = refundData.remaining;
+        }
+      }
     } else {
       refundMemoryQuota(visitorId);
+      remainingAfterRefund = checkMemoryQuota(visitorId, quotaLimit).remaining;
     }
-    return c.json({ error: "AI error. Your quota was refunded. Smart Search remains active." }, 500);
+    console.error("[worker/api/chat] request processing failed", {
+      errorName: err instanceof Error ? err.name : "unknown",
+    });
+    if (isNew) {
+      const signed = await signVisitorId(visitorId, secret);
+      c.header("Set-Cookie", `r_forum_uid=${signed}; HttpOnly; Secure; SameSite=Lax; Max-Age=31536000; Path=/`);
+    }
+    c.header("Cache-Control", "no-store");
+    return c.json({
+      error: language === "vi" ? "Không thể xử lý yêu cầu AI lúc này." : "The assistant could not process this request.",
+      code: "CHAT_PROCESSING_FAILED",
+      quotaRefunded: true,
+      remaining: remainingAfterRefund,
+      limit: quotaLimit,
+    }, 500);
   }
 });
 

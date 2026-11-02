@@ -5,26 +5,39 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/lib/i18n/context";
-import { Globe, Menu, Moon, Sun, X } from "lucide-react";
+import { requestOpenSupport } from "@/components/support/supportEvents";
+import { Coffee, Globe, Menu, Moon, Sun, X } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDrawerMounted, setIsDrawerMounted] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
+  const pendingAfterCloseRef = useRef<(() => void) | null>(null);
+  const closeFallbackRef = useRef<number | null>(null);
 
   const openMobileMenu = () => {
+    if (closeFallbackRef.current !== null) window.clearTimeout(closeFallbackRef.current);
+    closeFallbackRef.current = null;
     setIsDrawerMounted(true);
     requestAnimationFrame(() => setIsMobileMenuOpen(true));
   };
 
-  const closeMobileMenu = () => {
+  const finishDrawerClose = () => {
+    setIsDrawerMounted(false);
+    const afterClose = pendingAfterCloseRef.current;
+    pendingAfterCloseRef.current = null;
+    afterClose?.();
+  };
+
+  const closeMobileMenu = (afterClose?: () => void) => {
+    pendingAfterCloseRef.current = afterClose ?? null;
     setIsMobileMenuOpen(false);
-    window.setTimeout(() => setIsDrawerMounted(false), 220);
+    closeFallbackRef.current = window.setTimeout(finishDrawerClose, 240);
     requestAnimationFrame(() => menuButtonRef.current?.focus());
   };
 
@@ -71,21 +84,21 @@ export function Navbar() {
     };
   }, [isMobileMenuOpen]);
   const navLinks = [
-    { href: "/", label: t.nav.home },
-    { href: "/calendar", label: t.nav.calendar },
-    { href: "/events", label: t.nav.events },
-    { href: "/clubs", label: t.nav.clubs },
-    { href: "/guides", label: t.nav.guides },
-    { href: "/facilities", label: language === "vi" ? "Giờ mở cửa" : "Campus Hours" },
-    { href: "/topics", label: t.nav.topics },
-    { href: "/contacts", label: t.nav.contacts },
+    { href: "/", label: t.nav.home, ariaLabel: t.nav.accessibleLabels.home },
+    { href: "/calendar", label: t.nav.calendar, ariaLabel: t.nav.accessibleLabels.calendar },
+    { href: "/events", label: t.nav.events, ariaLabel: t.nav.accessibleLabels.events },
+    { href: "/clubs", label: t.nav.clubs, ariaLabel: t.nav.accessibleLabels.clubs },
+    { href: "/guides", label: t.nav.guides, ariaLabel: t.nav.accessibleLabels.guides },
+    { href: "/facilities", label: t.nav.campusHours, ariaLabel: t.nav.accessibleLabels.campusHours },
+    { href: "/topics", label: t.nav.topics, ariaLabel: t.nav.accessibleLabels.topics },
+    { href: "/contacts", label: t.nav.contacts, ariaLabel: t.nav.accessibleLabels.contacts },
   ];
   const toggleLanguage = () => {
     setLanguage(language === "en" ? "vi" : "en");
   };
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+    setTheme((resolvedTheme ?? theme) === "dark" ? "light" : "dark");
   };
 
   return (
@@ -104,14 +117,16 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0 md:flex md:gap-0 lg:gap-1">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0 md:flex md:gap-0.5 lg:gap-1">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`min-h-11 whitespace-nowrap border-b-2 px-1 py-2 text-[10px] font-semibold leading-tight transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 lg:px-2 lg:text-xs ${
+                aria-label={link.ariaLabel}
+                aria-current={isActive ? "page" : undefined}
+                className={`min-h-11 whitespace-nowrap border-b-2 px-0.5 py-2 text-[10px] font-semibold leading-tight transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 md:px-0.5 lg:px-1.5 lg:text-xs ${
                   isActive
                     ? "border-[var(--accent)] text-[var(--accent)]"
                     : "border-transparent text-[var(--secondary-text)] hover:border-[var(--border)] hover:text-[var(--main-text)]"
@@ -129,8 +144,8 @@ export function Navbar() {
           <button
             onClick={toggleLanguage}
             className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 border border-[var(--border)] bg-[var(--surface)] px-0 text-xs font-semibold text-[var(--main-text)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 sm:min-w-0 sm:px-3"
-            title="Switch Language"
-            aria-label="Switch Language"
+            title={t.nav.switchLanguage}
+            aria-label={t.nav.switchLanguage}
           >
             <Globe className="w-3.5 h-3.5 text-[var(--accent)]" />
             <span className="hidden sm:inline">{language.toUpperCase()}</span>
@@ -140,11 +155,20 @@ export function Navbar() {
           <button
             onClick={toggleTheme}
             className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
-            title="Toggle theme"
-            aria-label="Toggle theme"
+            title={t.nav.toggleTheme}
+            aria-label={t.nav.toggleTheme}
           >
             <Sun className="w-4 h-4 hidden dark:block text-amber-400" />
             <Moon className="w-4 h-4 block dark:hidden text-slate-700" />
+          </button>
+          <button
+            type="button"
+            onClick={requestOpenSupport}
+            className="hidden min-h-11 min-w-11 items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 md:flex"
+            aria-label={t.support.tooltip}
+            title={t.support.tooltip}
+          >
+            <Coffee className="h-4 w-4" aria-hidden="true" />
           </button>
           {/* Mobile drawer trigger */}
           <button
@@ -173,13 +197,20 @@ export function Navbar() {
             tabIndex={isMobileMenuOpen ? 0 : -1}
             aria-label={t.common.close}
             className={`absolute inset-0 cursor-default bg-slate-950/50 transition-opacity duration-200 ${isMobileMenuOpen ? "opacity-100" : "opacity-0"}`}
-            onClick={closeMobileMenu}
+            onClick={() => closeMobileMenu()}
           />
           <aside
             ref={drawerRef}
             id="mobile-navigation-drawer"
             aria-label={t.nav.mobileMenu}
             className={`absolute inset-y-0 right-0 flex h-full w-[min(320px,85vw)] flex-col border-l border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] shadow-2xl transition-transform duration-200 ease-out ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}`}
+            onTransitionEnd={(event) => {
+              if (event.target === event.currentTarget && event.propertyName === "transform" && !isMobileMenuOpen) {
+                if (closeFallbackRef.current !== null) window.clearTimeout(closeFallbackRef.current);
+                closeFallbackRef.current = null;
+                finishDrawerClose();
+              }
+            }}
           >
             <div className="flex min-h-[72px] items-center justify-between border-b border-[var(--border)] px-4">
               <span className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">{t.nav.mobileMenu}</span>
@@ -187,7 +218,7 @@ export function Navbar() {
                 type="button"
                 tabIndex={isMobileMenuOpen ? 0 : -1}
                 data-mobile-close
-                onClick={closeMobileMenu}
+                onClick={() => closeMobileMenu()}
                 className="flex min-h-11 min-w-11 items-center justify-center border border-[var(--border)] text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 aria-label={t.nav.closeMenu}
                 title={t.nav.closeMenu}
@@ -203,8 +234,9 @@ export function Navbar() {
                     <Link
                       key={link.href}
                       href={link.href}
+                      aria-label={link.ariaLabel}
                       tabIndex={isMobileMenuOpen ? 0 : -1}
-                      onClick={closeMobileMenu}
+                      onClick={() => closeMobileMenu()}
                       aria-current={isActive ? "page" : undefined}
                       className={`flex min-h-11 items-center border-l-2 px-3 py-2 text-base font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                         isActive
@@ -218,6 +250,19 @@ export function Navbar() {
                 })}
               </div>
             </nav>
+            <div className="border-t border-[var(--border)] px-4 py-4">
+              <button
+                type="button"
+                tabIndex={isMobileMenuOpen ? 0 : -1}
+                onClick={() => closeMobileMenu(requestOpenSupport)}
+                className="flex min-h-11 w-full flex-nowrap items-center gap-2 whitespace-nowrap border border-[var(--border)] px-3 py-2 text-left text-sm font-semibold text-[var(--accent)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                aria-label={t.support.tooltip}
+                title={t.support.tooltip}
+              >
+                <Coffee className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span className="whitespace-nowrap">{t.support.shortLink}</span>
+              </button>
+            </div>
           </aside>
         </div>
       )}

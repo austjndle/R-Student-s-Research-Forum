@@ -3,7 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/context";
-import { ExternalLink, ShieldCheck, Heart } from "lucide-react";
+import { requestOpenSupport } from "@/components/support/supportEvents";
+import { Coffee, ExternalLink, ShieldCheck, Heart } from "lucide-react";
 
 export function Footer() {
   const { t } = useLanguage();
@@ -16,7 +17,7 @@ export function Footer() {
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-xl bg-white border border-[var(--border)] flex items-center justify-center overflow-hidden p-0.5 shrink-0">
-                <img src="/cat-meme.png" alt="Chiikawa Cat Meme" className="w-full h-full object-contain" />
+                <img src="/cat-meme.png" alt="" aria-hidden="true" className="w-full h-full object-contain" />
               </div>
               <span className="font-semibold text-base text-[var(--main-text)]">
                 {t.common.siteName}
@@ -115,8 +116,7 @@ export function Footer() {
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
             <p>{t.footer.copyright}</p>
             <span className="hidden sm:inline-block text-[var(--border)]">•</span>
-            <p className="flex items-center gap-1.5">
-              <span>Liên hệ tác giả:</span>
+            <p>
               <a
                 href="mailto:s4189392@rmit.edu.vn"
                 className="font-mono text-[var(--accent)] hover:underline font-semibold"
@@ -126,7 +126,11 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 md:flex-nowrap">
+            <button type="button" onClick={requestOpenSupport} className="inline-flex min-h-11 shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap font-medium text-[var(--accent)] transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]" aria-label={t.support.tooltip} title={t.support.tooltip}>
+              <Coffee className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="whitespace-nowrap">{t.support.shortLink}</span>
+            </button>
             <a
               href="https://github.com/austjndle"
               target="_blank"
@@ -147,7 +151,7 @@ export function Footer() {
             </a>
             <span className="text-[var(--border)]">|</span>
             <p className="flex items-center gap-1 font-medium">
-              Help students improve research skill 💔
+              {t.footer.creatorSlogan}
             </p>
           </div>
         </div>

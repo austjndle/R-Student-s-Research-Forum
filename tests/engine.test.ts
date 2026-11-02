@@ -10,6 +10,8 @@ import {
   buildEventContext,
   buildClubContext,
   formatClubFallback,
+  formatStudentLifeFallback,
+  isPracticalStudentLifeQuery,
 } from "../lib/ai/gemini";
 import {
   generateVisitorId,
@@ -98,6 +100,21 @@ describe("Gemini AI Guardrails and Scope Filter", () => {
     expect(events.matchedEventTitles.some((title) => title.includes("Sustainability") || title.includes("Carnival") || title.includes("Experience Day"))).toBe(true);
     expect(events.matchedEventTitles.some((title) => title.includes("Business Plan Competition"))).toBe(false);
     expect(events.matchedEventTitles.some((title) => title.includes("Deloitte"))).toBe(false);
+  });
+  it("explains Club Day as a recurring activity without inventing campus dates", () => {
+    const events = buildEventContext("How can I participate in Club Day in Hanoi?", "en");
+    expect(events.matchedActivityTitles).toContain("Club Day");
+    expect(events.matchedEventTitles).toHaveLength(0);
+    expect(events.contextText).toContain("Current schedule");
+    expect(events.contextText).toContain("both Saigon South and Hanoi");
+    expect(events.sources.some((source) => source.url.includes("/news/all-news/2017/mar/club-day-fun-day"))).toBe(true);
+    expect(events.sources.some((source) => source.url === "/clubs")).toBe(true);
+    expect(isPracticalStudentLifeQuery("How can I participate in Club Day in Hanoi?")).toBe(true);
+    expect(buildClubContext("How can I participate in Club Day in Hanoi?", "en").matchedClubNames).toHaveLength(0);
+    expect(formatStudentLifeFallback("How can I participate in Club Day in Hanoi?", "en", events)).toContain("Current dates for either campus have not been announced");
+    const eventsVi = buildEventContext("Lịch Club Day ở Hà Nội khi nào?", "vi");
+    expect(eventsVi.matchedActivityTitles).toContain("Club Day");
+    expect(formatStudentLifeFallback("Lịch Club Day ở Hà Nội khi nào?", "vi", eventsVi)).toContain("chưa được công bố");
   });
   it("returns specific club information and social links for a named club", () => {
     const clubs = buildClubContext("How can I join volleyball club?", "en");

@@ -20,8 +20,10 @@ export interface ResearchGuide {
   descriptionVi: string;
   readTimeMinutes: number;
   imageUrl?: string;
+  imageAlt?: string;
+  lastVerifiedDate?: string;
   steps: GuideStep[];
-  officialReferences: { title: string; url: string }[];
+  officialReferences: { title: string; titleVi?: string; url: string }[];
   relatedGuideSlugs: string[];
 }
 

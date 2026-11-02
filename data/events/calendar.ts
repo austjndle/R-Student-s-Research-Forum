@@ -9,12 +9,30 @@ export type EventCategory =
   | "student-life";
 export type Campus = "saigon_south" | "hanoi" | "all";
 export type PublicationStatus = "published" | "draft" | "archived";
-export type EventVerification = "verified" | "tentative" | "manual_review_required";
+export type RegistrationStatus = "open" | "closed" | "unverified";
+
+export type EventTemporalStatus = "upcoming" | "ongoing" | "ended";
+export type EventVerification = "verified" | "manual_review_required";
 
 export interface RegistrationLink {
   labelEn: string;
   labelVi: string;
   url: string;
+}
+
+export interface ActivityHighlight {
+  id: string;
+  titleEn: string;
+  titleVi: string;
+  descriptionEn: string;
+  descriptionVi: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  imageObjectPosition?: string;
+  imageSourceUrl?: string;
+  imageLastVerified?: string;
+  sourceUrl: string;
+  lastVerifiedDate: string;
 }
 
 export interface CalendarEntry {
@@ -34,6 +52,18 @@ export interface CalendarEntry {
   endAt?: string;
   registrationUrl?: string;
   registrationLinks?: RegistrationLink[];
+  registrationStatus?: RegistrationStatus;
+  registrationDeadline?: string;
+  eligibilityEn?: string;
+  eligibilityVi?: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  imageAltEn?: string;
+  imageAltVi?: string;
+  imageObjectPosition?: string;
+  imageAspectRatio?: string;
+  imageSourceUrl?: string;
+  imageLastVerified?: string;
   originalUrl: string;
   sourceId: string;
   sourceType: "official_website" | "official_facebook";
@@ -46,7 +76,128 @@ export interface CalendarEntry {
   cancellationNoticeVi?: string;
 }
 
-const verifiedOn = "2026-10-31";
+const verifiedOn = "2026-11-01";
+
+export const CAMPUS_ACTIVITY_HIGHLIGHTS: ActivityHighlight[] = [
+  {
+    id: "activity-carnival-day",
+    titleEn: "Carnival Day",
+    titleVi: "Carnival Day",
+    descriptionEn: "Recurring campus carnival activity highlighted by RMIT Student Life. It is not an upcoming date unless a current announcement is published.",
+    descriptionVi: "Hoạt động carnival thường niên được RMIT Student Life giới thiệu. Chỉ hiển thị thành sự kiện sắp tới khi có thông báo lịch hiện tại.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/student-activities-01.jpg",
+    imageAlt: "RMIT students play outdoor games at a Carnival Day event.",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    imageLastVerified: verifiedOn,
+    sourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    lastVerifiedDate: verifiedOn,
+  },
+  {
+    id: "activity-club-day",
+    titleEn: "Club Day",
+    titleVi: "Club Day",
+    descriptionEn: "Semesterly activity where students explore clubs, meet members, discover activities, and learn about membership opportunities. Current campus dates are not announced in the verified source.",
+    descriptionVi: "Hoạt động diễn ra mỗi học kỳ để sinh viên khám phá CLB, gặp gỡ thành viên, tìm hiểu hoạt động và cơ hội tham gia. Nguồn đã xác minh chưa công bố lịch hiện tại theo cơ sở.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/current-students/student-news/2025/club-day-s3-2025/11-club-day-s3-25-students-visiting-booth.jpg",
+    imageAlt: "Students at RMIT Business & Finance Club Hanoi's decorated booth during Club Day.",
+    imageObjectPosition: "50% 35%",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-news/2025/club-day-goes-full-rcade-with-booth-decorations/cl",
+    imageLastVerified: verifiedOn,
+    sourceUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-news/2025/club-day-goes-full-rcade-with-booth-decorations/cl",
+    lastVerifiedDate: verifiedOn,
+  },
+  {
+    id: "activity-welcome-day",
+    titleEn: "Welcome Day",
+    titleVi: "Welcome Day",
+    descriptionEn: "Recurring welcome activity highlighted by RMIT Student Life. No current date is asserted here.",
+    descriptionVi: "Hoạt động chào đón thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/welcome-day-22.jpg",
+    imageAlt: "New students meet and talk during RMIT Welcome Day.",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    imageLastVerified: verifiedOn,
+    sourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    lastVerifiedDate: verifiedOn,
+  },
+  {
+    id: "activity-x-run",
+    titleEn: "X-Run",
+    titleVi: "X-Run",
+    descriptionEn: "Recurring student activity highlighted by RMIT Student Life. No current date is asserted here.",
+    descriptionVi: "Hoạt động sinh viên thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/x-day-2022.jpg",
+    imageAlt: "RMIT students take part in an outdoor obstacle activity during X-Run.",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    imageLastVerified: verifiedOn,
+    sourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    lastVerifiedDate: verifiedOn,
+  },
+  {
+    id: "activity-sports-day",
+    titleEn: "Sports Day",
+    titleVi: "Sports Day",
+    descriptionEn: "Recurring sports activity highlighted by RMIT Student Life. No current date is asserted here.",
+    descriptionVi: "Hoạt động thể thao thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/sports-day-2022.jpg",
+    imageAlt: "A student stands beside a net at RMIT Sports Day.",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    imageLastVerified: verifiedOn,
+    sourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    lastVerifiedDate: verifiedOn,
+  },
+  {
+    id: "activity-wellbeing-day",
+    titleEn: "Wellbeing Day",
+    titleVi: "Wellbeing Day",
+    descriptionEn: "Recurring wellbeing activity highlighted by RMIT Student Life. No current date is asserted here.",
+    descriptionVi: "Hoạt động chăm sóc sức khỏe tinh thần thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/wellbeing-day-2022.jpg",
+    imageAlt: "Students explore activity stalls at an RMIT wellbeing event.",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    imageLastVerified: verifiedOn,
+    sourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    lastVerifiedDate: verifiedOn,
+  },
+  {
+    id: "activity-pride-week",
+    titleEn: "Pride Week",
+    titleVi: "Pride Week",
+    descriptionEn: "Recurring inclusion and community activity highlighted by RMIT Student Life. No current date is asserted here.",
+    descriptionVi: "Hoạt động cộng đồng và hòa nhập thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/pride-week.jpg",
+    imageAlt: "RMIT Pride Week banner displayed at a campus entrance.",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    imageLastVerified: verifiedOn,
+    sourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    lastVerifiedDate: verifiedOn,
+  },
+  {
+    id: "activity-career-fair",
+    titleEn: "Career Fair",
+    titleVi: "Career Fair",
+    descriptionEn: "Recurring career activity highlighted by RMIT Student Life. No current date is asserted here.",
+    descriptionVi: "Hoạt động hướng nghiệp thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/career-fair-2022.jpg",
+    imageAlt: "Students visit employer booths at an RMIT Career Fair.",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    imageLastVerified: verifiedOn,
+    sourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    lastVerifiedDate: verifiedOn,
+  },
+  {
+    id: "activity-international-day",
+    titleEn: "International Day",
+    titleVi: "International Day",
+    descriptionEn: "Recurring cultural activity highlighted by RMIT Student Life. No current date is asserted here.",
+    descriptionVi: "Hoạt động giao lưu văn hóa thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/international-festival.jpg",
+    imageAlt: "Students visit cultural booths at an RMIT International Day event.",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    imageLastVerified: verifiedOn,
+    sourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
+    lastVerifiedDate: verifiedOn,
+  },
+];
 
 export const CALENDAR_ENTRIES: CalendarEntry[] = [
   {
@@ -113,30 +264,33 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     semester: "Semester 3",
   },
   {
-    id: "rmit-carnival-2026",
+    id: "rmit-carnival-2026-sgs",
     type: "campus_event",
-    titleEn: "RMIT Carnival 2026",
-    titleVi: "RMIT Carnival 2026",
-    descriptionEn: "Annual community event bringing the RMIT community together across campus activities.",
-    descriptionVi: "Sự kiện cộng đồng thường niên quy tụ cộng đồng RMIT qua nhiều hoạt động tại cơ sở.",
+    titleEn: "RMIT Carnival 2026 — Saigon South",
+    titleVi: "RMIT Carnival 2026 — Nam Sài Gòn",
+    descriptionEn: "Annual RMIT community event with food, outdoor games, live performances, and activities designed to bring the community together.",
+    descriptionVi: "Sự kiện cộng đồng RMIT thường niên với ẩm thực, trò chơi ngoài trời, biểu diễn trực tiếp và các hoạt động kết nối cộng đồng.",
     category: "festival",
     organiserEn: "RMIT Student Life",
     organiserVi: "Đời sống Sinh viên RMIT",
-    campus: "all",
-    startAt: "2026-10-31T00:00:00+07:00",
-    endAt: "2026-11-08T23:59:59+07:00",
+    campus: "saigon_south",
+    venueEn: "RMIT Active Hub and Sports field, HCMC",
+    venueVi: "RMIT Active Hub và sân thể thao, TP.HCM",
+    startAt: "2026-10-31T15:00:00+07:00",
+    endAt: "2026-10-31T20:30:00+07:00",
     registrationLinks: [
-      {
-        labelEn: "Register SGS",
-        labelVi: "Đăng ký Nam Sài Gòn",
-        url: "https://apps.rmit.edu.vn/r/26Carnival-studentSGS",
-      },
-      {
-        labelEn: "Register Hanoi",
-        labelVi: "Đăng ký Hà Nội",
-        url: "https://apps.rmit.edu.vn/r/26Carnival-StudentHN",
-      },
+      { labelEn: "Register students", labelVi: "Đăng ký sinh viên", url: "https://apps.rmit.edu.vn/r/26Carnival-studentSGS" },
+      { labelEn: "Register staff", labelVi: "Đăng ký nhân viên", url: "https://apps.rmit.edu.vn/r/26Carnival-staffSGS" },
+      { labelEn: "Register alumni", labelVi: "Đăng ký cựu sinh viên", url: "https://apps.rmit.edu.vn/r/26Carnival-alumniSGS" },
     ],
+    registrationStatus: "closed",
+    registrationDeadline: "2026-10-27T23:59:59+07:00",
+    eligibilityEn: "Current students, staff, and alumni.",
+    eligibilityVi: "Sinh viên, nhân viên và cựu sinh viên hiện tại.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/student-site/2026/carnival-2026/thumbnail-carnival-2026.jpg",
+    imageAlt: "Official RMIT Carnival 2026 banner showing the Saigon South and Hanoi dates.",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/rmit-carnival-2026",
+    imageLastVerified: verifiedOn,
     originalUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/rmit-carnival-2026",
     sourceId: "rmit-student-activities",
     sourceType: "official_website",
@@ -145,19 +299,100 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     verification: "verified",
   },
   {
-    id: "rmit-sustainability-week-2026",
+    id: "rmit-carnival-2026-hanoi",
     type: "campus_event",
-    titleEn: "RMIT Sustainability Week 2026",
-    titleVi: "Tuần lễ Phát triển bền vững RMIT 2026",
-    descriptionEn: "Student activities and programming focused on sustainability in motion.",
-    descriptionVi: "Các hoạt động sinh viên tập trung vào chủ đề phát triển bền vững.",
+    titleEn: "RMIT Carnival 2026 — Hanoi",
+    titleVi: "RMIT Carnival 2026 — Hà Nội",
+    descriptionEn: "Annual RMIT community event with food, outdoor games, live performances, and activities designed to bring the community together.",
+    descriptionVi: "Sự kiện cộng đồng RMIT thường niên với ẩm thực, trò chơi ngoài trời, biểu diễn trực tiếp và các hoạt động kết nối cộng đồng.",
+    category: "festival",
+    organiserEn: "RMIT Student Life",
+    organiserVi: "Đời sống Sinh viên RMIT",
+    campus: "hanoi",
+    venueEn: "Nang Song Hong Village, Bo De Ward, Hanoi",
+    venueVi: "Làng Nắng Sông Hồng, phường Bồ Đề, Hà Nội",
+    startAt: "2026-11-07T15:00:00+07:00",
+    endAt: "2026-11-07T20:30:00+07:00",
+    registrationLinks: [
+      { labelEn: "Register students", labelVi: "Đăng ký sinh viên", url: "https://apps.rmit.edu.vn/r/26Carnival-StudentHN" },
+      { labelEn: "Register alumni", labelVi: "Đăng ký cựu sinh viên", url: "https://apps.rmit.edu.vn/r/26Carnival-AlumniHN" },
+    ],
+    registrationStatus: "open",
+    registrationDeadline: "2026-11-02T23:59:59+07:00",
+    eligibilityEn: "Current students, staff, and alumni.",
+    eligibilityVi: "Sinh viên, nhân viên và cựu sinh viên hiện tại.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/student-site/2026/carnival-2026/thumbnail-carnival-2026.jpg",
+    imageAlt: "Official RMIT Carnival 2026 banner showing the Saigon South and Hanoi dates.",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/rmit-carnival-2026",
+    imageLastVerified: verifiedOn,
+    originalUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/rmit-carnival-2026",
+    sourceId: "rmit-student-activities",
+    sourceType: "official_website",
+    sourceLastVerified: verifiedOn,
+    publicationStatus: "published",
+    verification: "verified",
+  },
+  {
+    id: "rmit-sustainability-week-2026-saigon-south",
+    type: "campus_event",
+    titleEn: "RMIT Sustainability Week 2026 — Saigon South",
+    titleVi: "Tuần lễ Phát triển bền vững RMIT 2026 — Nam Sài Gòn",
+    descriptionEn: "RMIT Vietnam's sustainability program with talks, workshops, exhibitions, and hands-on activities at Saigon South.",
+    descriptionVi: "Chương trình phát triển bền vững của RMIT với tọa đàm, hội thảo, triển lãm và hoạt động thực hành tại Nam Sài Gòn.",
     category: "student-life",
     organiserEn: "RMIT Student Life",
     organiserVi: "Đời sống Sinh viên RMIT",
-    campus: "all",
+    campus: "saigon_south",
+    venueEn: "RMIT Saigon South campus",
+    venueVi: "Cơ sở RMIT Nam Sài Gòn",
     startAt: "2026-11-02T00:00:00+07:00",
+    endAt: "2026-11-05T23:59:59+07:00",
+    registrationUrl: "https://apps.rmit.edu.vn/r/SUSWeek2026Registration",
+    registrationStatus: "unverified",
+    eligibilityEn: "RMIT community; confirm activity-specific requirements on the official event page.",
+    eligibilityVi: "Cộng đồng RMIT; hãy kiểm tra yêu cầu riêng của từng hoạt động trên trang sự kiện chính thức.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/student-site/2026/sustainability-week-2026/sustainability-week-26-thumbnail.jpg",
+    imageAlt: "Official RMIT Sustainability Week 2026 artwork showing the title and a student illustration.",
+    imageAltEn: "Official RMIT Sustainability Week 2026 artwork showing the event title and a student illustration.",
+    imageAltVi: "Hình ảnh Tuần lễ Phát triển bền vững RMIT 2026 với tiêu đề chương trình và hình minh họa sinh viên.",
+    imageObjectPosition: "50% 0%",
+    imageAspectRatio: "8 / 3",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/sustainability-week",
+    imageLastVerified: verifiedOn,
+    originalUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/sustainability-week",
+    sourceId: "rmit-student-activities",
+    sourceType: "official_website",
+    sourceLastVerified: verifiedOn,
+    publicationStatus: "published",
+    verification: "verified",
+  },
+  {
+    id: "rmit-sustainability-week-2026-hanoi",
+    type: "campus_event",
+    titleEn: "RMIT Sustainability Week 2026 — Hanoi",
+    titleVi: "Tuần lễ Phát triển bền vững RMIT 2026 — Hà Nội",
+    descriptionEn: "RMIT Vietnam's sustainability program with talks, workshops, exhibitions, and hands-on activities in Hanoi.",
+    descriptionVi: "Chương trình phát triển bền vững của RMIT với tọa đàm, hội thảo, triển lãm và hoạt động thực hành tại Hà Nội.",
+    category: "student-life",
+    organiserEn: "RMIT Student Life",
+    organiserVi: "Đời sống Sinh viên RMIT",
+    campus: "hanoi",
+    venueEn: "RMIT Hanoi campus",
+    venueVi: "Cơ sở RMIT Hà Nội",
+    startAt: "2026-11-09T00:00:00+07:00",
     endAt: "2026-11-10T23:59:59+07:00",
     registrationUrl: "https://apps.rmit.edu.vn/r/SUSWeek2026Registration",
+    registrationStatus: "unverified",
+    eligibilityEn: "RMIT community; confirm activity-specific requirements on the official event page.",
+    eligibilityVi: "Cộng đồng RMIT; hãy kiểm tra yêu cầu riêng của từng hoạt động trên trang sự kiện chính thức.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/student-site/2026/sustainability-week-2026/sustainability-week-26-thumbnail.jpg",
+    imageAlt: "Official RMIT Sustainability Week 2026 artwork showing the title and a student illustration.",
+    imageAltEn: "Official RMIT Sustainability Week 2026 artwork showing the event title and a student illustration.",
+    imageAltVi: "Hình ảnh Tuần lễ Phát triển bền vững RMIT 2026 với tiêu đề chương trình và hình minh họa sinh viên.",
+    imageObjectPosition: "50% 0%",
+    imageAspectRatio: "8 / 3",
+    imageSourceUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/sustainability-week",
+    imageLastVerified: verifiedOn,
     originalUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/sustainability-week",
     sourceId: "rmit-student-activities",
     sourceType: "official_website",
@@ -170,16 +405,24 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     type: "campus_event",
     titleEn: "RMIT–Deloitte HR Roundtable 2026",
     titleVi: "Tọa đàm Nhân sự RMIT–Deloitte 2026",
-    descriptionEn: "A public RMIT event exploring the multicultural and AI-enabled workforce.",
-    descriptionVi: "Sự kiện công khai của RMIT về môi trường nhân sự đa văn hóa và ứng dụng AI.",
+    descriptionEn: "A public RMIT event exploring multiculturality, cultural debt, leadership, and an AI-enabled workforce.",
+    descriptionVi: "Sự kiện công khai của RMIT về tính đa văn hóa, nợ văn hóa, lãnh đạo và lực lượng lao động ứng dụng AI.",
     category: "career",
     organiserEn: "RMIT University Vietnam",
     organiserVi: "RMIT Việt Nam",
     campus: "saigon_south",
-    venueEn: "RMIT Saigon South",
-    venueVi: "RMIT Nam Sài Gòn",
-    startAt: "2026-11-05T00:00:00+07:00",
-    registrationUrl: "https://rmit.tfaforms.net/forms/help/3237",
+    venueEn: "Nikko Hotel Saigon — 235 Nguyen Van Cu, Ho Chi Minh City",
+    venueVi: "Nikko Hotel Saigon — 235 Nguyễn Văn Cừ, TP.HCM",
+    startAt: "2026-11-05T09:30:00+07:00",
+    endAt: "2026-11-05T11:30:00+07:00",
+    registrationUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/rmit-deloitte-hr-roundtable-2026#register",
+    registrationStatus: "unverified",
+    eligibilityEn: "C-level executives, HR leaders, strategists, and RMIT faculty with a focus on human-centred innovation.",
+    eligibilityVi: "Lãnh đạo cấp cao, lãnh đạo/chiến lược gia nhân sự và giảng viên RMIT quan tâm đến đổi mới lấy con người làm trung tâm.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/2026/rmit-deloitte-hr-roundtable/deloitte-hr-forum-2026-thumbnail.jpg",
+    imageAlt: "Decorative connected-world image for the RMIT–Deloitte HR Roundtable 2026.",
+    imageSourceUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/rmit-deloitte-hr-roundtable-2026",
+    imageLastVerified: verifiedOn,
     originalUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/rmit-deloitte-hr-roundtable-2026",
     sourceId: "rmit-events",
     sourceType: "official_website",
@@ -188,19 +431,59 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     verification: "verified",
   },
   {
-    id: "rmit-experience-day-2026",
+    id: "rmit-experience-day-2026-hanoi",
     type: "campus_event",
-    titleEn: "RMIT Experience Day 2026",
-    titleVi: "Ngày trải nghiệm RMIT 2026",
-    descriptionEn: "Explore RMIT student life through activities at the Hanoi and Saigon South campuses.",
-    descriptionVi: "Khám phá đời sống sinh viên RMIT qua các hoạt động tại cơ sở Hà Nội và Nam Sài Gòn.",
+    titleEn: "RMIT Experience Day 2026 — Hanoi",
+    titleVi: "Ngày trải nghiệm RMIT 2026 — Hà Nội",
+    descriptionEn: "Explore RMIT programs, scholarships, student life, clubs, workshops, and campus facilities in Hanoi.",
+    descriptionVi: "Khám phá chương trình, học bổng, đời sống sinh viên, CLB, hội thảo và cơ sở vật chất RMIT tại Hà Nội.",
     category: "student-life",
     organiserEn: "RMIT University Vietnam",
     organiserVi: "RMIT Việt Nam",
-    campus: "all",
-    startAt: "2026-11-15T00:00:00+07:00",
-    endAt: "2026-11-29T23:59:59+07:00",
+    campus: "hanoi",
+    venueEn: "RMIT Hanoi City campus",
+
+    venueVi: "Cơ sở RMIT Hà Nội",
+    startAt: "2026-11-15T08:00:00+07:00",
+    endAt: "2026-11-15T16:00:00+07:00",
     registrationUrl: "https://experienceday.rmit.edu.vn/en/?utm_source=Website&utm_medium=Eventpage&utm_content=Event_ENG&utm_campaign=SGS_ExperienceDay_291126",
+    registrationStatus: "unverified",
+    eligibilityEn: "High school students aged 15–18 and their parents.",
+    eligibilityVi: "Học sinh trung học 15–18 tuổi và phụ huynh.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/2026/exp-day-2026/experience-day-2026-thumbnail-1200x800.jpg",
+    imageAlt: "Three students collaborate on a robotics activity for RMIT Experience Day 2026.",
+    imageSourceUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/experience-day-2026",
+    imageLastVerified: verifiedOn,
+    originalUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/experience-day-2026",
+    sourceId: "rmit-events",
+    sourceType: "official_website",
+    sourceLastVerified: verifiedOn,
+    publicationStatus: "published",
+    verification: "verified",
+  },
+  {
+    id: "rmit-experience-day-2026-saigon-south",
+    type: "campus_event",
+    titleEn: "RMIT Experience Day 2026 — Saigon South",
+    titleVi: "Ngày trải nghiệm RMIT 2026 — Nam Sài Gòn",
+    descriptionEn: "Explore RMIT programs, scholarships, student life, clubs, workshops, and campus facilities at Saigon South.",
+    descriptionVi: "Khám phá chương trình, học bổng, đời sống sinh viên, CLB, hội thảo và cơ sở vật chất RMIT tại Nam Sài Gòn.",
+    category: "student-life",
+    organiserEn: "RMIT University Vietnam",
+    organiserVi: "RMIT Việt Nam",
+    campus: "saigon_south",
+    venueEn: "RMIT Saigon South campus",
+    venueVi: "Cơ sở RMIT Nam Sài Gòn",
+    startAt: "2026-11-29T08:00:00+07:00",
+    endAt: "2026-11-29T16:00:00+07:00",
+    registrationUrl: "https://experienceday.rmit.edu.vn/en/?utm_source=Website&utm_medium=Eventpage&utm_content=Event_ENG&utm_campaign=SGS_ExperienceDay_291126",
+    registrationStatus: "unverified",
+    eligibilityEn: "High school students aged 15–18 and their parents.",
+    eligibilityVi: "Học sinh trung học 15–18 tuổi và phụ huynh.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/2026/exp-day-2026/experience-day-2026-thumbnail-1200x800.jpg",
+    imageAlt: "Three students collaborate on a robotics activity for RMIT Experience Day 2026.",
+    imageSourceUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/experience-day-2026",
+    imageLastVerified: verifiedOn,
     originalUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/experience-day-2026",
     sourceId: "rmit-events",
     sourceType: "official_website",
@@ -222,6 +505,13 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     startAt: "2026-09-20T00:00:00+07:00",
     endAt: "2026-12-06T23:59:59+07:00",
     registrationUrl: "https://www.rmit.edu.vn/events/all-events/2026/september-2026/rmit-business-plan-competition-2026#register",
+    registrationStatus: "unverified",
+    eligibilityEn: "Current high school students; confirm the official competition terms.",
+    eligibilityVi: "Học sinh trung học hiện tại; hãy kiểm tra thể lệ chính thức của cuộc thi.",
+    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/2026/rbpc-2026/rbpc-2026-1200x800.jpg",
+    imageAlt: "Official RMIT Business Plan Competition 2026 artwork showing a student with a robot.",
+    imageSourceUrl: "https://www.rmit.edu.vn/events/all-events/2026/september-2026/rmit-business-plan-competition-2026",
+    imageLastVerified: verifiedOn,
     originalUrl: "https://www.rmit.edu.vn/events/all-events/2026/september-2026/rmit-business-plan-competition-2026",
     sourceId: "rmit-events",
     sourceType: "official_website",
@@ -239,6 +529,14 @@ export function getPublishedCalendarEntries(): CalendarEntry[] {
 
 export function getCalendarEntriesByType(type: CalendarEntryType): CalendarEntry[] {
   return getPublishedCalendarEntries().filter((entry) => entry.type === type);
+}
+export function getEventTemporalStatus(entry: CalendarEntry, now = new Date()): EventTemporalStatus {
+  const start = new Date(entry.startAt).getTime();
+  const end = new Date(entry.endAt ?? entry.startAt).getTime();
+  const timestamp = now.getTime();
+  if (timestamp < start) return "upcoming";
+  if (timestamp <= end) return "ongoing";
+  return "ended";
 }
 
 export function formatCalendarDate(value: string, language: "en" | "vi"): string {

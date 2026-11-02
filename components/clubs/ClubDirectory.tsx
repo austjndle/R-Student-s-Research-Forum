@@ -8,22 +8,6 @@ import { useLanguage } from "@/lib/i18n/context";
 
 const CATEGORY_ORDER: Array<ClubCategory | "all"> = ["all", "academic", "active", "creative_collectives", "social_special_interest"];
 
-const categoryLabels = {
-  en: {
-    all: "All clubs",
-    academic: "Academic",
-    active: "Active clubs",
-    creative_collectives: "Creative collectives",
-    social_special_interest: "Social & special interest",
-  },
-  vi: {
-    all: "Tất cả CLB",
-    academic: "Học thuật",
-    active: "Thể thao & hoạt động",
-    creative_collectives: "Sáng tạo",
-    social_special_interest: "Xã hội & sở thích",
-  },
-} as const;
 
 const campusLabels = {
   en: { saigon_south: "Saigon South", hanoi: "Hanoi" },
@@ -45,7 +29,13 @@ export function ClubDirectory() {
   const [campus, setCampus] = useState<ClubCampus>("saigon_south");
   const [category, setCategory] = useState<ClubCategory | "all">("all");
   const [query, setQuery] = useState("");
-  const labels = categoryLabels[language];
+  const labels: Record<ClubCategory | "all", string> = {
+    all: t.clubs.categoryAll,
+    academic: t.clubs.categoryAcademic,
+    active: t.clubs.categoryActive,
+    creative_collectives: t.clubs.categoryCreative,
+    social_special_interest: t.clubs.categorySocial,
+  };
 
   const clubs = useMemo(
     () => VERIFIED_CLUBS.filter((club) => club.campus === campus && (category === "all" || club.category === category)),
@@ -56,7 +46,7 @@ export function ClubDirectory() {
     const normalizedQuery = query.trim().toLocaleLowerCase();
     if (!normalizedQuery) return clubs;
     return clubs.filter((club) =>
-      [club.nameEn, club.nameVi, club.descriptionEn, club.category]
+      [club.nameEn, club.nameVi, club.descriptionEn, club.descriptionVi, club.category]
         .filter(Boolean)
         .join(" ")
         .toLocaleLowerCase()
@@ -67,7 +57,7 @@ export function ClubDirectory() {
   return (
     <div className="editorial-shell space-y-8">
       <header className="border-b border-[var(--border)] pb-8">
-        <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">STUDENT LIFE / CLUB DIRECTORY</p>
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent)]">{t.clubs.directoryEyebrow}</p>
         <h1 className="mt-4 max-w-4xl text-4xl font-bold tracking-[-0.04em] text-[var(--main-text)] sm:text-6xl">
           {language === "vi" ? "Tìm cộng đồng phù hợp với bạn." : "Find your student community."}
         </h1>
@@ -122,9 +112,9 @@ export function ClubDirectory() {
       </section>
 
       <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 text-xs text-[var(--secondary-text)]">
-        <span>{filteredClubs.length} {language === "vi" ? "câu lạc bộ phù hợp" : "matching verified clubs"}</span>
+        <span>{filteredClubs.length} {t.clubs.matchingClubs}</span>
         <Link href="https://www.rmit.edu.vn/students/campus-life/clubs" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
-          {language === "vi" ? "Nguồn RMIT" : "RMIT source"}<ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          {t.clubs.directorySource}<ArrowUpRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       </div>
 
@@ -139,7 +129,7 @@ export function ClubDirectory() {
               {club.imageUrl ? (
                 <img
                   src={club.imageUrl}
-                  alt={club.imageAlt ?? `${club.nameEn} official club logo`}
+                  alt={language === "vi" ? `${club.nameVi} — ${t.clubs.imageAlt}` : club.imageAlt ?? `${club.nameEn} official club logo`}
                   loading="lazy"
                   decoding="async"
                   className="h-full w-full object-cover"
@@ -156,14 +146,14 @@ export function ClubDirectory() {
               </div>
               <h2 className="mt-5 break-words text-lg font-semibold leading-6 text-[var(--main-text)]">{language === "vi" ? club.nameVi : club.nameEn}</h2>
               <p className="mt-2 min-h-12 text-sm leading-5 text-[var(--secondary-text)]">
-                {club.descriptionEn ?? (language === "vi" ? "Tên câu lạc bộ đã được xác minh trong danh sách chính thức." : "Club name verified in the official campus list.")}
+                {language === "vi" ? club.descriptionVi ?? t.clubs.descriptionUnavailable : club.descriptionEn ?? t.clubs.descriptionUnavailable}
               </p>
               <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-[var(--border)] pt-4">
                 <Link href={`/clubs/${club.id}`} className="inline-flex min-h-11 items-center gap-1 font-semibold text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
-                  {language === "vi" ? "Xem club" : "View club"}<ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                  {t.clubs.viewClub}<ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
-                {club.facebookUrl && <a href={club.facebookUrl} target="_blank" rel="noreferrer" aria-label={`${club.nameEn} Facebook`} title="Facebook" className="ml-auto inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--border)] text-[var(--accent)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"><ExternalLink className="h-4 w-4" aria-hidden="true" /></a>}
-                {club.contactEmail && <a href={`mailto:${club.contactEmail}`} aria-label={`${club.nameEn} email`} title={club.contactEmail} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--border)] text-[var(--accent)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"><Mail className="h-4 w-4" aria-hidden="true" /></a>}
+                {club.facebookUrl && <a href={club.facebookUrl} target="_blank" rel="noreferrer" aria-label={`${t.clubs.facebookPage} ${club.nameVi}`} title="Facebook" className="ml-auto inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--border)] text-[var(--accent)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"><ExternalLink className="h-4 w-4" aria-hidden="true" /></a>}
+                {club.contactEmail && <a href={`mailto:${club.contactEmail}`} aria-label={`${club.nameVi} — ${t.contacts.email}`} title={club.contactEmail} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--border)] text-[var(--accent)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"><Mail className="h-4 w-4" aria-hidden="true" /></a>}
               </div>
             </div>
           </article>

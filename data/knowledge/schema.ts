@@ -98,7 +98,7 @@ export const KNOWLEDGE_CATEGORIES: KnowledgeCategory[] = [
     descriptionEn: "Global mobility, cross-campus transfers to Melbourne, study abroad partner universities.",
     descriptionVi: "Chuyển tiếp sang RMIT Melbourne, du học trao đổi tại các trường đối tác toàn cầu.",
     iconName: "Globe",
-    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/2026/exp-day-2026/experience-day-2026-thumbnail-1200x800.jpg",
+    imageUrl: "https://www.rmit.edu.au/assets/rmit-images/marketing-only/about-sub-mastheads/City-Campus-Masthead-1920x960.jpg",
   },
   {
     id: "academic-calendar",

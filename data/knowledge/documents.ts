@@ -406,38 +406,44 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
   {
     id: "doc-exchange-melbourne",
     slug: "exchange-study-abroad-rmit-melbourne",
-    titleEn: "Exchange & Study Abroad: Cross-Campus Transfer to RMIT Melbourne",
-    titleVi: "Chương trình Trao đổi & Du học: Chuyển tiếp cơ sở RMIT Melbourne",
+    titleEn: "Global Experience: Partner Exchange, Cross-campus & Study Abroad",
+    titleVi: "Trải nghiệm Toàn cầu: Partner Exchange, Cross-campus & Du học",
     categoryId: "exchange",
     keywords: [
-      "exchange", "du hoc", "melbourne", "cross campus", "study abroad",
-      "chuyen tiep", "trao doi sinh vien", "visa uc", "hoc phi trao doi"
+      "global experience", "study abroad", "overseas study", "partner exchange", "cross campus",
+      "interlocation", "global short programs", "study plan", "mobility", "melbourne",
+      "du hoc", "trao doi", "trao doi quoc te", "hoc o nuoc ngoai", "ke hoach hoc tap",
+      "erasmus", "seed", "global experience scholarship", "transfer to melbourne"
     ],
-    synonymsEn: ["global mobility", "campus transfer", "australia exchange", "partner university"],
-    synonymsVi: ["chuyển tiếp úc", "học kỳ trao đổi", "du học úc rmit", "giao lưu quốc tế"],
-    summaryEn: "RMIT Vietnam students can study for 1 to 2 semesters at RMIT Melbourne or over 200 partner universities globally while paying RMIT Vietnam tuition fees (cross-campus transfer program).",
-    summaryVi: "Sinh viên RMIT Việt Nam có thể tham gia học từ 1 đến 2 học kỳ tại RMIT Melbourne hoặc hơn 200 trường đại học đối tác toàn cầu với mức học phí đóng theo mức tại RMIT Việt Nam (chương trình Chuyển tiếp cơ sở).",
-    detailedGuidanceEn: "Applicants must have completed at least 72 credit points (usually 6-8 courses) at RMIT Vietnam and maintain a minimum cumulative GPA (usually 2.5/4.0 or above). Application deadlines are usually 6 months before the target semester.",
-    detailedGuidanceVi: "Sinh viên cần hoàn thành ít nhất 72 tín chỉ (thường tương đương 6-8 môn học) tại RMIT Việt Nam và đạt mức GPA tích lũy tối thiểu (thường từ 2.5/4.0 trở lên). Thời hạn nộp hồ sơ trước kỳ học mục tiêu khoảng 6 tháng.",
+    synonymsEn: ["international exchange", "study overseas", "outbound mobility", "exchange semester", "temporary cross-campus study"],
+    synonymsVi: ["du học trao đổi", "học kỳ trao đổi", "trải nghiệm toàn cầu", "trao đổi quốc tế", "học ở nước ngoài"],
+    summaryEn: "RMIT Vietnam offers four distinct Global Experience pathways: Partner Exchange at a partner university, temporary Cross-campus study at RMIT Melbourne, Interlocation in Asia, and Global Short Programs. Eligibility, destination, duration, costs and deadlines differ by pathway and intake.",
+    summaryVi: "RMIT Việt Nam có bốn lộ trình Global Experience riêng: Partner Exchange tại trường đối tác, Cross-campus tạm thời tại RMIT Melbourne, Interlocation tại châu Á và Global Short Programs. Điều kiện, điểm đến, thời lượng, chi phí và hạn nộp khác nhau theo lộ trình và đợt.",
+    detailedGuidanceEn: "Do not confuse temporary Cross-campus study at RMIT Melbourne with permanent transfer to Melbourne. Partner Exchange and Interlocation applications use Mobi; Cross-campus uses StudyLink. Confirm live host courses, eligibility, fees and deadlines on the program's official RMIT page and application listing. A portal being accessible does not mean an intake is open.",
+    detailedGuidanceVi: "Không nhầm chương trình Cross-campus học tạm thời tại RMIT Melbourne với chuyển tiếp vĩnh viễn sang Melbourne. Partner Exchange và Interlocation nộp qua Mobi; Cross-campus dùng StudyLink. Xác nhận môn học, điều kiện, chi phí và hạn hiện tại trên trang RMIT và hồ sơ đăng ký chính thức. Cổng truy cập được không đồng nghĩa một đợt đang mở.",
     keyDetailsEn: [
-      "Tuition advantage: Pay RMIT Vietnam tuition rates for RMIT Melbourne exchange semesters.",
-      "Living expenses & airfare: Covered independently by the student.",
-      "Australian Student Visa (Subclass 500) required for Melbourne study.",
-      "Global Experience team conducts informational webinars each semester."
+      "Partner Exchange: 1–2 semesters at a partner university; remain enrolled at RMIT Vietnam and continue paying RMIT Vietnam tuition. Host-specific requirements can be higher.",
+      "Temporary Cross-campus: 1–2 semesters at RMIT Melbourne, while remaining full-time enrolled at RMIT Vietnam and paying Vietnam tuition; this is not permanent transfer.",
+      "Interlocation in Asia: RMIT's public page names Singapore Institute of Management, Hong Kong Arts School and VTC SHAPE, but says there are four partners; use the live Mobi list for the complete current set.",
+      "Global Short Programs usually run 1–4 weeks; duration, credit, fees, eligibility and deadlines depend on the individual listing.",
+      "Published 2027 application rounds and partner-specific grants have deadlines that vary by semester; use the intake dates on the detailed guide and confirm current information with RMIT.",
+      "Study Plan approval does not guarantee host course availability or host acceptance. Contact Student Connect about course changes and an Additional Study Plan."
     ],
     keyDetailsVi: [
-      "Ưu đãi học phí: Đóng học phí theo mức RMIT Việt Nam khi sang học tại RMIT Melbourne.",
-      "Chi phí sinh hoạt và vé máy bay: Sinh viên tự chi trả.",
-      "Thủ tục visa: Cần xin Visa Du học Úc (Subclass 500).",
-      "Bộ phận Global Experience tổ chức các buổi hội thảo hướng dẫn chi tiết mỗi kỳ."
+      "Partner Exchange: học 1–2 học kỳ tại trường đối tác; vẫn đăng ký tại RMIT Việt Nam và tiếp tục đóng học phí RMIT Việt Nam. Yêu cầu của trường tiếp nhận có thể cao hơn.",
+      "Cross-campus tạm thời: học 1–2 học kỳ tại RMIT Melbourne, vẫn đăng ký toàn thời gian tại RMIT Việt Nam và đóng học phí theo mức Việt Nam; không phải chuyển tiếp vĩnh viễn.",
+      "Interlocation châu Á: trang công khai của RMIT nêu Singapore Institute of Management, Hong Kong Arts School và VTC SHAPE nhưng nói có bốn đối tác; dùng Mobi để xem danh sách hiện hành đầy đủ.",
+      "Global Short Programs thường kéo dài 1–4 tuần; thời lượng, tín chỉ, phí, điều kiện và hạn tùy hồ sơ từng chương trình.",
+      "Các đợt tuyển 2027 và khoản hỗ trợ theo đối tác có hạn riêng theo học kỳ; xem lịch trong hướng dẫn chi tiết và xác nhận thông tin hiện tại với RMIT.",
+      "Study Plan được duyệt không đảm bảo còn môn ở trường tiếp nhận hoặc được trường chấp nhận. Liên hệ Student Connect nếu cần đổi môn và làm Additional Study Plan."
     ],
     officialSourceUrl: "https://www.rmit.edu.vn/students/work-and-study-opportunities/global-experience-programs",
-    sourceTitle: "RMIT Vietnam Global Mobility & Cross-Campus Exchange",
+    sourceTitle: "RMIT Global Experience Programs",
     departmentId: "dept-exchange",
     campus: "all",
-    lastVerifiedDate: "2026-10-14",
+    lastVerifiedDate: "2026-11-01",
     verificationStatus: "verified",
-    imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/student-activities-01.jpg",
+    imageUrl: "https://www.rmit.edu.au/assets/rmit-images/marketing-only/about-sub-mastheads/City-Campus-Masthead-1920x960.jpg",
     relatedDocIds: ["doc-enrolment-deadlines", "doc-tuition-payment"]
   },
   {

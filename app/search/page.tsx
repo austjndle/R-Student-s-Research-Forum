@@ -158,7 +158,7 @@ function SearchContent() {
                 >
                   <img
                     src={doc.imageUrl}
-                    alt={doc.titleEn}
+                    alt={language === "vi" ? doc.titleVi : doc.titleEn}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading={resultIndex < 2 ? "eager" : "lazy"}
                     decoding="async"
@@ -437,8 +437,9 @@ function SearchContent() {
 }
 
 export default function SearchPage() {
+  const { t } = useLanguage();
   return (
-    <Suspense fallback={<div className="p-12 text-center text-xs text-[var(--secondary-text)]">Loading Search...</div>}>
+    <Suspense fallback={<div className="p-12 text-center text-xs text-[var(--secondary-text)]">{t.search.loading}</div>}>
       <SearchContent />
     </Suspense>
   );

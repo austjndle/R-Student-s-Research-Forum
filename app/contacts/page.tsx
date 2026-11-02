@@ -24,6 +24,13 @@ export default function ContactsPage() {
   const [selectedCampus, setSelectedCampus] = useState("all");
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const categoryLabels = {
+    administrative: t.contacts.categoryAdministrative,
+    academic: t.contacts.categoryAcademic,
+    support: t.contacts.categorySupport,
+    facilities: t.contacts.categoryFacilities,
+    specialized: t.contacts.categorySpecialized,
+  };
 
   const filteredDepartments = DEPARTMENT_CONTACTS.filter((dept) => {
     const matchesSearch =
@@ -102,7 +109,7 @@ export default function ContactsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--badge-bg)] text-[var(--accent)]">
-                      {dept.category}
+                      {categoryLabels[dept.category]}
                     </span>
                     <h2 className="text-xl font-bold text-[var(--main-text)]">
                       {language === "vi" ? dept.nameVi : dept.nameEn}
@@ -110,7 +117,7 @@ export default function ContactsPage() {
                   </div>
                   <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium shrink-0">
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Verified</span>
+                    <span>{t.common.verified}</span>
                   </span>
                 </div>
 
@@ -131,8 +138,8 @@ export default function ContactsPage() {
                       <button
                         type="button"
                         onClick={() => handleCopyEmail(dept.email!)}
-                        aria-label="Copy to clipboard"
-                        title={copiedEmail === dept.email ? (language === "vi" ? "Đã sao chép" : "Copied") : "Copy to clipboard"}
+                        aria-label={t.common.copyToClipboard}
+                        title={copiedEmail === dept.email ? t.common.copied : t.common.copyToClipboard}
                         className="inline-flex h-9 w-9 shrink-0 items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         {copiedEmail === dept.email ? (
@@ -204,7 +211,7 @@ export default function ContactsPage() {
                   aria-controls={`department-details-${dept.id}`}
                   className="inline-flex min-h-11 items-center gap-1 font-medium text-[var(--secondary-text)] transition-colors hover:text-[var(--main-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
-                  <span>{isExpanded ? "Collapse" : t.contacts.responsibilities}</span>
+                  <span>{isExpanded ? t.contacts.collapse : t.contacts.responsibilities}</span>
                   {isExpanded ? (
                     <ChevronUp className="w-3.5 h-3.5" />
                   ) : (

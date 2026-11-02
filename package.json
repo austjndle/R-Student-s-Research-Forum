@@ -4,14 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "next dev -p 3000 --hostname 127.0.0.1",
     "start": "vinext start",
     "check": "tsc --noEmit",
     "test": "vitest run",
     "deploy": "npx @vinext/cloudflare deploy",
     "dev:vinext": "vite dev --port 3001",
     "build:vinext": "vite build",
-    "start:vinext": "wrangler dev --config dist/server/wrangler.json",
+    "start:vinext": "wrangler dev --config dist/r_students_searchsite/wrangler.json --ip 127.0.0.1 --port 8787",
     "deploy:vinext": "vinext-cloudflare deploy --config dist/r_students_searchsite/wrangler.json"
   },
   "dependencies": {

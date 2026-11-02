@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ChatWidget } from "@/components/chat/ChatWidget";
+import { SupportModal } from "@/components/support/SupportModal";
 
 const plexSans = IBM_Plex_Sans({
   subsets: ["vietnamese", "latin"],
@@ -47,6 +48,11 @@ export const metadata: Metadata = {
     apple: "/cat-meme.png",
   },
 };
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 export default function RootLayout({
   children,
@@ -54,16 +60,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={`${plexSans.variable} ${inter.variable} ${plexMono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${plexSans.variable} ${inter.variable} ${plexMono.variable}`} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col bg-[var(--background)] font-body antialiased text-[var(--main-text)]">
         <Providers>
-          <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-[var(--primary-navy)] focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white">
-            Skip to main content
-          </a>
           <Navbar />
           <main id="main-content" className="flex-1">{children}</main>
           <Footer />
           <ChatWidget />
+          <SupportModal />
         </Providers>
       </body>
     </html>

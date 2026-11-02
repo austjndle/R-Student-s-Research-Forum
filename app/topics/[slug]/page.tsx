@@ -66,7 +66,7 @@ export default function TopicDetailPage({
               <div className="md:w-56 lg:w-64 h-48 md:h-auto shrink-0 relative overflow-hidden bg-[var(--surface-elevated)]">
                 <img
                   src={doc.imageUrl}
-                  alt={doc.titleEn}
+                  alt={language === "vi" ? doc.titleVi : doc.titleEn}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
@@ -82,7 +82,7 @@ export default function TopicDetailPage({
                     <span>{t.common.verified} ({doc.lastVerifiedDate})</span>
                   </span>
                   <span className="border border-[var(--border)] bg-[var(--surface-elevated)] px-2 py-1 text-[11px] uppercase text-[var(--secondary-text)] font-mono">
-                    {doc.campus}
+                    {doc.campus === "all" ? t.common.allCampuses : doc.campus === "hanoi" ? t.common.hanoi : t.common.saigonSouth}
                   </span>
                 </div>
 

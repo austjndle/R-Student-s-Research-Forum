@@ -12,16 +12,21 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import {
+  type ActivityHighlight,
   type CalendarEntry,
   type CalendarEntryType,
   type Campus,
+  type EventTemporalStatus,
+  CAMPUS_ACTIVITY_HIGHLIGHTS,
   formatCalendarDate,
+  getEventTemporalStatus,
   getPublishedCalendarEntries,
 } from "@/data/events/calendar";
 import { EVENT_SOURCES } from "@/data/events/sources";
+import { EventImage } from "./EventImage";
 import { useLanguage } from "@/lib/i18n/context";
 
-type TimeFilter = "all" | "upcoming" | "this_month";
+type TimeFilter = "all" | "upcoming" | "ongoing" | "ended" | "this_month";
 type ViewFilter = "list" | "calendar";
 
 const categoryLabels = {
@@ -63,8 +68,63 @@ function getEntryTitle(entry: CalendarEntry, language: "en" | "vi"): string {
 function getEntryDescription(entry: CalendarEntry, language: "en" | "vi"): string {
   return language === "vi" ? entry.descriptionVi : entry.descriptionEn;
 }
+function getTemporalStatusLabel(status: EventTemporalStatus, language: "en" | "vi"): string {
+  return {
+    upcoming: language === "vi" ? "Sắp tới" : "Upcoming",
+    ongoing: language === "vi" ? "Đang diễn ra" : "Ongoing",
+    ended: language === "vi" ? "Đã kết thúc" : "Ended",
+  }[status];
+}
+function getSemesterLabel(semester: string, language: "en" | "vi"): string {
+  return language === "vi"
+    ? semester.replace(/^Semester\s+/i, "Học kỳ ")
+    : semester.replace(/^Học kỳ\s+/i, "Semester ");
+}
 
-function EntryRow({ entry, language }: { entry: CalendarEntry; language: "en" | "vi" }) {
+function getRegistrationStatusLabel(status: CalendarEntry["registrationStatus"], language: "en" | "vi"): string | null {
+  if (!status) return null;
+  return {
+    open: language === "vi" ? "Đang mở đăng ký" : "Registration open",
+    closed: language === "vi" ? "Đã đóng đăng ký" : "Registration closed",
+    unverified: language === "vi" ? "Đăng ký chưa xác minh" : "Registration unverified",
+  }[status];
+}
+
+
+function ActivityHighlights({ language, ui }: { language: "en" | "vi"; ui: { highlights: string; recurring: string; dateTba: string; exploreClubs: string; howToJoin: string } }) {
+  return (
+    <section className="border-y border-[var(--border)] py-6" aria-labelledby="campus-activity-highlights">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">01 / {ui.highlights}</p>
+          <h2 id="campus-activity-highlights" className="mt-2 text-2xl font-bold tracking-[-0.03em] text-[var(--main-text)]">{ui.highlights}</h2>
+        </div>
+        <span className="text-xs text-[var(--secondary-text)]">{ui.recurring}</span>
+      </div>
+      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {CAMPUS_ACTIVITY_HIGHLIGHTS.map((activity: ActivityHighlight) => (
+          <article key={activity.id} className="min-w-0 border border-[var(--border)] bg-[var(--surface)]">
+            {activity.imageUrl && <EventImage src={activity.imageUrl} alt={language === "vi" ? activity.titleVi : activity.imageAlt ?? activity.titleEn} className="aspect-[16/7] w-full" objectPosition={activity.imageObjectPosition} />}
+            <div className="p-4">
+              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--accent)]">{ui.dateTba}</p>
+              <h3 className="mt-2 text-base font-semibold text-[var(--main-text)]">{language === "vi" ? activity.titleVi : activity.titleEn}</h3>
+              <p className="mt-2 text-sm leading-5 text-[var(--secondary-text)]">{language === "vi" ? activity.descriptionVi : activity.descriptionEn}</p>
+              {activity.id === "activity-club-day" && (
+                <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--border)] pt-3">
+                  <Link href="/clubs" className="inline-flex min-h-11 items-center text-xs font-semibold text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">{ui.exploreClubs}</Link>
+                  <Link href="/guides/danh-sach-cau-lac-bo-rmit-viet-nam" className="inline-flex min-h-11 items-center text-xs font-semibold text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">{ui.howToJoin}</Link>
+                </div>
+              )}
+              <a href={activity.sourceUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center text-xs text-[var(--secondary-text)] hover:text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">{language === "vi" ? "Nguồn chính thức" : "Official source"}</a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function EntryRow({ entry, language, now }: { entry: CalendarEntry; language: "en" | "vi"; now: Date | null }) {
   const source = EVENT_SOURCES.find((item) => item.id === entry.sourceId);
   const title = getEntryTitle(entry, language);
   const description = getEntryDescription(entry, language);
@@ -75,13 +135,25 @@ function EntryRow({ entry, language }: { entry: CalendarEntry; language: "en" | 
     labelVi: "Đăng ký",
     url: entry.registrationUrl,
   }] : []);
+  const temporalStatus = entry.type === "campus_event" && now ? getEventTemporalStatus(entry, now) : null;
+  const registrationStatus = entry.registrationStatus ?? (registrationLinks.length > 0 ? "unverified" : undefined);
+  const visibleRegistrationLinks = registrationStatus === "closed" || temporalStatus === "ended" ? [] : registrationLinks;
 
   return (
-    <article className="group grid gap-4 border-t border-[var(--border)] py-5 md:grid-cols-[120px_minmax(0,1fr)_auto] md:items-start">
+    <article className="group grid min-w-0 gap-4 border-t border-[var(--border)] py-5 md:grid-cols-[120px_minmax(0,1fr)_auto] md:items-start">
+      <EventImage
+        src={entry.imageUrl}
+        alt={language === "vi" ? entry.imageAltVi ?? title : entry.imageAltEn ?? entry.imageAlt ?? title}
+        className="col-span-full aspect-[16/7] w-full md:col-start-2 md:col-span-2 md:max-w-[720px]"
+        objectPosition={entry.imageObjectPosition}
+        aspectRatio={entry.imageAspectRatio}
+      />
       <div className="flex items-center gap-3 md:block">
         <div className="border-l-4 border-[var(--accent)] pl-3">
           <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent)]">
-            {entry.type === "academic_date" ? "DATE" : "EVENT"}
+            {entry.type === "academic_date"
+              ? language === "vi" ? "NGÀY" : "DATE"
+              : language === "vi" ? "SỰ KIỆN" : "EVENT"}
           </p>
           <p className="mt-1 whitespace-nowrap text-base font-bold leading-none text-[var(--main-text)] md:text-lg">
             {new Intl.DateTimeFormat(language === "vi" ? "vi-VN" : "en-GB", {
@@ -98,7 +170,7 @@ function EntryRow({ entry, language }: { entry: CalendarEntry; language: "en" | 
           <span>{categoryLabels[language][entry.category]}</span>
           <span aria-hidden="true">/</span>
           <span>{getCampusLabel(entry.campus, language)}</span>
-          {entry.semester && <><span aria-hidden="true">/</span><span>{entry.semester}</span></>}
+          {entry.semester && <><span aria-hidden="true">/</span><span>{getSemesterLabel(entry.semester, language)}</span></>}
         </div>
         <h3 className="text-xl font-semibold leading-tight text-[var(--main-text)] group-hover:text-[var(--accent)] transition-colors duration-200">
           {title}
@@ -111,10 +183,18 @@ function EntryRow({ entry, language }: { entry: CalendarEntry; language: "en" | 
       </div>
 
       <div className="flex flex-wrap items-center gap-3 md:justify-end">
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-          <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-          {language === "vi" ? "Đã xác minh" : "Verified"}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          {entry.verification === "verified" ? (
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+              <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+              {language === "vi" ? "Đã xác minh" : "Verified"}
+            </span>
+          ) : (
+            <span className="border border-amber-700 px-2 py-1 text-xs font-semibold text-amber-800 dark:border-amber-300 dark:text-amber-200">{language === "vi" ? "Cần xem xét" : "Needs review"}</span>
+          )}
+          {temporalStatus && <span className="border border-[var(--border)] px-2 py-1 text-xs text-[var(--secondary-text)]">{getTemporalStatusLabel(temporalStatus, language)}</span>}
+          {registrationStatus && <span className="border border-[var(--border)] px-2 py-1 text-xs text-[var(--secondary-text)]">{getRegistrationStatusLabel(registrationStatus, language)}</span>}
+        </div>
         <a
           href={entry.originalUrl}
           target="_blank"
@@ -124,7 +204,7 @@ function EntryRow({ entry, language }: { entry: CalendarEntry; language: "en" | 
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
           {language === "vi" ? "Nguồn gốc" : "Original source"}
         </a>
-        {registrationLinks.map((registration) => (
+        {visibleRegistrationLinks.map((registration) => (
           <a
             key={registration.url}
             href={registration.url}
@@ -132,7 +212,9 @@ function EntryRow({ entry, language }: { entry: CalendarEntry; language: "en" | 
             rel="noreferrer"
             className="inline-flex min-h-11 items-center border border-[var(--accent)] bg-[var(--accent)] px-3 text-xs font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
           >
-            {language === "vi" ? registration.labelVi : registration.labelEn}
+            {registrationStatus === "unverified"
+              ? language === "vi" ? "Thông tin đăng ký" : "Registration details"
+              : language === "vi" ? registration.labelVi : registration.labelEn}
           </a>
         ))}
       </div>
@@ -151,29 +233,42 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("upcoming");
   const [viewFilter, setViewFilter] = useState<ViewFilter>("list");
-  const [today, setToday] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState<string | null>(null);
   const availableCategories = Object.entries(categoryLabels[language]).filter(([value]) =>
     activeType === "all" || (activeType === "academic_date" ? value === "academic" : value !== "academic")
   );
 
   useEffect(() => {
-    setToday(toDateKey(new Date().toISOString()));
+    setCurrentTime(new Date().toISOString());
   }, []);
+  useEffect(() => {
+    if (activeType === "academic_date" && (timeFilter === "ongoing" || timeFilter === "ended")) {
+      setTimeFilter("upcoming");
+    }
+  }, [activeType, timeFilter]);
 
   const entries = useMemo(() => {
-    const currentDate = today ? new Date(`${today}T00:00:00+07:00`) : null;
-    const currentMonth = today?.slice(0, 7);
+    const now = currentTime ? new Date(currentTime) : null;
+    const currentDayStart = currentTime ? new Date(`${toDateKey(currentTime)}T00:00:00+07:00`) : null;
+    const currentMonth = currentTime ? toDateKey(currentTime).slice(0, 7) : null;
     return getPublishedCalendarEntries()
       .filter((entry) => activeType === "all" || entry.type === activeType)
       .filter((entry) => campusFilter === "all" || entry.campus === "all" || entry.campus === campusFilter)
       .filter((entry) => categoryFilter === "all" || entry.category === categoryFilter)
       .filter((entry) => {
-        if (!currentDate || timeFilter === "all") return true;
-        if (timeFilter === "upcoming") return new Date(entry.endAt ?? entry.startAt) >= currentDate;
-        return entry.startAt.slice(0, 7) === currentMonth || entry.endAt?.slice(0, 7) === currentMonth;
+        if (!now || timeFilter === "all") return true;
+        if (timeFilter === "upcoming") {
+          return entry.type === "academic_date"
+            ? new Date(entry.endAt ?? entry.startAt) >= currentDayStart!
+            : getEventTemporalStatus(entry, now) === "upcoming";
+        }
+        if (timeFilter === "ongoing" || timeFilter === "ended") {
+          return entry.type === "campus_event" && getEventTemporalStatus(entry, now) === timeFilter;
+        }
+        return toDateKey(entry.startAt).slice(0, 7) === currentMonth || (!!entry.endAt && toDateKey(entry.endAt).slice(0, 7) === currentMonth);
       })
       .sort((a, b) => a.startAt.localeCompare(b.startAt));
-  }, [activeType, campusFilter, categoryFilter, timeFilter, today]);
+  }, [activeType, campusFilter, categoryFilter, timeFilter, currentTime]);
 
   const monthGroups = useMemo(() => {
     const groups = new Map<string, CalendarEntry[]>();
@@ -187,7 +282,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
   const ui = language === "vi"
     ? {
         eyebrow: activeType === "campus_event" ? "ĐỜI SỐNG CƠ SỞ" : "LỊCH HỌC VỤ",
-        title: activeType === "campus_event" ? "Campus Events" : "Lịch học vụ",
+        title: activeType === "campus_event" ? "Sự kiện cơ sở" : "Lịch học vụ",
         intro: activeType === "campus_event"
           ? "Lịch các hoạt động, lễ hội và sự kiện sinh viên được xác minh từ nguồn RMIT công khai."
           : "Các mốc học vụ chính thức của RMIT Việt Nam, được trình bày theo thời gian và liên kết đến nguồn gốc.",
@@ -195,6 +290,8 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         events: "Sự kiện cơ sở",
         all: "Tất cả",
         upcoming: "Sắp tới",
+        ongoing: "Đang diễn ra",
+        ended: "Đã kết thúc",
         thisMonth: "Tháng này",
         allTime: "Toàn bộ",
         campus: "Cơ sở",
@@ -210,6 +307,11 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
           : "Ngày học vụ được đối chiếu với lịch chính thức của RMIT Việt Nam. Hãy kiểm tra chương trình của bạn nếu có lịch riêng.",
         sourceRegistry: "Xem danh bạ nguồn",
         lastChecked: "Kiểm tra lần cuối",
+        highlights: "Điểm nhấn hoạt động",
+        recurring: "Hoạt động định kỳ — chưa công bố lịch hiện tại",
+        dateTba: "Chưa công bố lịch",
+        exploreClubs: "Khám phá CLB",
+        howToJoin: "Hướng dẫn tham gia",
       }
     : {
         eyebrow: activeType === "campus_event" ? "CAMPUS EVENTS" : "ACADEMIC CALENDAR",
@@ -221,6 +323,8 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         events: "Campus events",
         all: "All entries",
         upcoming: "Upcoming",
+        ongoing: "Ongoing",
+        ended: "Past events",
         thisMonth: "This month",
         allTime: "All dates",
         campus: "Campus",
@@ -236,6 +340,11 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
           : "Academic dates are checked against the official RMIT Vietnam calendar. Confirm program-specific schedules when applicable.",
         sourceRegistry: "View source registry",
         lastChecked: "Last checked",
+        highlights: "Activity highlights",
+        recurring: "Recurring activities; current dates not announced",
+        dateTba: "Date TBA",
+        exploreClubs: "Explore Student Clubs",
+        howToJoin: "How to Join",
       };
 
   return (
@@ -293,6 +402,12 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
             )}
             <select aria-label={language === "vi" ? "Khoảng thời gian" : "Time range"} value={timeFilter} onChange={(event) => setTimeFilter(event.target.value as TimeFilter)} className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--main-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
               <option value="upcoming">{ui.upcoming}</option>
+              {activeType !== "academic_date" && (
+                <>
+                  <option value="ongoing">{ui.ongoing}</option>
+                  <option value="ended">{ui.ended}</option>
+                </>
+              )}
               <option value="this_month">{ui.thisMonth}</option>
               <option value="all">{ui.allTime}</option>
             </select>
@@ -309,7 +424,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
           <div className="border border-dashed border-[var(--border)] px-6 py-16 text-center text-sm text-[var(--secondary-text)]">{ui.noEntries}</div>
         ) : viewFilter === "list" ? (
           <div>
-            {entries.map((entry) => <EntryRow key={entry.id} entry={entry} language={language} />)}
+            {entries.map((entry) => <EntryRow key={entry.id} entry={entry} language={language} now={currentTime ? new Date(currentTime) : null} />)}
           </div>
         ) : (
           <div className="grid gap-8 md:grid-cols-2">
@@ -322,6 +437,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
                   {monthEntries.map((entry) => (
                     <Link key={entry.id} href={entry.originalUrl} target="_blank" rel="noreferrer" className="block py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset">
                       <p className="font-mono text-xs text-[var(--accent)]">{formatCalendarDate(entry.startAt, language)}</p>
+                      {entry.imageUrl && <EventImage src={entry.imageUrl} alt={entry.imageAlt ?? getEntryTitle(entry, language)} className="mt-2 aspect-[16/7] w-full" />}
                       <p className="mt-1 font-semibold text-[var(--main-text)]">{getEntryTitle(entry, language)}</p>
                     </Link>
                   ))}
@@ -331,6 +447,11 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
           </div>
         )}
       </section>
+      {activeType === "campus_event" && (
+        <div className="mt-12">
+          <ActivityHighlights language={language} ui={ui} />
+        </div>
+      )}
 
       <footer className="mt-12 grid gap-4 border-t border-[var(--border)] pt-6 text-xs text-[var(--secondary-text)] sm:grid-cols-[1fr_auto] sm:items-end">
         <div>

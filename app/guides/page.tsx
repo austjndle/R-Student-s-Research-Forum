@@ -36,10 +36,9 @@ export default function GuidesPage() {
         </div>
         <Link
           href="/guides/van-mau-email-cho-giang-vien"
-          className="min-h-11 shrink-0 bg-[var(--accent)] px-4 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center bg-[var(--accent)] px-4 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
-          <span>{language === "vi" ? "Xem toàn bộ văn mẫu" : "View Templates"}</span>
-          <ChevronRight className="w-3.5 h-3.5" />
+          <span>{language === "vi" ? "Xem mẫu" : "View Template"}</span>
         </Link>
       </div>
 
@@ -55,7 +54,7 @@ export default function GuidesPage() {
               <div className="h-40 w-full overflow-hidden bg-[var(--surface-elevated)] relative">
                 <img
                   src={guide.imageUrl}
-                  alt={guide.titleEn}
+                  alt={language === "vi" ? guide.titleVi : guide.imageAlt ?? guide.titleEn}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
@@ -71,7 +70,7 @@ export default function GuidesPage() {
                   </span>
                   <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[11px]">
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Verified</span>
+                    <span>{t.common.verified}</span>
                   </span>
                 </div>
 

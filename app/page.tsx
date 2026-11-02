@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { requestOpenMrHachiware } from "@/components/chat/chatEvents";
 import { useLanguage } from "@/lib/i18n/context";
 import { KNOWLEDGE_CATEGORIES } from "@/data/knowledge/schema";
 import { ALL_RESEARCH_GUIDES } from "@/data/guides/guides";
@@ -156,7 +157,7 @@ export default function HomePage() {
       <section className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8" aria-labelledby="research-topics">
         <div className="grid gap-8 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">01 / TOPICS</p>
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">{t.homeSections.topicsEyebrow}</p>
             <h2 id="research-topics" className="mt-3 text-3xl font-bold tracking-[-0.03em] text-[var(--main-text)]">{copy.topics}</h2>
             <p className="mt-3 max-w-sm text-sm leading-6 text-[var(--secondary-text)]">{copy.topicsDesc}</p>
             <Link href="/topics" className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2">
@@ -184,7 +185,7 @@ export default function HomePage() {
       <section className="border-y border-[var(--border)] bg-[var(--surface)]" aria-labelledby="guides-heading">
         <div className="mx-auto grid max-w-[1200px] gap-8 px-4 py-12 sm:px-6 lg:grid-cols-12 lg:px-8">
           <div className="lg:col-span-4">
-            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">02 / GUIDES</p>
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">{t.homeSections.guidesEyebrow}</p>
             <h2 id="guides-heading" className="mt-3 text-3xl font-bold tracking-[-0.03em] text-[var(--main-text)]">{copy.guides}</h2>
             <p className="mt-3 max-w-sm text-sm leading-6 text-[var(--secondary-text)]">{copy.guidesDesc}</p>
           </div>
@@ -246,13 +247,13 @@ export default function HomePage() {
       <section className="mx-auto max-w-[1200px] px-4 pb-4 sm:px-6 lg:px-8">
         <div className="grid gap-6 bg-[var(--primary-navy)] p-7 text-white sm:grid-cols-[1fr_auto] sm:items-center sm:p-10">
           <div>
-            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[#FF807A]">05 / AI RESEARCH ASSISTANT</p>
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[#FF807A]">{t.homeSections.assistantEyebrow}</p>
             <h2 className="mt-3 text-2xl font-bold tracking-[-0.03em]">{copy.aiTitle}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">{copy.aiDesc}</p>
           </div>
-          <Link href="/search" className="inline-flex min-h-12 items-center justify-center gap-2 bg-[var(--accent)] px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--primary-navy)]">
+          <button type="button" onClick={requestOpenMrHachiware} className="inline-flex min-h-12 items-center justify-center gap-2 bg-[var(--accent)] px-5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--primary-navy)]">
             {copy.askAi}<ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          </button>
         </div>
       </section>
     </div>

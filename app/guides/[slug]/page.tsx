@@ -8,6 +8,7 @@ import { ALL_RESEARCH_GUIDES } from "@/data/guides/guides";
 import { KNOWLEDGE_DOCUMENTS } from "@/data/knowledge/documents";
 import { EMAIL_TEMPLATES } from "@/data/templates/emailTemplates";
 import { STUDENT_AI_PROMPTS } from "@/data/templates/aiPrompts";
+import { GlobalExperienceGuideContent } from "@/components/GlobalExperienceGuideContent";
 import {
   Clock,
   ArrowLeft,
@@ -98,6 +99,21 @@ export default function GuideDetailPage({
   );
 
   const isEmailTemplateGuide = slug === "van-mau-email-cho-giang-vien";
+  const isGlobalExperienceGuide = slug === "exchange-study-abroad-rmit-melbourne";
+  const emailCategoryLabels: Record<string, string> = {
+    consultation: t.guides.emailCategoryConsultation,
+    extension: t.guides.emailCategoryExtension,
+    grade_clarification: t.guides.emailCategoryGrade,
+    group_work: t.guides.emailCategoryGroupWork,
+    recommendation: t.guides.emailCategoryRecommendation,
+    attendance: t.guides.emailCategoryAttendance,
+  };
+  const promptCategoryLabels: Record<string, string> = {
+    email_writing: t.guides.promptCategoryEmailWriting,
+    course_study: t.guides.promptCategoryCourseStudy,
+    assignment_prep: t.guides.promptCategoryAssignmentPrep,
+    consult_prep: t.guides.promptCategoryConsultPrep,
+  };
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -121,11 +137,13 @@ export default function GuideDetailPage({
       {/* Guide Header */}
       <header className="space-y-4">
         {guide.imageUrl && (
-          <div className="editorial-card relative mb-6 h-60 w-full overflow-hidden sm:h-72">
+          <div className={`editorial-card relative mb-6 w-full overflow-hidden ${isGlobalExperienceGuide ? "aspect-[2/1]" : "h-60 sm:h-72"}`}>
             <img
               src={guide.imageUrl}
-              alt={guide.titleEn}
-              className="w-full h-full object-cover"
+              alt={language === "vi" ? guide.titleVi : guide.imageAlt ?? guide.titleEn}
+              className="h-full w-full object-cover object-center"
+              loading={isGlobalExperienceGuide ? "eager" : "lazy"}
+              decoding="async"
             />
           </div>
         )}
@@ -136,9 +154,14 @@ export default function GuideDetailPage({
           <span>•</span>
           <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
             <ShieldCheck className="w-4 h-4" />
-            <span>Verified Official Procedure</span>
+            <span>{isGlobalExperienceGuide ? (language === "vi" ? "Thông tin Global Experience đã xác minh" : "Verified Global Experience information") : t.guides.verifiedProcedure}</span>
           </span>
         </div>
+        {guide.lastVerifiedDate && (
+          <p className="font-mono text-[11px] text-[var(--secondary-text)]">
+            {t.common.lastVerified}: {guide.lastVerifiedDate}
+          </p>
+        )}
 
         <h1 className="max-w-5xl break-words text-2xl font-extrabold leading-tight text-[var(--main-text)] sm:text-4xl">
           {language === "vi" ? guide.titleVi : guide.titleEn}
@@ -170,18 +193,20 @@ export default function GuideDetailPage({
                 </a>
               </>
             )}
-            <a
-              href="#guide-steps"
-              className="min-h-11 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-            >
-              <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{
-                guide.slug.includes("calendar")
-                  ? (language === "vi" ? "Các mốc thời gian quan trọng" : "Key Milestones")
-                  : guide.slug.startsWith("how-to") || guide.slug.startsWith("huong-dan")
-                    ? (language === "vi" ? "Các bước thực hiện" : "Action Steps")
-                    : (language === "vi" ? "Nội dung" : "Key Information")
-              }</span>
-            </a>
+            {!isGlobalExperienceGuide && (
+              <a
+                href="#guide-steps"
+                className="min-h-11 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              >
+                <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{
+                  guide.slug.includes("calendar")
+                    ? (language === "vi" ? "Các mốc thời gian quan trọng" : "Key Milestones")
+                    : guide.slug.startsWith("how-to") || guide.slug.startsWith("huong-dan")
+                      ? (language === "vi" ? "Các bước thực hiện" : "Action Steps")
+                      : (language === "vi" ? "Nội dung" : "Key Information")
+                }</span>
+              </a>
+            )}
             {guide.officialReferences.length > 0 && (
               <a
                 href="#official-references"
@@ -201,7 +226,7 @@ export default function GuideDetailPage({
           <div className="flex items-center gap-2">
             <Mail className="w-5 h-5 text-[var(--accent)]" />
             <h2 className="text-xl font-bold text-[var(--main-text)]">
-              {language === "vi" ? "Bộ văn mẫu sẵn dùng (Nhấn Sao chép để dùng ngay)" : "Ready-to-Use Email Templates (Click Copy to Use)"}
+              {t.guides.emailTemplateSectionTitle}
             </h2>
           </div>
 
@@ -220,7 +245,7 @@ export default function GuideDetailPage({
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="space-y-1">
                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--badge-bg)] text-[var(--accent)]">
-                          {tpl.category}
+                          {emailCategoryLabels[tpl.category] ?? tpl.category}
                         </span>
                         <h3 className="text-base sm:text-lg font-bold text-[var(--main-text)]">
                           {language === "vi" ? tpl.titleVi : tpl.titleEn}
@@ -228,7 +253,7 @@ export default function GuideDetailPage({
                       </div>
 
                       <button
-                        onClick={() => handleCopy(`Subject: ${subject}\n\n${body}`, tpl.id)}
+                        onClick={() => handleCopy(`${t.guides.emailSubject}: ${subject}\n\n${body}`, tpl.id)}
                         className="min-h-11 shrink-0 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         {copiedId === tpl.id ? (
@@ -239,7 +264,7 @@ export default function GuideDetailPage({
                         ) : (
                           <>
                             <Copy className="w-3.5 h-3.5 text-[var(--accent)]" />
-                            <span>{language === "vi" ? "Sao chép toàn bộ email" : "Copy Full Email"}</span>
+                            <span>{t.guides.copyEmail}</span>
                           </>
                         )}
                       </button>
@@ -252,14 +277,14 @@ export default function GuideDetailPage({
                     {/* Subject line preview */}
                     <div className="editorial-info flex items-center justify-between gap-3 p-3 text-xs">
                       <div className="flex items-center gap-2 truncate">
-                        <span className="font-semibold text-[var(--secondary-text)] shrink-0">Subject:</span>
+                        <span className="font-semibold text-[var(--secondary-text)] shrink-0">{t.guides.emailSubject}:</span>
                         <span className="min-w-0 break-words font-mono text-[var(--main-text)]">{subject}</span>
                       </div>
                       <button
                         onClick={() => handleCopy(subject, `sub-${tpl.id}`)}
                         className="text-[11px] text-[var(--accent)] hover:underline shrink-0"
                       >
-                        {copiedId === `sub-${tpl.id}` ? "Copied" : "Copy Subject"}
+                        {copiedId === `sub-${tpl.id}` ? t.common.copied : t.guides.copySubject}
                       </button>
                     </div>
 
@@ -317,7 +342,7 @@ export default function GuideDetailPage({
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--badge-bg)] text-[var(--accent)]">
-                        {p.category}
+                        {promptCategoryLabels[p.category] ?? p.category}
                       </span>
 
                       <button
@@ -332,7 +357,7 @@ export default function GuideDetailPage({
                         ) : (
                           <>
                             <Copy className="w-3 h-3 text-[var(--accent)]" />
-                            <span>{language === "vi" ? "Sao chép Prompt" : "Copy Prompt"}</span>
+                            <span>{t.guides.copyPrompt}</span>
                           </>
                         )}
                       </button>
@@ -358,52 +383,53 @@ export default function GuideDetailPage({
       )}
 
       {/* Steps or Content Section */}
-      <section id="guide-steps" className="space-y-6 scroll-mt-24">
-        <h2 className="text-xl font-bold text-[var(--main-text)] flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5 text-[var(--accent)]" />
-          <span>
-            {guide.slug.includes("calendar") || guide.id.includes("calendar")
-              ? (language === "vi" ? "Các mốc thời gian quan trọng" : "Key Semester Milestones")
-              : guide.slug.startsWith("how-to") || guide.slug.startsWith("huong-dan")
-                ? (language === "vi" ? "Các bước thực hiện" : "Action Steps")
-                : (language === "vi" ? "Nội dung" : "Key Information")}
-          </span>
-        </h2>
+      {isGlobalExperienceGuide ? (
+        <GlobalExperienceGuideContent />
+      ) : (
+        <section id="guide-steps" className="space-y-6 scroll-mt-24">
+          <h2 className="text-xl font-bold text-[var(--main-text)] flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-[var(--accent)]" />
+            <span>
+              {guide.slug.includes("calendar") || guide.id.includes("calendar")
+                ? (language === "vi" ? "Các mốc thời gian quan trọng" : "Key Semester Milestones")
+                : guide.slug.startsWith("how-to") || guide.slug.startsWith("huong-dan")
+                  ? (language === "vi" ? "Các bước thực hiện" : "Action Steps")
+                  : (language === "vi" ? "Nội dung" : "Key Information")}
+            </span>
+          </h2>
 
-        <div className="space-y-4">
-          {guide.steps.map((step) => (
-            <div
-              key={step.number}
-              className="editorial-card space-y-3 p-5 sm:p-6"
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--accent)] bg-[var(--accent)] font-bold text-xs text-white">
-                  {step.number}
-                </span>
-                <h3 className="font-bold text-sm sm:text-base text-[var(--main-text)]">
-                  {language === "vi" ? step.titleVi : step.titleEn}
-                </h3>
-              </div>
-              <p className="text-xs sm:text-sm text-[var(--secondary-text)] pl-10 leading-relaxed">
-                {language === "vi" ? step.contentVi : step.contentEn}
-              </p>
-              {step.actionLink && (
-                <div className="pl-10 pt-1">
-                  <a
-                    href={step.actionLink.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="min-h-11 inline-flex items-center gap-1.5 bg-[var(--accent)] px-3.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                  >
-                    <span>{language === "vi" ? step.actionLink.labelVi : step.actionLink.labelEn}</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+          <div className="space-y-4">
+            {guide.steps.map((step) => (
+              <div key={step.number} className="editorial-card space-y-3 p-5 sm:p-6">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--accent)] bg-[var(--accent)] font-bold text-xs text-white">
+                    {step.number}
+                  </span>
+                  <h3 className="font-bold text-sm sm:text-base text-[var(--main-text)]">
+                    {language === "vi" ? step.titleVi : step.titleEn}
+                  </h3>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+                <p className="text-xs sm:text-sm text-[var(--secondary-text)] pl-10 leading-relaxed">
+                  {language === "vi" ? step.contentVi : step.contentEn}
+                </p>
+                {step.actionLink && (
+                  <div className="pl-10 pt-1">
+                    <a
+                      href={step.actionLink.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="min-h-11 inline-flex items-center gap-1.5 bg-[var(--accent)] px-3.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    >
+                      <span>{language === "vi" ? step.actionLink.labelVi : step.actionLink.labelEn}</span>
+                      <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Official References */}
       {guide.officialReferences.length > 0 && (
@@ -421,7 +447,7 @@ export default function GuideDetailPage({
                   className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-[var(--accent)] hover:underline"
                 >
                   <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                  <span>{ref.title}</span>
+                  <span>{language === "vi" ? ref.titleVi ?? ref.title : ref.title}</span>
                 </a>
               </li>
             ))}
