@@ -24,6 +24,10 @@ describe("English/Vietnamese interface copy", () => {
     expect(translations.en.support.description).toBe("Enjoying R-Students' Research Hub? You can buy me a coffee to help maintain and improve this independent student project. Every contribution is completely voluntary.");
     expect(translations.vi.support.description).toBe("Nếu R-Students' Research Hub hữu ích với bạn, bạn có thể ủng hộ mình một ly cà phê để giúp duy trì và phát triển dự án. Mọi đóng góp đều hoàn toàn tự nguyện.");
   });
+  it("uses the requested footer slogan in both locales", () => {
+    expect(translations.en.footer.creatorSlogan).toBe("💔 Built by students, powered by stress.");
+    expect(translations.vi.footer.creatorSlogan).toBe("💔 Built by students, powered by stress.");
+  });
   it("uses one-word English navbar labels and concise Vietnamese labels", () => {
     expect([
       translations.en.nav.home,

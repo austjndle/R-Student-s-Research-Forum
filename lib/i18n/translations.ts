@@ -511,7 +511,7 @@ export const translations: Record<Language, Translations> = {
       copyright: "© 2026 R-Students' Research Forum. Independent student initiative.",
       privacy: "Privacy Policy",
       about: "About Us",
-      creatorSlogan: "Helping students build research skills.",
+      creatorSlogan: "💔 Built by students, powered by stress.",
     },
     aboutPage: {
       eyebrow: "Independent student initiative",
@@ -792,7 +792,7 @@ export const translations: Record<Language, Translations> = {
       copyright: "© 2026 R-Students' Research Forum. Dự án sinh viên độc lập.",
       privacy: "Chính sách bảo mật",
       about: "Về chúng tôi",
-      creatorSlogan: "Cùng sinh viên phát triển kỹ năng nghiên cứu.",
+      creatorSlogan: "💔 Built by students, powered by stress.",
     },
     aboutPage: {
       eyebrow: "Dự án độc lập do sinh viên xây dựng",
