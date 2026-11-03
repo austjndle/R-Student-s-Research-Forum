@@ -1,7 +1,8 @@
-import { processQuery, removeVietnameseDiacritics, searchKnowledgeBase } from "@/lib/search/engine";
+import { processQuery, removeVietnameseDiacritics, searchKnowledgeBase, type SearchResultItem } from "@/lib/search/engine";
 import { DEPARTMENT_CONTACTS } from "@/data/contacts/departments";
 import { CAMPUS_ACTIVITY_HIGHLIGHTS, getPublishedCalendarEntries, type CalendarEntry } from "@/data/events/calendar";
 import { getVerifiedClubs, type ClubCategory, type ClubRecord } from "@/data/clubs/clubs";
+import { RMIT_CAMPUS_HOURS } from "@/data/facilities/campusHours";
 import {
   GLOBAL_EXPERIENCE_LAST_VERIFIED,
   GLOBAL_EXPERIENCE_PROGRAMS,
@@ -13,6 +14,7 @@ import {
   getDeadlineStatus,
   type GlobalExperienceProgramId,
 } from "@/data/guides/globalExperience";
+import { SCHOLARSHIPS, type ScholarshipRecord } from "@/data/scholarships";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -72,15 +74,48 @@ const OBVIOUS_OUT_OF_SCOPE_PATTERNS = [
   /jailbreak/i, /act as DAN/i
 ];
 const VIETNAMESE_LANGUAGE_MARKERS =
-  /\b(?:lam sao|toi|tui|minh|ban be|ban hoc|sinh vien|cau lac bo|hoc phi|hoc bong|dang ky|dang tuyen|tuyen thanh vien|ket ban|tim ban|dong doi|su kien|hoat dong|lich hoc|ngoai khoa|giang vien|hong|khong)\b/i;
+  /\b(?:lam sao|toi|tui|minh|ban be|ban hoc|sinh vien|cau lac bo|clb nay|hoc phi|hoc bong|dang ky|dang tuyen|tuyen thanh vien|ket ban|tim ban|dong doi|su kien|hoat dong|lich hoc|ngoai khoa|giang vien|hong|khong)\b/i;
 
 export function detectChatLanguage(message: string, preferredLanguage: "en" | "vi"): "en" | "vi" {
   const hasVietnameseDiacritics = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(message);
   const hasVietnameseWords = VIETNAMESE_LANGUAGE_MARKERS.test(removeVietnameseDiacritics(message));
   return hasVietnameseDiacritics || hasVietnameseWords ? "vi" : preferredLanguage;
 }
+export interface ChatHistoryTurn {
+  role: "user" | "assistant";
+  content: string;
+}
 
-export function isQueryInScope(query: string): { inScope: boolean; reason?: string } {
+export function sanitizeChatHistory(value: unknown): ChatHistoryTurn[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((turn): turn is { role?: unknown; content: string } => (turn.role === "user" || turn.role === "assistant") && typeof turn.content === "string")
+    .map((turn) => ({ role: turn.role as "user" | "assistant", content: turn.content.trim().slice(0, 1200) }))
+    .filter((turn) => turn.content.length > 0)
+    .slice(-6);
+}
+
+export function resolveConversationQuery(
+  message: string,
+  history: ChatHistoryTurn[],
+  language: "en" | "vi",
+): string {
+  const normalized = normalizeEventText(message).trim();
+  const campusOnly = /^(?:(?:and|what about|how about|also|con|the con)(?:\s+ben)?\s+)?(?:hanoi|hn|hnoi|ha noi|saigon south|sgs|nam sai gon)(?:\s+campus)?[?.!]*$/i.test(normalized);
+  if (!campusOnly) return message;
+  const previousUser = [...history].reverse().find((turn) => turn.role === "user");
+  if (!previousUser) return message;
+  const previousNormalized = normalizeEventText(previousUser.content);
+  const hasTopic = /food|eat|restaurant|cafe|library|building|facility|club|event|calendar|semester|contact|support|ăn|an uong|nha hang|thu vien|toa nha|co so|cau lac bo|su kien|lich hoc/i.test(previousNormalized);
+  if (!hasTopic) return message;
+  const targetCampus = /hanoi|hn|hnoi|ha noi/.test(normalized)
+    ? (language === "vi" ? "cơ sở Hà Nội" : "Hanoi campus")
+    : (language === "vi" ? "cơ sở Nam Sài Gòn" : "Saigon South campus");
+  const resolved = `${previousUser.content} — ${targetCampus}`;
+  return resolved.length <= 2000 ? resolved : message;
+}
+
+export function isQueryInScope(query: string, contextClubId?: unknown): { inScope: boolean; reason?: string } {
   const trimmed = query.trim();
   if (trimmed.length < 2) {
     return { inScope: false, reason: "Query too short." };
@@ -96,24 +131,26 @@ export function isQueryInScope(query: string): { inScope: boolean; reason?: stri
     }
   }
 
+  if (isCurrentClubQuestion(normalizeEventText(trimmed)) && resolveContextClubId(contextClubId)) {
+    return { inScope: true };
+  }
+
   // 2. Strong match in verified RMIT knowledge base
-  const searchMatches = searchKnowledgeBase(trimmed, { limit: 1 });
+  const searchMatches = searchKnowledgeBase(trimmed, { limit: 1, includeAuxiliary: false });
   if (searchMatches.length > 0 && searchMatches[0].score >= 35) {
     return { inScope: true };
   }
 
   // 3. Recognize verified club names even when the user omits "RMIT" or "club".
-  const normalizedQuery = normalizeEventText(trimmed);
-  if (getVerifiedClubs().some((club) => {
-    const shortName = normalizeEventText(club.nameEn.replace(/\s+club$/i, ""));
-    return shortName.length >= 4 && normalizedQuery.includes(shortName);
-  })) {
+  if (clubNameMentions(normalizeEventText(trimmed), getVerifiedClubs()).length > 0) {
     return { inScope: true };
   }
-
+  if (isFoodFacilityQuery(trimmed) || /\b(?:building|facility|facilities|library|shuttle|parking|hanoi|saigon south|sgs|toa nha|co so|thu vien|xe buyt|bai xe)\b/i.test(removeVietnameseDiacritics(trimmed))) {
+    return { inScope: true };
+  }
   // 4. Match explicit RMIT university topical keywords
   for (const pattern of RMIT_TOPIC_PATTERNS) {
-    if (pattern.test(trimmed)) {
+    if (pattern.test(removeVietnameseDiacritics(trimmed)) || /\bclb\b/i.test(trimmed)) {
       return { inScope: true };
     }
   }
@@ -125,6 +162,120 @@ export function isQueryInScope(query: string): { inScope: boolean; reason?: stri
   };
 }
 
+function buildGroundedContextFromSearchResults(matches: SearchResultItem[], language: "en" | "vi"): GroundedContext {
+  const deptMap = new Map(DEPARTMENT_CONTACTS.map((department) => [department.id, department]));
+  const sources: GroundedContext["sources"] = [];
+  const matchedDocTitles: string[] = [];
+  const contextBlocks = matches.map((item, index) => {
+    const doc = item.document;
+    const dept = deptMap.get(doc.departmentId);
+    matchedDocTitles.push(language === "vi" ? doc.titleVi : doc.titleEn);
+    sources.push({
+      title: doc.sourceTitle || (language === "vi" ? doc.titleVi : doc.titleEn),
+      url: doc.officialSourceUrl,
+      departmentName: language === "vi" ? dept?.nameVi : dept?.nameEn,
+    });
+    return `[Verified RMIT record ${index + 1}]
+Title: ${language === "vi" ? doc.titleVi : doc.titleEn}
+Summary: ${language === "vi" ? doc.summaryVi : doc.summaryEn}
+Details: ${(language === "vi" ? doc.keyDetailsVi : doc.keyDetailsEn).join("\n- ")}
+Source: ${doc.officialSourceUrl}`;
+  });
+  return {
+    contextText: contextBlocks.join("\n\n"),
+    sources,
+    matchedDocTitles,
+    bestDoc: matches[0]?.document,
+  };
+}
+const FOOD_FACILITY_PATTERN = /\b(?:food|eat|restaurant|cafe|coffee|noodle|soya|boost juice|circle k|nine|sorrento|vending)\b|global cafe/i;
+const VIETNAMESE_FOOD_PATTERN = /ăn|nhà hàng|quán|cà phê|đồ ăn/i;
+const FOOD_FACILITY_RECORD_PATTERN = /\b(?:food|restaurant|cafe|café|coffee|noodle|soya|boost juice|circle k|nine|sorrento|vending)\b|global café|kootoro|highlands|curry hut|la cantina|4gs|nhà hàng|quán|cà phê/i;
+export function isFoodFacilityQuery(query: string): boolean {
+  return FOOD_FACILITY_PATTERN.test(normalizeEventText(query)) || VIETNAMESE_FOOD_PATTERN.test(query);
+}
+function extractFoodLabel(value: string): string {
+  const segments = value.split(/[;,]/).map((segment) => segment.trim()).filter(Boolean);
+  const foodSegments = segments.filter((segment) => FOOD_FACILITY_RECORD_PATTERN.test(segment));
+  return foodSegments.join("; ") || value;
+}
+
+function foodFacilityRecords(query: string, language: "en" | "vi") {
+  const normalized = normalizeEventText(query);
+  const campus = /hanoi|ha noi|handi resco/.test(normalized)
+    ? "hanoi"
+    : /sgs|saigon south|nam sai gon/.test(normalized)
+      ? "saigon_south"
+      : undefined;
+  return RMIT_CAMPUS_HOURS
+    .filter((building) => !campus || building.campus === campus)
+    .flatMap((building) => building.floors
+      .filter((floor) => FOOD_FACILITY_RECORD_PATTERN.test(`${floor.facilitiesEn} ${floor.facilitiesVi}`))
+      .map((floor) => ({ building, floor, label: extractFoodLabel(language === "vi" ? floor.facilitiesVi : floor.facilitiesEn) })));
+}
+
+export function formatFoodFacilityFallback(language: "en" | "vi", query: string): string {
+  const records = foodFacilityRecords(query, language);
+  if (records.length === 0) {
+    return language === "vi"
+      ? "Chưa tìm thấy địa điểm ăn uống đã xác minh phù hợp với cơ sở này."
+      : "No verified food or dining location matched that campus.";
+  }
+  const listEn = records.map(({ building, floor, label }) => `• ${building.nameEn} — ${floor.floorEn ?? floor.floor}: ${label}`).join("\n");
+  const listVi = records.map(({ building, floor, label }) => `• ${building.nameVi} — ${floor.floorVi ?? floor.floor}: ${label}`).join("\n");
+  return language === "vi"
+    ? `Các địa điểm ăn uống đã xác minh:\n${listVi}\n\nKiểm tra nguồn chính thức để xác nhận giờ hoạt động hiện tại.`
+    : `Verified food options:\n${listEn}\n\nCheck the official source for current operating hours.`;
+}
+
+function buildFoodFacilityContext(query: string, language: "en" | "vi"): GroundedContext {
+  const records = foodFacilityRecords(query, language);
+  const sources = [...new Map(records.map(({ building, floor }) => {
+    const url = floor.sourceUrl ?? building.floorPlanPdfUrl ?? "https://www.rmit.edu.vn/students/campus-life/campus-facilities";
+    return [url, { title: building.nameEn, url }];
+  })).values()];
+  const contextText = records.length === 0
+    ? language === "vi" ? "Không tìm thấy địa điểm ăn uống đã xác minh phù hợp." : "No verified food or dining location matched this campus."
+    : records.map(({ building, floor, label }) => `[Verified food facility]\nBuilding: ${building.nameEn}\nFloor: ${floor.floorEn ?? floor.floor}\nFacilities: ${label}\nSource: ${floor.sourceUrl ?? building.floorPlanPdfUrl ?? "https://www.rmit.edu.vn/students/campus-life/campus-facilities"}`).join("\n\n");
+  return { contextText, sources, matchedDocTitles: records.map(({ building }) => language === "vi" ? building.nameVi : building.nameEn) };
+}
+
+function buildHanoiFacilityContext(query: string, language: "en" | "vi"): GroundedContext | null {
+  const normalized = normalizeEventText(query);
+  if (!/hanoi|ha noi|hnoi/.test(normalized)) return null;
+  if (/difference|different|differ|compare|khac/.test(normalized) && /beanland|saigon south|sgs/.test(normalized)) return null;
+  const target = /library|thu vien/.test(normalized)
+    ? "Hanoi Library"
+    : /student connect|trung tam ho tro/.test(normalized)
+      ? "Hanoi Student Connect"
+      : /it support|support.*it|ho tro cntt/.test(normalized)
+        ? "Hanoi IT Support"
+        : /career ready|career hub|huong nghiep/.test(normalized)
+          ? "Hanoi Career Ready Hub"
+          : /study room|meeting room|phong hoc nhom|phong hop/.test(normalized)
+            ? "Hanoi study rooms"
+            : /highlands|vending|food|eat|an uong|nha hang|ca phe/.test(normalized)
+              ? "Hanoi food facilities"
+              : /student access lab|access lab/.test(normalized)
+                ? "Hanoi Student Access Lab"
+                : null;
+  if (!target) return null;
+  const match = searchKnowledgeBase(target, { language, limit: 10 }).find((result) => result.document.resultHref === "/facilities#hn-main");
+  if (!match) return null;
+  const sourceUrl = /library|thu vien/.test(normalized)
+    ? "https://www.rmit.edu.vn/students/support/library-services"
+    : /student connect|trung tam ho tro/.test(normalized)
+      ? "https://www.rmit.edu.vn/students/support/student-connect"
+      : /it support|support.*it|ho tro cntt/.test(normalized)
+        ? "https://www.rmit.edu.vn/students/support/it-support"
+        : /career ready|career hub|huong nghiep/.test(normalized)
+          ? "https://www.rmit.edu.vn/students/work-and-study-opportunities/career-opportunities"
+          : /study room|meeting room|phong hoc nhom|phong hop/.test(normalized)
+            ? "https://www.rmit.edu.vn/students/campus-life/campus-facilities"
+            : match.document.officialSourceUrl;
+  const document = { ...match.document, officialSourceUrl: sourceUrl };
+  return buildGroundedContextFromSearchResults([{ ...match, document }], language);
+}
 export function buildRAGContext(query: string, language: "en" | "vi" = "en"): GroundedContext {
   if (isPracticalStudentLifeQuery(query)) {
     const assignmentAdvice = isAssignmentPerformanceAdviceQuery(query);
@@ -146,6 +297,43 @@ export function buildRAGContext(query: string, language: "en" | "vi" = "en"): Gr
       sources: [],
       matchedDocTitles: [],
     };
+  }
+  if (isFoodFacilityQuery(query)) return buildFoodFacilityContext(query, language);
+  const hanoiFacilityContext = buildHanoiFacilityContext(query, language);
+  if (hanoiFacilityContext) return hanoiFacilityContext;
+  const normalizedFacilityQuery = normalizeEventText(query);
+  if (
+    /difference|different|differ|compare|khac/.test(normalizedFacilityQuery)
+    && /hanoi|ha noi/.test(normalizedFacilityQuery)
+    && /beanland|saigon south|sgs/.test(normalizedFacilityQuery)
+  ) {
+    const beanland = searchKnowledgeBase("Beanland Library", { language, limit: 10 }).find((result) => result.document.resultHref === "/facilities#sgs-b1");
+    const hanoi = searchKnowledgeBase("Hanoi Library", { language, limit: 10 }).find((result) => result.document.resultHref === "/facilities#hn-main");
+    if (beanland && hanoi) {
+      const comparisonDocument = {
+        ...beanland.document,
+        id: "facility-library-comparison",
+        titleEn: "Beanland Library and Hanoi Campus Library comparison",
+        titleVi: "So sánh Thư viện Beanland và Thư viện Cơ sở Hà Nội",
+        summaryEn: "Beanland Library & Learning Commons is at Building 1, Level 3, Saigon South; the Hanoi Campus Library is in the Handi Resco Hanoi campus record.",
+        summaryVi: "Beanland Library & Learning Commons ở Tòa nhà 1, Tầng 3, Nam Sài Gòn; Thư viện Cơ sở Hà Nội thuộc hồ sơ cơ sở Handi Resco Hà Nội.",
+        keyDetailsEn: [
+          "Saigon South: Beanland Library & Learning Commons — Building 1, Level 3, Room 1.3.30.",
+          "Hanoi: RMIT Hanoi Campus Library — Handi Resco campus; use the Hanoi-specific floor-plan record and official library source.",
+          "These are different campus facilities; do not substitute one location for the other.",
+        ],
+        keyDetailsVi: [
+          "Nam Sài Gòn: Beanland Library & Learning Commons — Tòa nhà 1, Tầng 3, Phòng 1.3.30.",
+          "Hà Nội: Thư viện Cơ sở RMIT Hà Nội — cơ sở Handi Resco; dùng hồ sơ sơ đồ Hà Nội và nguồn thư viện chính thức.",
+          "Đây là hai cơ sở khác nhau; không thay thế địa điểm này bằng địa điểm kia.",
+        ],
+        sourceTitle: "RMIT Vietnam library location comparison",
+      };
+      return buildGroundedContextFromSearchResults([
+        { ...beanland, document: comparisonDocument },
+        hanoi,
+      ], language);
+    }
   }
   const candidates = searchKnowledgeBase(query, { language, limit: 3 });
   const queryTerms = processQuery(query).tokens
@@ -199,6 +387,98 @@ Phòng ban liên hệ: ${dept ? `${dept.nameVi || dept.nameEn} (Email: ${dept.em
     matchedDocTitles,
     bestDoc: matches[0].document,
   };
+}
+export interface ScholarshipContext {
+  contextText: string;
+  sources: { title: string; url: string }[];
+  matchedScholarshipIds: string[];
+  matchedScholarshipTitles: string[];
+  hasBroadIntent: boolean;
+}
+
+function vietnamToday(): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function scholarshipCycleStatus(record: ScholarshipRecord): "open" | "upcoming" | "closed" | "unverified" | "not_announced" {
+  const cycles = record.cycles.filter((cycle) => cycle.dateStatus === "verified" || cycle.publishedStatus);
+  if (cycles.some((cycle) => cycle.publishedStatus === "open" || cycle.publishedStatus === "rolling")) return "open";
+  if (cycles.some((cycle) => cycle.publishedStatus === "upcoming")) return "upcoming";
+  if (cycles.some((cycle) => cycle.publishedStatus === "closed")) return "closed";
+  const datedCycles = cycles.filter((cycle) => cycle.opensOn && cycle.closesOn && cycle.dateStatus === "verified");
+  if (datedCycles.length === 0) return record.cycles.some((cycle) => cycle.dateStatus === "conflicting") ? "unverified" : "not_announced";
+  const today = vietnamToday();
+  if (datedCycles.some((cycle) => today >= cycle.opensOn! && today <= cycle.closesOn!)) return "open";
+  if (datedCycles.some((cycle) => today < cycle.opensOn!)) return "upcoming";
+  return "closed";
+}
+
+function currentScholarshipCycle(record: ScholarshipRecord) {
+  const ranked = record.cycles
+    .filter((cycle) => cycle.dateStatus === "verified")
+    .sort((a, b) => (a.opensOn ?? "9999").localeCompare(b.opensOn ?? "9999"));
+  const status = scholarshipCycleStatus(record);
+  return ranked.find((cycle) => status === "open" && cycle.opensOn && cycle.closesOn)
+    ?? ranked.find((cycle) => cycle.opensOn && cycle.closesOn && vietnamToday() < cycle.opensOn)
+    ?? ranked.at(-1)
+    ?? record.cycles[0];
+}
+
+export function isScholarshipQuery(query: string): boolean {
+  return /scholarship|financial aid|tuition waiver|học bổng|hoc bong|học phí.*(hỗ trợ|miễn)|hỗ trợ học phí/i.test(normalizeEventText(query));
+}
+
+export function buildScholarshipContext(query: string, language: "en" | "vi" = "en"): ScholarshipContext {
+  const empty: ScholarshipContext = { contextText: "", sources: [], matchedScholarshipIds: [], matchedScholarshipTitles: [], hasBroadIntent: false };
+  if (!isScholarshipQuery(query)) return empty;
+  const normalized = normalizeEventText(query);
+  const broadRequest = /all|every|available|what scholarships|list|danh sach|tat ca|co nhung|nhung hoc bong nao/i.test(normalized);
+  const matchSpecificRecord = (record: ScholarshipRecord) => {
+    const haystack = [record.name.en, record.name.vi, record.searchTermsEn.join(" "), record.searchTermsVi.join(" "), record.eligiblePrograms.map((item) => `${item.en} ${item.vi}`).join(" "), record.targetGroup.en, record.targetGroup.vi].join(" ");
+    const normalizedHaystack = normalizeEventText(haystack);
+    const meaningfulQueryTerms = normalized.split(/\s+/).filter((term) => term.length >= 4 && !GENERIC_CHAT_RETRIEVAL_TERMS.has(term));
+    const matchedTerms = meaningfulQueryTerms.filter((term) => normalizedHaystack.includes(term));
+    return matchedTerms.length >= Math.min(2, Math.max(1, meaningfulQueryTerms.length));
+  };
+  const specificRecords = SCHOLARSHIPS.filter(matchSpecificRecord);
+  const records = specificRecords.length > 0
+    ? specificRecords
+    : broadRequest
+      ? SCHOLARSHIPS
+      : SCHOLARSHIPS.filter((record) => record.category === "future_undergraduate").slice(0, 6);
+  const broad = specificRecords.length === 0 && broadRequest;
+  const sources = new Map<string, { title: string; url: string }>();
+  const contextRecords = (broad ? records.slice(0, 8) : records).map((record, index) => {
+    const title = record.name[language];
+    const cycle = currentScholarshipCycle(record);
+    const status = scholarshipCycleStatus(record);
+    const detail = record.sources.find((source) => source.kind.includes("detail")) ?? record.sources[0];
+    if (detail) sources.set(detail.url, { title, url: detail.url });
+    if (record.application.directUrl) sources.set(record.application.directUrl, { title: `${title} — application`, url: record.application.directUrl });
+    return [`[Verified Scholarship ${index + 1}]`, `Name: ${title}`, `Summary: ${record.summary[language]}`, `Target: ${record.targetGroup[language]}`, `Award: ${record.award.display[language]}`, `Eligibility: ${record.eligibility.gpa[language]} ${record.eligibility.citizenship[language]}`, `Cycle: ${cycle ? `${cycle.label[language]}, ${cycle.opensOn ?? "not announced"} to ${cycle.closesOn ?? "not announced"}, status ${status}` : "not announced"}`, `Application: ${record.application.directUrl ?? record.application.landingUrl ?? "not verified"}`, `Official source: ${detail?.url ?? "not available"}`].join("\n");
+  });
+  return { contextText: contextRecords.join("\n\n"), sources: [...sources.values()], matchedScholarshipIds: records.map((record) => record.id), matchedScholarshipTitles: records.map((record) => record.name[language]), hasBroadIntent: broad };
+}
+
+export function formatScholarshipFallback(query: string, language: "en" | "vi", context: ScholarshipContext): string {
+  const records = SCHOLARSHIPS.filter((record) => context.matchedScholarshipIds.includes(record.id));
+  if (records.length === 0) return language === "vi" ? "Hiện chưa tìm thấy bản ghi học bổng RMIT đã xác minh phù hợp. Hãy mở trang Học bổng RMIT để kiểm tra các đợt mới nhất." : "No verified RMIT scholarship record matched that question. Open the RMIT Scholarships page for the latest published cycles.";
+  const statusLabel = (status: ReturnType<typeof scholarshipCycleStatus>) => language === "vi" ? ({ open: "đang mở", upcoming: "sắp mở", closed: "đã đóng", unverified: "chưa xác minh", not_announced: "chưa công bố" }[status]) : ({ open: "open", upcoming: "upcoming", closed: "closed", unverified: "unverified", not_announced: "not announced" }[status]);
+  const lines = records.map((record) => {
+    const cycle = currentScholarshipCycle(record);
+    const status = scholarshipCycleStatus(record);
+    const detail = record.sources.find((source) => source.kind.includes("detail")) ?? record.sources[0];
+    const application = record.application.directUrl ?? record.application.landingUrl;
+    return language === "vi" ? `• ${record.name.vi}: ${record.award.display.vi} Trạng thái: ${statusLabel(status)}${cycle?.closesOn ? `; hạn ${cycle.closesOn}` : ""}. ${application ? `Ứng tuyển/thông tin: ${application}` : "Link ứng tuyển chưa xác minh."} Nguồn: ${detail?.url ?? "RMIT"}` : `• ${record.name.en}: ${record.award.display.en} Status: ${statusLabel(status)}${cycle?.closesOn ? `; deadline ${cycle.closesOn}` : ""}. ${application ? `Apply/instructions: ${application}` : "Application link is not verified."} Source: ${detail?.url ?? "RMIT"}`;
+  }).join("\n");
+  return language === "vi" ? `Mình tìm thấy các học bổng RMIT đã xác minh:\n\n${lines}\n\nĐiều kiện và hạn có thể khác theo chương trình. Hãy mở nguồn chính thức trước khi nộp hồ sơ.` : `I found these verified RMIT scholarships:\n\n${lines}\n\nEligibility and deadlines vary by program. Open the official source before applying.`;
 }
 export interface GlobalExperienceContext {
   contextText: string;
@@ -570,6 +850,11 @@ export function formatStudentLifeFallback(query: string, language: "en" | "vi", 
     : "Start with one low-pressure step: talk to a classmate, join an activity that matches your interests, or invite someone to study after class. I can also help you write a natural opening message.";
 }
 export function formatClubFallback(language: "en" | "vi", clubContext: ClubContext): string {
+  if (clubContext.needsClubClarification) {
+    return language === "vi"
+      ? "Bạn muốn hỏi về CLB nào và ở cơ sở nào? Mình chưa xác định được CLB từ trang hiện tại."
+      : "Which club and campus do you mean? I could not identify a verified club from the current page.";
+  }
   if (clubContext.matchedClubNames.length === 0) {
     return language === "vi"
       ? "Hiện chưa có bản ghi câu lạc bộ đã xác minh phù hợp với bộ lọc này. Bạn có thể xem danh sách câu lạc bộ chính thức của RMIT để tìm thêm."
@@ -579,7 +864,7 @@ export function formatClubFallback(language: "en" | "vi", clubContext: ClubConte
   if (clubContext.specificClub) {
     const clubLines = clubContext.matchedClubs.map((club) => {
       const campus = club.campus === "saigon_south" ? (language === "vi" ? "Nam Sài Gòn" : "Saigon South") : (language === "vi" ? "Hà Nội" : "Hanoi");
-      const description = club.descriptionEn ?? (language === "vi" ? "Trang CLB chính thức có thông tin mới nhất." : "The official club page has the latest club information.");
+      const description = clubAboutSummary(club, language);
       const recruitment = club.recruitment;
       const status = {
         recruiting: language === "vi" ? "Đang tuyển" : "Recruiting",
@@ -590,14 +875,27 @@ export function formatClubFallback(language: "en" | "vi", clubContext: ClubConte
       }[recruitment.recruitmentStatus];
       const interview = recruitment.interviewRequired === "yes" ? (language === "vi" ? "Có" : "Yes") : recruitment.interviewRequired === "no" ? (language === "vi" ? "Không" : "No") : (language === "vi" ? "Chưa xác minh" : "Not confirmed");
       const deadline = recruitment.applicationDeadline ?? (language === "vi" ? "Chưa có hạn hiện tại" : "No current deadline published");
-      const facebook = club.facebookUrl ? `Facebook: ${club.facebookUrl}` : (language === "vi" ? "Facebook: Chưa được công bố trong nguồn chính thức." : "Facebook: Not published in the official source.");
-      return language === "vi"
-        ? `**${club.nameVi} — ${campus}**\n${description}\nTrạng thái tuyển: ${status}\nPhỏng vấn: ${interview}\nHạn đăng ký: ${deadline}\n${facebook}`
-        : `**${club.nameEn} — ${campus}**\n${description}\nRecruitment status: ${status}\nInterview required: ${interview}\nDeadline: ${deadline}\n${facebook}`;
+      const channels = clubContactLines(club, language).join("\n");
+      const heading = `**${language === "vi" ? club.nameVi : club.nameEn} — ${campus}**`;
+      if (clubContext.recruitmentIntent) {
+        const requirement = (value: string) => value === "yes"
+          ? (language === "vi" ? "Có" : "Yes")
+          : value === "no" ? (language === "vi" ? "Không" : "No")
+            : (language === "vi" ? "Chưa xác minh" : "Not confirmed");
+        const application = recruitment.applicationUrl ?? (language === "vi" ? "Chưa được công bố" : "Not published");
+        const joining = language === "vi"
+          ? [recruitment.generalMembershipVi, recruitment.committeeRecruitmentVi, recruitment.eligibilityVi, ...recruitment.applicationProcessVi]
+          : [recruitment.generalMembershipEn, recruitment.committeeRecruitmentEn, recruitment.eligibilityEn, ...recruitment.applicationProcessEn];
+        const joiningText = joining.map((step) => `• ${step}`).join("\n");
+        return language === "vi"
+          ? `${heading}\nTrạng thái tuyển: ${status}\nPhỏng vấn: ${interview}\nCV/portfolio: ${requirement(recruitment.cvPortfolioRequired)}\nThử sức/đánh giá: ${requirement(recruitment.tryoutRequired)}\nHạn đăng ký: ${deadline}\nĐăng ký: ${application}\n${joiningText}\n${channels}\nHãy xác nhận đợt tuyển với CLB; thông tin chưa xác minh không có nghĩa là có hoặc không có yêu cầu.`
+          : `${heading}\nRecruitment status: ${status}\nInterview required: ${interview}\nCV/portfolio: ${requirement(recruitment.cvPortfolioRequired)}\nTryout/assessment: ${requirement(recruitment.tryoutRequired)}\nDeadline: ${deadline}\nApply: ${application}\n${joiningText}\n${channels}\nConfirm the current intake with the club; unknown information does not mean a requirement exists or is waived.`;
+      }
+      if (clubContext.contactIntent) return `${heading}\n${channels}`;
+      const activities = club.profile?.activities.slice(0, 5).map((activity) => `• ${activity[language]}`).join("\n");
+      return `${heading}\n${description}${activities ? `\n\n${language === "vi" ? "Hoạt động công khai" : "Published activities"}:\n${activities}` : ""}`;
     }).join("\n\n");
-    return language === "vi"
-      ? `${clubLines}\n\nBạn có thể nhắn cho CLB qua Facebook hoặc email để hỏi đợt tuyển hiện tại. Nếu chưa có thông báo chính thức, đừng giả định rằng CLB đang tuyển hoặc bắt buộc phỏng vấn.`
-      : `${clubLines}\n\nMessage the club through Facebook or email to confirm the current intake. If no current announcement is published, do not assume that recruitment is open or that an interview is required.`;
+    return clubLines;
   }
 
   if (clubContext.recruitmentIntent) {
@@ -618,6 +916,8 @@ export interface ClubContext {
   matchedClubs: ClubRecord[];
   specificClub: boolean;
   recruitmentIntent: boolean;
+  contactIntent?: boolean;
+  needsClubClarification?: boolean;
 }
 
 function getClubCategoryLabel(category: ClubCategory): string {
@@ -629,18 +929,82 @@ function getClubCategoryLabel(category: ClubCategory): string {
   }[category];
 }
 
-export function buildClubContext(query: string, language: "en" | "vi" = "en"): ClubContext {
+/** Resolve only an existing verified record; never accept client-supplied club facts. */
+export function resolveContextClubId(value: unknown): string | undefined {
+  if (typeof value !== "string" || value.length > 100) return undefined;
+  return getVerifiedClubs().find((club) => club.id === value)?.id;
+}
+
+function isCurrentClubQuestion(query: string): boolean {
+  return /\b(this club|this society|clb nay|cau lac bo nay)\b/.test(query)
+    || /^(how (do|can) i join|how to join|can i join|how (do|can) i contact (them|you)|what (is|s) (the |your )?(email|contact)|do (i|you) need an interview|is an interview required|tham gia nhu the nao|lam sao (de )?tham gia|co can phong van khong)\??$/.test(query);
+}
+
+function clubNameMentions(query: string, clubs: ClubRecord[]): ClubRecord[] {
+  const searchableQuery = query.replace(/[^a-z0-9]+/g, " ").trim();
+  const matches = clubs.map((club) => {
+    const names = [club.nameEn, club.nameVi, club.profile?.officialName]
+      .filter((name): name is string => Boolean(name))
+      .flatMap((name) => [name, name.replace(/\([^)]*\)/g, " ")])
+      .flatMap((name) => {
+        const normalized = normalizeEventText(name).replace(/[^a-z0-9]+/g, " ").trim();
+        return [normalized, normalized
+          .replace(/\brmit\b|\bvietnam\b|\bclub\b|\bclb\b|\bcau lac bo\b|\bsaigon south\b|\bnam sai gon\b|\bhanoi\b|\bha noi\b/g, " ")
+          .replace(/\s+/g, " ").trim()];
+      });
+    const matchedName = names.filter((name) => name.length >= 3 && ` ${searchableQuery} `.includes(` ${name} `))
+      .sort((a, b) => b.length - a.length)[0];
+    return { club, matchedName };
+  }).filter((match): match is { club: ClubRecord; matchedName: string } => Boolean(match.matchedName));
+  // "Flag Football" must not also match the shorter "Football" name.
+  return matches.filter((match) => !matches.some((other) =>
+    other.matchedName !== match.matchedName && other.matchedName.includes(match.matchedName)
+  )).map(({ club }) => club);
+}
+
+function clubAboutSummary(club: ClubRecord, language: "en" | "vi"): string {
+  const about = club.profile?.about.slice(0, 2).map((paragraph) => paragraph[language]).join(" ");
+  return (about || club.profile?.summary[language]
+    || (language === "vi" ? club.descriptionVi : club.descriptionEn)
+    || (language === "vi" ? "Nguồn chính thức chưa cung cấp mô tả chi tiết." : "A detailed description is not published in the official source.")).slice(0, 1600);
+}
+
+function clubContactLines(club: ClubRecord, language: "en" | "vi"): string[] {
+  const unknown = language === "vi" ? "Chưa được công bố trong nguồn chính thức." : "Not published in the official source.";
+  // A checked profile's null deliberately overrides stale directory metadata.
+  const email = club.profile ? club.profile.contactEmail : club.contactEmail;
+  const facebook = club.profile ? club.profile.facebookUrl : club.facebookUrl;
+  const instagram = club.profile ? club.profile.instagramUrl : club.instagramUrl;
+  return [
+    `Email: ${email || unknown}`,
+    `Facebook: ${facebook || unknown}`,
+    `Instagram: ${instagram || unknown}`,
+    ...(club.profile?.otherLinks.slice(0, 3).map((link) => `${link.label}: ${link.url}`) ?? []),
+  ];
+}
+/**
+ * Optional page context resolves deictic club questions only. Explicit names win;
+ * unknown IDs never supply facts, and unrelated topics do not inherit page data.
+ */
+export function buildClubContext(query: string, language: "en" | "vi" = "en", contextClubId?: unknown): ClubContext {
   const normalizedQuery = normalizeEventText(query);
-  if (isClubDayActivityQuery(normalizedQuery)) {
-    return { contextText: "", sources: [], matchedClubNames: [], matchedClubs: [], specificClub: false, recruitmentIntent: false };
-  }
+  const empty: ClubContext = { contextText: "", sources: [], matchedClubNames: [], matchedClubs: [], specificClub: false, recruitmentIntent: false };
+  if (isClubDayActivityQuery(normalizedQuery) || isScholarshipQuery(query)) return empty;
+  const explicitClubTopic = /\b(club|clubs|society|student organization|cau lac bo|clb)\b/.test(normalizedQuery);
+  if (!explicitClubTopic && /\b(tuition|course|courses|assignment|assignments|grade|gpa|enrolment|hoc phi|mon hoc|bai tap|diem|chuyen nganh)\b/.test(normalizedQuery)) return empty;
   const clubs = getVerifiedClubs();
-  const namedClubIntent = clubs.some((club) => {
-    const shortName = normalizeEventText(club.nameEn.replace(/\s+club$/i, ""));
-    return shortName.length >= 4 && normalizedQuery.includes(shortName);
-  });
-  const clubIntent = /club|society|student organization|cau lac bo|clb|join.*club|tham gia.*clb|tham gia.*cau lac/i.test(normalizedQuery) || namedClubIntent;
-  if (!clubIntent) return { contextText: "", sources: [], matchedClubNames: [], matchedClubs: [], specificClub: false, recruitmentIntent: false };
+  const namedClubs = clubNameMentions(normalizedQuery, clubs);
+  const currentClubQuestion = isCurrentClubQuestion(normalizedQuery);
+  const currentClub = currentClubQuestion ? clubs.find((club) => club.id === resolveContextClubId(contextClubId)) : undefined;
+  const clubIntent = explicitClubTopic || namedClubs.length > 0 || Boolean(currentClub);
+  if (!clubIntent) return empty;
+  if (currentClubQuestion && !currentClub && namedClubs.length === 0) {
+    return {
+      ...empty,
+      needsClubClarification: true,
+      contextText: language === "vi" ? "Chưa xác định được CLB. Hãy hỏi tên CLB và cơ sở; không tự chọn CLB." : "The club is unknown. Ask for its name and campus; do not select an arbitrary club.",
+    };
+  }
 
   const campus = /sgs|saigon south|nam sai gon/i.test(normalizedQuery)
     ? "saigon_south"
@@ -657,7 +1021,8 @@ export function buildClubContext(query: string, language: "en" | "vi" = "en"): C
           ? "social_special_interest"
           : undefined;
   const allIntent = /what clubs|which clubs|\blist\b|\ball\b|\bavailable\b|there at|danh sach|co nhung|tat ca/i.test(normalizedQuery);
-  const recruitmentIntent = /recruit|interview|application|apply|committee|core team|cv|portfolio|tryout|tuyen|phong van|don/i.test(normalizedQuery);
+  const recruitmentIntent = /\b(recruit|recruiting|recruitment|interview|interviews|application|apply|join|joining|committee|core team|cv|portfolio|tryout|tuyen|phong van|don|tham gia|dang ky)\b/.test(normalizedQuery);
+  const contactIntent = /\b(contact|email|facebook|instagram|socials|channels|lien he|kenh)\b/.test(normalizedQuery);
   const queryTerms = normalizedQuery.split(/\s+/).filter((term) => term.length >= 3);
   const candidates = clubs
     .filter((club) => !campus || club.campus === campus)
@@ -668,13 +1033,13 @@ export function buildClubContext(query: string, language: "en" | "vi" = "en"): C
       return { club, score };
     })
     .sort((left, right) => right.score - left.score || left.club.nameEn.localeCompare(right.club.nameEn));
-  const specificMatches = candidates.filter(({ club }) => {
-    const searchableName = normalizeEventText(club.nameEn);
-    const nameTerms = queryTerms.filter((term) => !new Set(["club", "clubs", "join", "find", "rmit", "require", "requires", "interview", "interviews", "do", "does", "what", "which", "how", "can", "i", "the", "a", "an", "is", "are", "there", "any", "this", "week"]).has(term));
-    return nameTerms.length > 0 && nameTerms.some((term) => searchableName.includes(term));
-  });
-  const specificClub = !allIntent && specificMatches.length > 0;
-  const selected = allIntent ? candidates : specificClub ? specificMatches.slice(0, 4) : candidates.slice(0, 8);
+  const specificMatches = namedClubs.filter((club) => !campus || club.campus === campus);
+  const specificClub = namedClubs.length > 0 || Boolean(currentClub);
+  const selected = namedClubs.length > 0
+    ? specificMatches.slice(0, 4).map((club) => ({ club, score: 0 }))
+    : currentClub
+      ? [{ club: currentClub, score: 0 }]
+      : allIntent ? candidates : candidates.slice(0, 8);
 
   if (selected.length === 0) {
     return {
@@ -694,24 +1059,23 @@ export function buildClubContext(query: string, language: "en" | "vi" = "en"): C
       title: `${club.nameEn} — ${club.campus === "saigon_south" ? "Saigon South" : "Hanoi"}`,
       url: club.officialClubUrl ?? club.sourceUrl,
     },
-    ...(club.facebookUrl ? [{ title: `${club.nameEn} — Facebook`, url: club.facebookUrl }] : []),
-    ...(club.instagramUrl ? [{ title: `${club.nameEn} — Instagram`, url: club.instagramUrl }] : []),
+    ...((club.profile ? club.profile.facebookUrl : club.facebookUrl) ? [{ title: `${club.nameEn} — Facebook`, url: (club.profile ? club.profile.facebookUrl : club.facebookUrl)! }] : []),
+    ...((club.profile ? club.profile.instagramUrl : club.instagramUrl) ? [{ title: `${club.nameEn} — Instagram`, url: (club.profile ? club.profile.instagramUrl : club.instagramUrl)! }] : []),
     ...(club.recruitment.applicationUrl ? [{ title: `${club.nameEn} — Application`, url: club.recruitment.applicationUrl }] : []),
     ...(club.recruitment.recruitmentAnnouncementUrl ? [{ title: `${club.nameEn} — Recruitment`, url: club.recruitment.recruitmentAnnouncementUrl }] : []),
   ]);
   const matchedClubNames = selected.map(({ club }) => language === "vi" ? club.nameVi : club.nameEn);
   const contextText = selected.map(({ club }) => {
     const name = language === "vi" ? club.nameVi : club.nameEn;
-    const description = club.descriptionEn ?? (language === "vi" ? "Mới chỉ có tên trong danh sách câu lạc bộ chính thức." : "Name verified in the official campus club list; public description was not available.");
+    const description = clubAboutSummary(club, language);
     return [
       `[Verified RMIT Club]`,
       `Name: ${name}`,
       `Campus: ${club.campus === "saigon_south" ? "Saigon South" : "Hanoi"}`,
       `Category: ${getClubCategoryLabel(club.category)}`,
-      `Description: ${description}`,
-      club.contactEmail ? `Contact email: ${club.contactEmail}` : "Contact email: Not published in the public source.",
-      club.facebookUrl ? `Facebook: ${club.facebookUrl}` : "Facebook: Not published in the public source.",
-      club.instagramUrl ? `Instagram: ${club.instagramUrl}` : "Instagram: Not published in the public source.",
+      `About: ${description}`,
+      `Published activities: ${club.profile?.activities.slice(0, 5).map((activity) => activity[language].slice(0, 220)).join("; ") || "Not published"}`,
+      ...clubContactLines(club, language),
       `Source: ${club.officialClubUrl ?? club.sourceUrl}`,
       `Campus list PDF: ${club.campusListPdfUrl}`,
       `Recruitment status: ${club.recruitment.recruitmentStatus}`,
@@ -721,12 +1085,83 @@ export function buildClubContext(query: string, language: "en" | "vi" = "en"): C
       `Application deadline: ${club.recruitment.applicationDeadline ?? "Not published"}`,
       `Application link: ${club.recruitment.applicationUrl ?? "Not published"}`,
       `Recruitment announcement: ${club.recruitment.recruitmentAnnouncementUrl ?? "Not published"}`,
+      ...(recruitmentIntent ? [
+        `General membership: ${language === "vi" ? club.recruitment.generalMembershipVi : club.recruitment.generalMembershipEn}`,
+        `Committee recruitment: ${language === "vi" ? club.recruitment.committeeRecruitmentVi : club.recruitment.committeeRecruitmentEn}`,
+        `Eligibility: ${language === "vi" ? club.recruitment.eligibilityVi : club.recruitment.eligibilityEn}`,
+        `Application process: ${(language === "vi" ? club.recruitment.applicationProcessVi : club.recruitment.applicationProcessEn).slice(0, 5).join("; ")}`,
+      ] : []),
       `Details status: ${club.detailsStatus}`,
     ].join("\n");
   }).join("\n\n");
 
-  return { contextText, sources, matchedClubNames, matchedClubs: selected.map(({ club }) => club), specificClub, recruitmentIntent };
+  return { contextText, sources, matchedClubNames, matchedClubs: selected.map(({ club }) => club), specificClub, recruitmentIntent, contactIntent };
 }
+export function isSimpleFactualQuery(query: string): boolean {
+  const normalized = normalizeEventText(query);
+  if (/tell me everything|everything about|full overview|chi tiet tat ca|toan bo/i.test(normalized)) return false;
+  return /where|which building|which floor|what floor|what room|room number|what is the name|when|start|begin|date|difference|compare|where can i eat|food|restaurant|cafe|café|eat|ăn|an uong|nha hang|quan|ca phe|do an|nhà hàng|quán|cà phê|đồ ăn|o dau|tang may|phong so|khi nao|ten gi|khac nhau/i.test(normalized);
+}
+
+function formatExactFactAnswer(doc: any, query: string, language: "en" | "vi"): string | null {
+  const normalized = normalizeEventText(query);
+  const isVi = language === "vi";
+
+  if (doc.id === "facility-library-comparison") {
+    return isVi
+      ? "Beanland Library & Learning Commons: Tòa nhà 1, Tầng 3, Phòng 1.3.30, Nam Sài Gòn. Thư viện Hà Nội: cơ sở Handi Resco, Hà Nội."
+      : "Beanland Library & Learning Commons: Building 1, Level 3, Room 1.3.30, Saigon South. Hanoi Library: Handi Resco campus, Hanoi.";
+  }
+
+  if (doc.id === "facility-sgs-b1") {
+    const libraryIntent = /beanland|library|thu vien/.test(normalized);
+    const roomIntent = /room|phong/.test(normalized);
+    const floorIntent = /floor|level|tang/.test(normalized);
+    const levelTwoIntent = /level 2|tang 2/.test(normalized);
+    if (libraryIntent) {
+      if (/name|ten gi/.test(normalized)) return "Beanland Library & Learning Commons.";
+      if (roomIntent) return isVi ? "Phòng 1.3.30." : "Room 1.3.30.";
+      if (floorIntent && !/where|o dau/.test(normalized)) return isVi ? "Tầng 3." : "Level 3.";
+      return isVi ? "Tòa nhà 1, Tầng 3, Phòng 1.3.30, cơ sở Nam Sài Gòn." : "Building 1, Level 3, Room 1.3.30, Saigon South Campus.";
+    }
+    if (levelTwoIntent) {
+      return isVi
+        ? "Tầng 2: Lygon Café (khu phía Tây), Melbourne Theatre (Phòng 1.2.35) và các không gian giảng dạy, học tập."
+        : "Level 2: Lygon Café (West), Melbourne Theatre (Room 1.2.35), and teaching and learning spaces.";
+    }
+  }
+
+  if (doc.id === "facility-hn-main") {
+    if (/library|thu vien/.test(normalized)) return isVi ? "Thư viện Hà Nội, Tầng 2, Phòng 1.2.006." : "Hanoi Library, Level 2, Room 1.2.006.";
+    if (/student connect|trung tam ho tro/.test(normalized)) return isVi ? "Student Connect Hà Nội, Tầng 1, Phòng 1.1.009." : "Hanoi Student Connect, Level 1, Room 1.1.009.";
+    if (/it support|support.*it|ho tro cntt/.test(normalized)) return isVi ? "IT Support Hà Nội: Tòa nhà B, Tầng 5, Phòng 11." : "Hanoi IT Support: Building B, Level 5, Room 11.";
+    if (/writing|learning centre|wlc|academic success|hoc tap/.test(normalized)) return isVi ? "Writing and Learning Centre Hà Nội, Phòng 1.2.001." : "Hanoi Writing and Learning Centre, Room 1.2.001.";
+    if (/career ready|career hub|career|huong nghiep/.test(normalized)) return isVi ? "Career Ready Hub: Tower A, Tầng 5, Phòng 1.5.A024. Nhãn sơ đồ cần được xác nhận với dịch vụ Career hiện hành." : "Career Ready Hub: Tower A, Level 5, Room 1.5.A024. The floor-plan label requires confirmation against the current Career service.";
+    if (/highlands|vending|food|eat|an uong|nha hang|ca phe/.test(normalized)) return isVi ? "Highlands Coffee và máy bán đồ ăn nhẹ/đồ uống ở Tầng 5C." : "Highlands Coffee and a snack/beverage vending machine are on Level 5C.";
+    if (/student access lab|access lab/.test(normalized)) return isVi ? "Student Access Lab được ghi trên sơ đồ Hà Nội tại Tầng 2; hoạt động hiện tại cần xác nhận." : "Student Access Lab is labelled on the Hanoi Level 2 floor plan; current operation requires confirmation.";
+    if (/health|y te|medical|clinic/.test(normalized)) return isVi ? "Health Centre Hà Nội, Phòng 1.1.017." : "Hanoi Health Centre, Room 1.1.017.";
+    if (/sport|recreation|gym|the thao|phong tap/.test(normalized)) return isVi ? "RMIT Active Hub Hà Nội: Room 1.5.B001 theo trang dịch vụ hiện hành; sơ đồ cũ ghi 1.5.001, nên cần xác nhận trước khi đến." : "RMIT Active Hub Hanoi: Room 1.5.B001 on the current service page; the older floor plan labels 1.5.001, so confirm before visiting.";
+    if (/study room|meeting room|phong hoc nhom|phong hop/.test(normalized)) return isVi ? "Phòng học nhóm thư viện Hà Nội: 1.2.007, 1.2.010, 1.2.012, 1.2.019, 1.2.020, 1.2.021, 1.2.022 và 1.2.023." : "Hanoi Library bookable rooms: 1.2.007, 1.2.010, 1.2.012, 1.2.019, 1.2.020, 1.2.021, 1.2.022, and 1.2.023.";
+  }
+  if (doc.categoryId === "academic-calendar" && /when|start|begin|date|khi nao|bat dau|ngay/.test(normalized)) {
+    const dateDetail = [...(language === "vi" ? doc.keyDetailsVi : doc.keyDetailsEn)].find((detail: string) => /^\s*(?:Date|Ngày):\s*\d{4}-\d{2}-\d{2}/i.test(detail));
+    const isoDate = dateDetail?.match(/\d{4}-\d{2}-\d{2}/)?.[0];
+    if (isoDate) {
+      const [year, month, day] = isoDate.split("-").map(Number);
+      const formatted = new Intl.DateTimeFormat(isVi ? "vi-VN" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(Date.UTC(year, month - 1, day)));
+      return isVi ? formatted.charAt(0).toUpperCase() + formatted.slice(1) + "." : formatted + ".";
+    }
+  }
+
+  if (doc.id === "doc-myrmit-submit-requests" && /leave of absence|loa|bao luu|bảo lưu/.test(normalized)) {
+    return isVi
+      ? "Mở myRMIT → Submit Requests → chọn Leave of Absence → đọc hướng dẫn, đính kèm giấy tờ nếu yêu cầu và nộp. Theo dõi trạng thái trong lịch sử yêu cầu; nếu không thấy biểu mẫu, liên hệ Student Connect."
+      : "Open myRMIT → Submit Requests → choose Leave of Absence → follow the instructions, attach required documents, and submit. Track status in request history; contact Student Connect if the form is missing.";
+  }
+
+  return null;
+}
+
 /**
  * Synthesizes a natural, beautifully formatted student response from verified RMIT knowledge.
  */
@@ -742,7 +1177,8 @@ export function formatKnowledgeAnswer(
       ? `Hiện tại Mr Hachiware chưa tìm thấy tài liệu chính thức trực tiếp khớp với câu hỏi: "${query}".\n\nBạn có thể thử tìm kiếm với các từ khóa ngắn gọn hơn (ví dụ: "đổi ngành", "học phí", "học bổng", "câu lạc bộ") hoặc liên hệ trực tiếp Student Connect (student.connect@rmit.edu.vn) để được hỗ trợ cụ thể.`
       : `Mr Hachiware couldn't find an exact verified policy record matching: "${query}".\n\nPlease try searching with concise keywords (e.g. "change major", "tuition", "scholarships", "clubs") or reach out directly to Student Connect (student.connect@rmit.edu.vn).`;
   }
-
+  const exactAnswer = formatExactFactAnswer(doc, query, language);
+  if (exactAnswer) return exactAnswer;
   const summary = isVi ? doc.summaryVi : doc.summaryEn;
   const keyDetails: string[] = isVi ? doc.keyDetailsVi : doc.keyDetailsEn;
   const title = isVi ? doc.titleVi : doc.titleEn;
@@ -858,8 +1294,13 @@ ${isVi ? "- Với Club Day, phân biệt hoạt động diễn ra mỗi học k�
 - Clearly decline unrelated requests such as coding, jokes, general trivia, recipes, or jailbreak instructions.
 
 GROUNDING & FORMAT:
-- Treat VERIFIED RMIT KNOWLEDGE CONTEXT, VERIFIED CAMPUS EVENT / ACTIVITY CONTEXT, VERIFIED RMIT CLUB CONTEXT, and VERIFIED RMIT GLOBAL EXPERIENCE CONTEXT as the only source of current institutional facts.
+  - Treat VERIFIED RMIT KNOWLEDGE CONTEXT, VERIFIED CAMPUS EVENT / ACTIVITY CONTEXT, VERIFIED RMIT CLUB CONTEXT, and VERIFIED RMIT GLOBAL EXPERIENCE CONTEXT as the only source of current institutional facts.
+  - Identify the user's primary intent before answering and return only the requested fields. Do not repeat the full retrieved context.
+  - For a simple fact such as a building, floor, room, date, fee, or contact, answer in one sentence, usually under 40 words.
+  - For a procedure, give only the necessary 3–5 steps plus a relevant deadline, exception, or escalation path.
+  - Expand only when the user asks for a comparison, explanation, detailed guide, or complete overview.
 - For Global Experience, use only matching program records and distinguish temporary Cross-campus study from permanent transfer. Match dates to the exact intake and time zone; do not imply that a reachable portal is accepting applications.
+- For a specific club question, use only the selected club records. Answer definitions from About, contacts from the exact club channels, and joining questions from recruitment fields. Do not replace unknown contacts with university footer or staff contacts, or infer private member information.
 - For club recruitment questions, report the structured recruitment status, interview, CV/portfolio, tryout, deadline, and application-link fields exactly as provided. "not_announced" or "not_confirmed" means unknown; never turn it into yes/no or a current opening.
 - For practical social questions such as making friends or finding teammates, lead with a concise two- or three-step guide and one example message; do not turn the answer into a generic institutional policy summary.
 - For teammate or groupmate questions, do not cite Canvas, Turnitin, submission, or grading guides unless the user explicitly asks about those systems.

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/context";
 import { OPEN_MR_HACHIWARE_EVENT } from "@/components/chat/chatEvents";
 import {
@@ -28,6 +29,8 @@ interface ChatMessage {
 
 export function ChatWidget() {
   const { language, t } = useLanguage();
+  const pathname = usePathname();
+  const contextClubId = pathname?.match(/^\/clubs\/([a-z0-9-]+)\/?$/)?.[1];
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -176,11 +179,15 @@ export function ChatWidget() {
     setIsLoading(true);
 
     try {
+      const history = messages.slice(-6).map((message) => ({
+        role: message.sender === "user" ? "user" : "assistant",
+        content: message.text,
+      }));
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ message: textToSend.trim(), language }),
+        body: JSON.stringify({ message: textToSend.trim(), language, contextClubId, history }),
       });
 
       const data = (await res.json()) as {

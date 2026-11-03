@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, ExternalLink, Mail, Search } from "lucide-react";
 import { VERIFIED_CLUBS, type ClubCampus, type ClubCategory } from "@/data/clubs/clubs";
 import { useLanguage } from "@/lib/i18n/context";
+import { clubDirectoryHref, clubDirectoryQuery, parseClubDirectoryContext, type ClubDirectoryContext } from "@/lib/clubs/navigation";
 
 const CATEGORY_ORDER: Array<ClubCategory | "all"> = ["all", "academic", "active", "creative_collectives", "social_special_interest"];
 
@@ -24,11 +25,23 @@ function officialImageFallback(clubName: string) {
     .toUpperCase();
 }
 
-export function ClubDirectory() {
+export function ClubDirectory({ initialContext }: { initialContext: ClubDirectoryContext }) {
   const { language, t } = useLanguage();
-  const [campus, setCampus] = useState<ClubCampus>("saigon_south");
-  const [category, setCategory] = useState<ClubCategory | "all">("all");
-  const [query, setQuery] = useState("");
+  const [context, setContext] = useState(initialContext);
+  const { campus, category, query } = context;
+  useEffect(() => {
+    setContext(initialContext);
+  }, [initialContext]);
+  useEffect(() => {
+    const restoreContext = () => setContext(parseClubDirectoryContext(new URLSearchParams(window.location.search)));
+    window.addEventListener("popstate", restoreContext);
+    return () => window.removeEventListener("popstate", restoreContext);
+  }, []);
+  function updateContext(change: Partial<ClubDirectoryContext>) {
+    const next = { ...context, ...change };
+    setContext(next);
+    window.history.replaceState(window.history.state, "", clubDirectoryHref(next));
+  }
   const labels: Record<ClubCategory | "all", string> = {
     all: t.clubs.categoryAll,
     academic: t.clubs.categoryAcademic,
@@ -69,28 +82,26 @@ export function ClubDirectory() {
       </header>
 
       <section className="space-y-4" aria-label={language === "vi" ? "Bộ lọc câu lạc bộ" : "Club filters"}>
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label={language === "vi" ? "Cơ sở" : "Campus"}>
+        <div className="flex flex-wrap gap-2" role="group" aria-label={language === "vi" ? "Cơ sở" : "Campus"}>
           {(Object.keys(campusLabels[language]) as ClubCampus[]).map((value) => (
             <button
               key={value}
               type="button"
-              role="tab"
-              aria-selected={campus === value}
-              onClick={() => setCampus(value)}
+              aria-pressed={campus === value}
+              onClick={() => updateContext({ campus: value })}
               className={`min-h-11 border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${campus === value ? "border-[var(--primary-navy)] bg-[var(--primary-navy)] text-white" : "border-[var(--border)] text-[var(--secondary-text)] hover:border-[var(--accent)] hover:text-[var(--main-text)]"}`}
             >
               {campusLabels[language][value]}
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label={language === "vi" ? "Danh mục" : "Category"}>
+        <div className="flex flex-wrap gap-2" role="group" aria-label={language === "vi" ? "Danh mục" : "Category"}>
           {CATEGORY_ORDER.map((value) => (
             <button
               key={value}
               type="button"
-              role="tab"
-              aria-selected={category === value}
-              onClick={() => setCategory(value)}
+              aria-pressed={category === value}
+              onClick={() => updateContext({ category: value })}
               className={`min-h-11 border px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${category === value ? "border-[var(--accent)] bg-[var(--accent)] text-white" : "border-[var(--border)] text-[var(--secondary-text)] hover:border-[var(--accent)] hover:text-[var(--main-text)]"}`}
             >
               {labels[value]}
@@ -103,7 +114,7 @@ export function ClubDirectory() {
           <input
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => updateContext({ query: event.target.value })}
             placeholder={t.clubs.searchPlaceholder}
             className="min-w-0 flex-1 bg-transparent py-2 text-[var(--main-text)] outline-none placeholder:text-[var(--secondary-text)]"
             autoComplete="off"
@@ -149,7 +160,7 @@ export function ClubDirectory() {
                 {language === "vi" ? club.descriptionVi ?? t.clubs.descriptionUnavailable : club.descriptionEn ?? t.clubs.descriptionUnavailable}
               </p>
               <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-[var(--border)] pt-4">
-                <Link href={`/clubs/${club.id}`} className="inline-flex min-h-11 items-center gap-1 font-semibold text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+                <Link href={`/clubs/${club.id}?${clubDirectoryQuery(context)}`} className="inline-flex min-h-11 items-center gap-1 font-semibold text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
                   {t.clubs.viewClub}<ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
                 {club.facebookUrl && <a href={club.facebookUrl} target="_blank" rel="noreferrer" aria-label={`${t.clubs.facebookPage} ${club.nameVi}`} title="Facebook" className="ml-auto inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--border)] text-[var(--accent)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"><ExternalLink className="h-4 w-4" aria-hidden="true" /></a>}

@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/lib/i18n/context";
 import { requestOpenSupport } from "@/components/support/supportEvents";
-import { Coffee, Globe, Menu, Moon, Sun, X } from "lucide-react";
+import { Coffee, Globe, Menu, Moon, Sparkles, Sun, X } from "lucide-react";
+import { requestOpenWhatsNew } from "@/components/changelog/changelogEvents";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -46,6 +47,7 @@ export function Navbar() {
 
     const previousOverflow = document.body.style.overflow;
     const previousActiveElement = document.activeElement as HTMLElement | null;
+    const desktopBreakpoint = window.matchMedia("(min-width: 1024px)");
     document.body.style.overflow = "hidden";
 
     const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -75,12 +77,24 @@ export function Navbar() {
         first.focus();
       }
     };
+    const handleBreakpointChange = (event: MediaQueryListEvent) => {
+      if (!event.matches) return;
+      if (closeFallbackRef.current !== null) window.clearTimeout(closeFallbackRef.current);
+      closeFallbackRef.current = null;
+      pendingAfterCloseRef.current = null;
+      setIsMobileMenuOpen(false);
+      setIsDrawerMounted(false);
+    };
 
+    desktopBreakpoint.addEventListener("change", handleBreakpointChange);
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
+      desktopBreakpoint.removeEventListener("change", handleBreakpointChange);
       document.removeEventListener("keydown", handleKeyDown);
-      requestAnimationFrame(() => previousActiveElement?.focus());
+      if (!window.matchMedia("(min-width: 1024px)").matches) {
+        requestAnimationFrame(() => previousActiveElement?.focus());
+      }
     };
   }, [isMobileMenuOpen]);
   const navLinks = [
@@ -117,19 +131,19 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0 md:flex md:gap-0.5 lg:gap-1">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0 lg:flex lg:gap-0.5 xl:gap-1">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(`${link.href}/`));
             return (
               <Link
                 key={link.href}
                 href={link.href}
                 aria-label={link.ariaLabel}
                 aria-current={isActive ? "page" : undefined}
-                className={`min-h-11 whitespace-nowrap border-b-2 px-0.5 py-2 text-[10px] font-semibold leading-tight transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 md:px-0.5 lg:px-1.5 lg:text-xs ${
+                className={`min-h-11 whitespace-nowrap border-b-2 px-0.5 py-2 text-[10px] leading-tight transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 lg:px-1 lg:text-[15px] xl:px-1.5 2xl:text-base ${
                   isActive
-                    ? "border-[var(--accent)] text-[var(--accent)]"
-                    : "border-transparent text-[var(--secondary-text)] hover:border-[var(--border)] hover:text-[var(--main-text)]"
+                    ? "border-[var(--accent)] font-semibold text-[var(--accent)]"
+                    : "border-transparent font-medium text-[var(--secondary-text)] hover:border-[var(--border)] hover:text-[var(--main-text)]"
                 }`}
               >
                 {link.label}
@@ -164,7 +178,7 @@ export function Navbar() {
           <button
             type="button"
             onClick={requestOpenSupport}
-            className="hidden min-h-11 min-w-11 items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 md:flex"
+            className="hidden min-h-11 min-w-11 items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 lg:flex"
             aria-label={t.support.tooltip}
             title={t.support.tooltip}
           >
@@ -175,7 +189,7 @@ export function Navbar() {
             ref={menuButtonRef}
             type="button"
             onClick={() => (isMobileMenuOpen ? closeMobileMenu() : openMobileMenu())}
-            className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 md:hidden"
+            className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 lg:hidden"
             aria-expanded={isMobileMenuOpen}
             aria-controls="mobile-navigation-drawer"
             aria-label={isMobileMenuOpen ? t.nav.closeMenu : t.nav.mobileMenu}
@@ -189,7 +203,7 @@ export function Navbar() {
 
       {isDrawerMounted && (
         <div
-          className={`fixed inset-0 z-[60] md:hidden ${isMobileMenuOpen ? "pointer-events-auto" : "pointer-events-none"}`}
+          className={`fixed inset-0 z-[60] lg:hidden ${isMobileMenuOpen ? "pointer-events-auto" : "pointer-events-none"}`}
           aria-hidden={!isMobileMenuOpen}
         >
           <button
@@ -229,7 +243,7 @@ export function Navbar() {
             <nav aria-label={t.nav.mobileMenu} className="flex-1 overflow-y-auto px-4 py-4">
               <div className="space-y-1">
                 {navLinks.map((link) => {
-                  const isActive = pathname === link.href;
+                  const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(`${link.href}/`));
                   return (
                     <Link
                       key={link.href}
@@ -250,7 +264,11 @@ export function Navbar() {
                 })}
               </div>
             </nav>
-            <div className="border-t border-[var(--border)] px-4 py-4">
+            <div className="space-y-2 border-t border-[var(--border)] px-4 py-4">
+              <button type="button" tabIndex={isMobileMenuOpen ? 0 : -1} onClick={() => closeMobileMenu(requestOpenWhatsNew)} className="flex min-h-11 w-full items-center gap-2 border border-[var(--border)] px-3 py-2 text-left text-sm font-semibold text-[var(--secondary-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+                <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />
+                {t.whatsNew.title}
+              </button>
               <button
                 type="button"
                 tabIndex={isMobileMenuOpen ? 0 : -1}

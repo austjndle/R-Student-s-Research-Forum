@@ -5,15 +5,24 @@ import { searchKnowledgeBase } from "../lib/search/engine";
 import {
   detectChatLanguage,
   isQueryInScope,
+  isFoodFacilityQuery,
+  isSimpleFactualQuery,
+  sanitizeChatHistory,
+  resolveConversationQuery,
+  isScholarshipQuery,
   buildRAGContext,
   buildEventContext,
   buildClubContext,
+  resolveContextClubId,
   buildGlobalExperienceContext,
+  buildScholarshipContext,
   buildSystemInstruction,
   formatKnowledgeAnswer,
+  formatFoodFacilityFallback,
   formatStudentLifeFallback,
   formatClubFallback,
   formatGlobalExperienceFallback,
+  formatScholarshipFallback,
   isPracticalStudentLifeQuery,
 } from "../lib/ai/gemini";
 import { KNOWLEDGE_CATEGORIES } from "../data/knowledge/schema";
@@ -118,8 +127,13 @@ app.get("/api/usage", async (c) => {
   let quotaData: any;
 
   if (stub) {
-    const doRes = await stub.fetch("https://ai-quota/status");
-    quotaData = await doRes.json();
+    try {
+      const doRes = await stub.fetch("https://ai-quota/status");
+      if (!doRes.ok) throw new Error("Quota status request failed.");
+      quotaData = await doRes.json();
+    } catch {
+      return c.json({ error: "Usage service is unavailable.", code: "QUOTA_STORE_UNAVAILABLE" }, 503, { "Cache-Control": "no-store" });
+    }
   } else {
     quotaData = checkMemoryQuota(visitorId, parseInt(c.env.AI_DAILY_LIMIT || "10", 10));
   }
@@ -250,19 +264,22 @@ app.post("/api/chat", async (c) => {
     return c.json({ error: "Request body must be an object." }, 400);
   }
 
-  const body = rawBody as { message?: unknown; language?: unknown };
-  const message = typeof body.message === "string" ? body.message.trim() : "";
+  const body = rawBody as { message?: unknown; language?: unknown; contextClubId?: unknown; history?: unknown };
+  const contextClubId = resolveContextClubId(body.contextClubId);
+  let message = typeof body.message === "string" ? body.message.trim() : "";
+  const history = sanitizeChatHistory(body.history);
   if (body.language !== undefined && body.language !== "en" && body.language !== "vi") {
     return c.json({ error: "Language must be en or vi." }, 400);
   }
 
   const language = detectChatLanguage(message, body.language === "vi" ? "vi" : "en");
+  message = resolveConversationQuery(message, history, language);
 
   if (!message || message.length > 2000) {
     return c.json({ error: "Message must be between 1 and 2,000 characters." }, 400);
   }
 
-  const scopeCheck = isQueryInScope(message);
+  const scopeCheck = isQueryInScope(message, contextClubId);
   if (!scopeCheck.inScope) {
     const refusal =
       language === "vi"
@@ -283,10 +300,16 @@ app.post("/api/chat", async (c) => {
   let remaining = 0;
 
   if (stub) {
-    const doRes = await stub.fetch("https://ai-quota/reserve", { method: "POST" });
-    const doData = await doRes.json();
-    allowed = doData.allowed;
-    remaining = doData.remaining;
+    try {
+      const doRes = await stub.fetch("https://ai-quota/reserve", { method: "POST" });
+      if (!doRes.ok) throw new Error("Quota reserve request failed.");
+      const doData = await doRes.json();
+      if (typeof doData?.allowed !== "boolean" || typeof doData?.remaining !== "number") throw new Error("Invalid quota response.");
+      allowed = doData.allowed;
+      remaining = doData.remaining;
+    } catch {
+      return c.json({ error: "Assistant service is unavailable.", code: "QUOTA_STORE_UNAVAILABLE" }, 503, { "Cache-Control": "no-store" });
+    }
   } else {
     const reservation = reserveMemoryQuota(visitorId, parseInt(c.env.AI_DAILY_LIMIT || "10", 10));
     allowed = reservation.allowed;
@@ -305,15 +328,22 @@ app.post("/api/chat", async (c) => {
   }
 
   try {
-    const rag = buildRAGContext(message, language);
-    const eventContext = buildEventContext(message, language);
-    const clubContext = buildClubContext(message, language);
+    const clubContext = buildClubContext(message, language, contextClubId);
+    const specificClubQuestion = clubContext.specificClub || clubContext.needsClubClarification;
+    const rag = specificClubQuestion
+      ? { contextText: "", sources: [], matchedDocTitles: [], bestDoc: undefined }
+      : buildRAGContext(message, language);
+    const eventContext = specificClubQuestion
+      ? { contextText: "", sources: [], matchedEventTitles: [], matchedActivityTitles: [] }
+      : buildEventContext(message, language);
     const globalExperienceContext = buildGlobalExperienceContext(message, language);
+    const scholarshipContext = buildScholarshipContext(message, language);
     const verifiedContext = [
       rag.contextText ? `VERIFIED RMIT KNOWLEDGE CONTEXT:\n${rag.contextText}` : "",
       eventContext.contextText ? `VERIFIED CAMPUS EVENT / ACTIVITY CONTEXT:\n${eventContext.contextText}` : "",
       clubContext.contextText ? `VERIFIED RMIT CLUB CONTEXT:\n${clubContext.contextText}` : "",
       globalExperienceContext.contextText ? `VERIFIED RMIT GLOBAL EXPERIENCE CONTEXT:\n${globalExperienceContext.contextText}` : "",
+      scholarshipContext.contextText ? `VERIFIED RMIT SCHOLARSHIP CONTEXT:\n${scholarshipContext.contextText}` : "",
     ].filter(Boolean).join("\n\n");
     const systemPrompt = buildSystemInstruction(language);
     const apiKey = c.env.GEMINI_API_KEY;
@@ -321,8 +351,28 @@ app.post("/api/chat", async (c) => {
 
     let answerText = "";
     let answerMode: "gemini" | "workers_ai" | "deterministic_fallback" = "deterministic_fallback";
-    const usePracticalFallback = isPracticalStudentLifeQuery(message);
-    if (apiKey && !usePracticalFallback) {
+    let providerFailed = false;
+    const usePracticalFallback = isPracticalStudentLifeQuery(message) || isScholarshipQuery(message);
+    const deterministicAnswer = isFoodFacilityQuery(message)
+      ? formatFoodFacilityFallback(language, message)
+      : isScholarshipQuery(message)
+        ? formatScholarshipFallback(message, language, scholarshipContext)
+      : clubContext.specificClub || clubContext.needsClubClarification
+        ? formatClubFallback(language, clubContext)
+        : usePracticalFallback
+          ? formatStudentLifeFallback(message, language, eventContext)
+          : globalExperienceContext.contextText
+            ? formatGlobalExperienceFallback(message, language, globalExperienceContext)
+            : clubContext.matchedClubNames.length > 0
+              ? formatClubFallback(language, clubContext)
+              : (eventContext.matchedEventTitles.length > 0 || eventContext.matchedActivityTitles.length > 0)
+                ? formatStudentLifeFallback(message, language, eventContext)
+                : rag.bestDoc
+                  ? formatKnowledgeAnswer(rag.bestDoc, message, language)
+                  : "";
+    if (deterministicAnswer && isSimpleFactualQuery(message)) {
+      answerText = deterministicAnswer;
+    } else if (apiKey && !usePracticalFallback) {
       const ai = new GoogleGenAI({ apiKey });
       const prompt = `Student Question: ${message}\n\n${verifiedContext}`;
       try {
@@ -339,6 +389,7 @@ app.post("/api/chat", async (c) => {
         answerText = typeof response.text === "string" ? response.text.trim() : "";
         if (answerText) answerMode = "gemini";
       } catch (providerError: unknown) {
+        providerFailed = true;
         console.error("[worker/api/chat] Gemini request failed", {
           errorName: providerError instanceof Error ? providerError.name : "unknown",
         });
@@ -356,6 +407,7 @@ app.post("/api/chat", async (c) => {
         answerText = typeof aiRes?.response === "string" ? aiRes.response.trim() : "";
         if (answerText) answerMode = "workers_ai";
       } catch (providerError: unknown) {
+        providerFailed = true;
         console.error("[worker/api/chat] Workers AI request failed", {
           errorName: providerError instanceof Error ? providerError.name : "unknown",
         });
@@ -363,8 +415,10 @@ app.post("/api/chat", async (c) => {
     }
 
     if (!answerText) {
-      answerText = clubContext.specificClub
-        ? formatClubFallback(language, clubContext)
+      answerText = isScholarshipQuery(message)
+        ? formatScholarshipFallback(message, language, scholarshipContext)
+        : clubContext.specificClub || clubContext.needsClubClarification
+          ? formatClubFallback(language, clubContext)
         : usePracticalFallback
           ? formatStudentLifeFallback(message, language, eventContext)
           : globalExperienceContext.contextText
@@ -375,9 +429,36 @@ app.post("/api/chat", async (c) => {
                 ? formatStudentLifeFallback(message, language, eventContext)
                 : rag.bestDoc
                   ? formatKnowledgeAnswer(rag.bestDoc, message, language)
-                  : (language === "vi"
-                    ? "Chưa tìm thấy thông tin RMIT đã xác minh phù hợp. Bạn có thể thử từ khóa khác hoặc liên hệ phòng ban phụ trách."
-                    : "No matching verified RMIT information was found. Try a different search or contact the relevant department.");
+                  : "";
+      if (!answerText) {
+        let remainingAfterRefund = remaining;
+        if (stub) {
+          const refundResponse = await stub.fetch("https://ai-quota/refund", { method: "POST" }).catch(() => null);
+          if (refundResponse) {
+            const refundData: unknown = await refundResponse.json().catch(() => null);
+            if (typeof refundData === "object" && refundData !== null && "remaining" in refundData && typeof refundData.remaining === "number") {
+              remainingAfterRefund = refundData.remaining;
+            }
+          }
+        } else {
+          refundMemoryQuota(visitorId);
+          remainingAfterRefund = checkMemoryQuota(visitorId, parseInt(c.env.AI_DAILY_LIMIT || "10", 10)).remaining;
+        }
+        if (isNew) {
+          const signed = await signVisitorId(visitorId, secret);
+          c.header("Set-Cookie", `r_forum_uid=${signed}; HttpOnly; Secure; SameSite=Lax; Max-Age=31536000; Path=/`);
+        }
+        c.header("Cache-Control", "no-store");
+        return c.json({
+          error: language === "vi"
+            ? "Dịch vụ trợ lý hiện không khả dụng và chưa tìm thấy hướng dẫn dự phòng phù hợp."
+            : "The assistant is unavailable and no relevant verified fallback was found.",
+          code: providerFailed ? "AI_PROVIDER_UNAVAILABLE" : "NO_VERIFIED_FALLBACK",
+          quotaRefunded: true,
+          remaining: remainingAfterRefund,
+          limit: parseInt(c.env.AI_DAILY_LIMIT || "10", 10),
+        }, 503);
+      }
       answerMode = "deterministic_fallback";
     }
     const currentRemaining = stub ? remaining : checkMemoryQuota(visitorId).remaining;
@@ -388,8 +469,8 @@ app.post("/api/chat", async (c) => {
       answerMode,
       remaining: currentRemaining,
       limit: parseInt(c.env.AI_DAILY_LIMIT || "10", 10),
-      sources: [...rag.sources, ...eventContext.sources, ...clubContext.sources, ...globalExperienceContext.sources].filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index),
-      matchedTopics: [...rag.matchedDocTitles, ...eventContext.matchedEventTitles, ...eventContext.matchedActivityTitles, ...clubContext.matchedClubNames, ...globalExperienceContext.matchedProgramTitles, ...globalExperienceContext.matchedScholarshipTitles],
+      sources: [...rag.sources, ...eventContext.sources, ...clubContext.sources, ...globalExperienceContext.sources, ...scholarshipContext.sources].filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index),
+      matchedTopics: [...rag.matchedDocTitles, ...eventContext.matchedEventTitles, ...eventContext.matchedActivityTitles, ...clubContext.matchedClubNames, ...globalExperienceContext.matchedProgramTitles, ...globalExperienceContext.matchedScholarshipTitles, ...scholarshipContext.matchedScholarshipTitles],
     });
   } catch (err: unknown) {
     const quotaLimit = parseInt(c.env.AI_DAILY_LIMIT || "10", 10);

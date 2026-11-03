@@ -1,5 +1,7 @@
 import officialPageMetadata from "./official-pages.json";
 import { getClubRecruitment, type ClubRecruitment } from "./recruitment";
+import { CLUB_PROFILES } from "./profiles";
+import type { ClubProfile } from "./profile-types";
 export type ClubCampus = "saigon_south" | "hanoi";
 export type ClubCategory = "academic" | "active" | "creative_collectives" | "social_special_interest";
 export type ClubDetailsStatus = "verified_detail" | "directory_only";
@@ -22,6 +24,7 @@ export interface ClubRecord {
   recruitment: ClubRecruitment;
   lastVerifiedDate: string;
   detailsStatus: ClubDetailsStatus;
+  profile?: ClubProfile;
 }
 
 const VERIFIED_ON = "2026-10-31";
@@ -48,6 +51,7 @@ const OFFICIAL_PAGE_BY_URL = new Map(officialPageMetadata.map((page) => [page.ur
 
 function makeClub(seed: ClubSeed): ClubRecord {
   const metadata = seed.officialClubUrl ? OFFICIAL_PAGE_BY_URL.get(seed.officialClubUrl) : undefined;
+  const profile = CLUB_PROFILES[seed.id];
   const publicEmails = metadata?.emails.filter((email) => email.endsWith("@rmit.edu.vn") && !email.includes("webrmit") && !email.includes("david.holinger")) ?? [];
   const publicSocial = metadata?.social.filter((url) => {
     const normalizedUrl = url.toLowerCase();
@@ -56,22 +60,26 @@ function makeClub(seed: ClubSeed): ClubRecord {
 
   return {
     id: seed.id,
-    nameEn: seed.name,
-    nameVi: seed.name,
+    nameEn: profile?.officialName ?? seed.name,
+    nameVi: profile?.officialName ?? seed.name,
     campus: seed.campus,
     category: seed.category,
-    descriptionEn: seed.descriptionEn ?? (metadata?.description || undefined),
-    contactEmail: seed.contactEmail ?? publicEmails[0],
-    officialClubUrl: seed.officialClubUrl,
-    facebookUrl: publicSocial.find((url) => url.toLowerCase().includes("facebook.com"))?.replace(/\/$/, ""),
-    instagramUrl: publicSocial.find((url) => url.toLowerCase().includes("instagram.com"))?.replace(/\/$/, ""),
+    descriptionEn: profile?.summary.en ?? seed.descriptionEn ?? (metadata?.description || undefined),
+    descriptionVi: profile?.summary.vi,
+    contactEmail: profile
+      ? profile.contactEmail ?? undefined
+      : publicEmails[0] ?? (seed.contactEmail?.includes("@") ? seed.contactEmail : undefined),
+    officialClubUrl: profile?.sourceUrl ?? seed.officialClubUrl,
+    facebookUrl: profile ? profile.facebookUrl ?? undefined : publicSocial.find((url) => url.toLowerCase().includes("facebook.com"))?.replace(/\/$/, ""),
+    instagramUrl: profile ? profile.instagramUrl ?? undefined : publicSocial.find((url) => url.toLowerCase().includes("instagram.com"))?.replace(/\/$/, ""),
     imageUrl: seed.imageUrl ?? (metadata?.imageUrl || undefined),
     imageAlt: seed.imageAlt ?? (metadata?.imageAlt || `${seed.name} official club logo`),
-    sourceUrl: seed.sourceUrl,
+    sourceUrl: profile?.sourceUrl ?? seed.sourceUrl,
     campusListPdfUrl: seed.pdfUrl,
     recruitment: getClubRecruitment(seed.id, seed.officialClubUrl ?? seed.sourceUrl, VERIFIED_ON),
-    lastVerifiedDate: VERIFIED_ON,
-    detailsStatus: metadata?.status === 200 || seed.descriptionEn ? "verified_detail" : "directory_only",
+    lastVerifiedDate: profile?.verifiedAt ?? VERIFIED_ON,
+    detailsStatus: profile || metadata?.status === 200 ? "verified_detail" : "directory_only",
+    profile,
   };
 }
 
@@ -162,4 +170,11 @@ export function getClubCountsByCampus(): Record<ClubCampus, number> {
     saigon_south: VERIFIED_CLUBS.filter((club) => club.campus === "saigon_south").length,
     hanoi: VERIFIED_CLUBS.filter((club) => club.campus === "hanoi").length,
   };
+}
+
+export function getRelatedClubs(club: ClubRecord): ClubRecord[] {
+  return VERIFIED_CLUBS
+    .filter((candidate) => candidate.id !== club.id && candidate.campus === club.campus && candidate.category === club.category)
+    .sort((a, b) => a.nameEn.localeCompare(b.nameEn, "en"))
+    .slice(0, 4);
 }

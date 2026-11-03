@@ -105,7 +105,7 @@ export default function HomePage() {
   return (
     <div className="pb-20">
       <section className="relative overflow-hidden bg-[var(--primary-navy)] text-white">
-        <span aria-hidden="true" className="pointer-events-none absolute -right-10 top-1/2 -translate-y-1/2 select-none font-sans text-[22rem] font-black leading-none text-[var(--accent)] opacity-[0.07] sm:-right-4 sm:text-[30rem] lg:right-8">R</span>
+        <span aria-hidden="true" className="pointer-events-none absolute -right-10 top-1/2 hidden -translate-y-1/2 select-none font-sans text-[22rem] font-black leading-none text-[var(--accent)] opacity-[0.07] lg:block lg:right-8 lg:text-[30rem]">R</span>
         <div className="mx-auto grid min-h-[560px] max-w-[1200px] grid-cols-1 gap-12 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:items-end lg:px-8 lg:py-24">
           <div className="lg:col-span-8">
             <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-[#FF807A]">{copy.eyebrow}</p>

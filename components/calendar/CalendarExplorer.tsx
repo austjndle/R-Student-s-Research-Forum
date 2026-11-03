@@ -231,9 +231,14 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
   const activeType = lockedType ?? typeFilter;
   const [campusFilter, setCampusFilter] = useState<Campus>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [yearFilter, setYearFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("upcoming");
   const [viewFilter, setViewFilter] = useState<ViewFilter>("list");
   const [currentTime, setCurrentTime] = useState<string | null>(null);
+  const availableAcademicYears = useMemo(
+    () => [...new Set(getPublishedCalendarEntries().filter((entry) => entry.type === "academic_date" && entry.academicYear).map((entry) => entry.academicYear!))].sort(),
+    [],
+  );
   const availableCategories = Object.entries(categoryLabels[language]).filter(([value]) =>
     activeType === "all" || (activeType === "academic_date" ? value === "academic" : value !== "academic")
   );
@@ -255,6 +260,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
       .filter((entry) => activeType === "all" || entry.type === activeType)
       .filter((entry) => campusFilter === "all" || entry.campus === "all" || entry.campus === campusFilter)
       .filter((entry) => categoryFilter === "all" || entry.category === categoryFilter)
+      .filter((entry) => activeType !== "academic_date" || yearFilter === "all" || entry.academicYear === yearFilter)
       .filter((entry) => {
         if (!now || timeFilter === "all") return true;
         if (timeFilter === "upcoming") {
@@ -268,7 +274,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         return toDateKey(entry.startAt).slice(0, 7) === currentMonth || (!!entry.endAt && toDateKey(entry.endAt).slice(0, 7) === currentMonth);
       })
       .sort((a, b) => a.startAt.localeCompare(b.startAt));
-  }, [activeType, campusFilter, categoryFilter, timeFilter, currentTime]);
+  }, [activeType, campusFilter, categoryFilter, yearFilter, timeFilter, currentTime]);
 
   const monthGroups = useMemo(() => {
     const groups = new Map<string, CalendarEntry[]>();
@@ -296,6 +302,8 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         allTime: "Toàn bộ",
         campus: "Cơ sở",
         category: "Loại",
+        year: "Năm học",
+        allYears: "Tất cả năm",
         allCampuses: "Tất cả cơ sở",
         allCategories: "Tất cả loại",
         list: "Danh sách",
@@ -329,6 +337,8 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         allTime: "All dates",
         campus: "Campus",
         category: "Type",
+        year: "Academic year",
+        allYears: "All years",
         allCampuses: "All campuses",
         allCategories: "All types",
         list: "List",
@@ -391,6 +401,15 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
               <option value="saigon_south">{language === "vi" ? "Nam Sài Gòn" : "Saigon South"}</option>
               <option value="hanoi">{language === "vi" ? "Hà Nội" : "Hanoi"}</option>
             </select>
+            {activeType === "academic_date" && (
+              <>
+                <label className="sr-only" htmlFor="calendar-year">{ui.year}</label>
+                <select id="calendar-year" value={yearFilter} onChange={(event) => setYearFilter(event.target.value)} className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--main-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+                  <option value="all">{ui.allYears}</option>
+                  {availableAcademicYears.map((year) => <option key={year} value={year}>{year}</option>)}
+                </select>
+              </>
+            )}
             {activeType !== "academic_date" && (
               <>
                 <label className="sr-only" htmlFor="calendar-category">{ui.category}</label>

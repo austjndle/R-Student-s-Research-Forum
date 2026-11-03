@@ -16,6 +16,13 @@ export interface DepartmentContact {
   campus: "saigon_south" | "hanoi" | "all";
   locationEn: string;
   locationVi: string;
+  campusContacts?: Array<{
+    campus: "saigon_south" | "hanoi";
+    email: string | null;
+    phone: string | null;
+    locationEn: string;
+    locationVi: string;
+  }>;
   serviceHoursEn: string;
   serviceHoursVi: string;
   lastVerifiedDate: string;
@@ -54,15 +61,15 @@ export const DEPARTMENT_CONTACTS: DepartmentContact[] = [
       "Thủ tục xin bảo lưu một kỳ học ra sao?"
     ],
     email: "student.connect@rmit.edu.vn",
-    phone: "+84 28 3776 1300",
+    phone: "+84 28 3776 1306",
     formUrl: "https://www.rmit.edu.vn/students/support/student-connect",
     websiteUrl: "https://www.rmit.edu.vn/students/support/student-connect",
     campus: "all",
-    locationEn: "Saigon South: Building 1, Ground Floor | Hanoi: Handi Resco, Level 1",
-    locationVi: "Nam Sài Gòn: Tòa nhà 1, Tầng trệt | Hà Nội: Tòa nhà Handi Resco, Tầng 1",
-    serviceHoursEn: "Monday - Friday: 8:30 AM - 5:00 PM (Closed weekends & public holidays)",
-    serviceHoursVi: "Thứ Hai - Thứ Sáu: 8:30 - 17:00 (Nghỉ Thứ Bảy, Chủ Nhật và ngày lễ)",
-    lastVerifiedDate: "2026-10-20"
+    locationEn: "Saigon South: Beanland Building, Ground Floor, Student common area | Hanoi: Handi Resco Building, Level 1, Room 1.1.009",
+    locationVi: "Nam Sài Gòn: Tòa nhà Beanland, Tầng trệt, khu vực sinh viên | Hà Nội: Tòa nhà Handi Resco, Tầng 1, Phòng 1.1.009",
+    serviceHoursEn: "Monday - Friday: 8:30 AM - 5:30 PM (Closed weekends & public holidays)",
+    serviceHoursVi: "Thứ Hai - Thứ Sáu: 8:30 - 17:30 (Nghỉ Thứ Bảy, Chủ Nhật và ngày lễ)",
+    lastVerifiedDate: "2026-11-03"
   },
   {
     id: "dept-it",
@@ -96,15 +103,15 @@ export const DEPARTMENT_CONTACTS: DepartmentContact[] = [
       "Cách kích hoạt bộ Adobe Creative Cloud miễn phí?"
     ],
     email: "ITServiceDesk@rmit.edu.vn",
-    phone: "+84 28 3776 1313",
+    phone: "+84 28 3776 1414",
     formUrl: "https://www.rmit.edu.vn/students/support/it-support",
     websiteUrl: "https://www.rmit.edu.vn/students/support/it-support",
     campus: "all",
-    locationEn: "Saigon South: Building 1, Level 3 | Hanoi: IT Counter, Level 1",
-    locationVi: "Nam Sài Gòn: Tòa nhà 1, Tầng 3 | Hà Nội: Quầy IT, Tầng 1",
-    serviceHoursEn: "Monday - Friday: 8:00 AM - 5:30 PM",
-    serviceHoursVi: "Thứ Hai - Thứ Sáu: 8:00 - 17:30",
-    lastVerifiedDate: "2026-10-25"
+    locationEn: "Saigon South: Building 1 Level 1 Room 03 and Building 2 Level 1 Reception Area | Hanoi: Handi-Resco Building B, Level 5, Room 11",
+    locationVi: "Nam Sài Gòn: Tòa nhà 1 Tầng 1 Phòng 03 và Tòa nhà 2 Tầng 1 khu vực lễ tân | Hà Nội: Tòa nhà Handi-Resco B, Tầng 5, Phòng 11",
+    serviceHoursEn: "Saigon South: Monday - Friday 7:30 AM - 5:00 PM; Saturday phone-in only 8:00 AM - 5:00 PM | Hanoi: Monday - Friday 8:00 AM - 5:00 PM",
+    serviceHoursVi: "Nam Sài Gòn: Thứ Hai - Thứ Sáu 7:30 - 17:00; Thứ Bảy chỉ hỗ trợ qua điện thoại 8:00 - 17:00 | Hà Nội: Thứ Hai - Thứ Sáu 8:00 - 17:00",
+    lastVerifiedDate: "2026-11-03"
   },
   {
     id: "dept-library",
@@ -142,8 +149,12 @@ export const DEPARTMENT_CONTACTS: DepartmentContact[] = [
     formUrl: "https://www.rmit.edu.vn/students/support/library-services",
     websiteUrl: "https://www.rmit.edu.vn/students/support/library-services",
     campus: "all",
-    locationEn: "Saigon South: Building 1, Levels 1-3 | Hanoi: Handi Resco, Level 2",
-    locationVi: "Nam Sài Gòn: Tòa nhà 1, Tầng 1-3 | Hà Nội: Tòa nhà Handi Resco, Tầng 2",
+    locationEn: "Saigon South: Building 1, Level 3 | Hanoi: Handi Resco Building, Level 2, Room 1.2.006",
+    locationVi: "Nam Sài Gòn: Tòa nhà 1, Tầng 3 | Hà Nội: Tòa nhà Handi Resco, Tầng 2, Phòng 1.2.006",
+    campusContacts: [
+      { campus: "saigon_south", email: "library@rmit.edu.vn", phone: "+84 28 3776 1319", locationEn: "Beanland Building 1, Level 3", locationVi: "Tòa nhà Beanland 1, Tầng 3" },
+      { campus: "hanoi", email: "hanoi.library@rmit.edu.vn", phone: "+84 24 3724 5920", locationEn: "Handi Resco Building, Level 2, Room 1.2.006", locationVi: "Tòa nhà Handi Resco, Tầng 2, Phòng 1.2.006" },
+    ],
     serviceHoursEn: "Semester: Mon - Fri 8:00 AM - 9:00 PM | Sat 9:00 AM - 5:00 PM",
     serviceHoursVi: "Trong kỳ: T2 - T6 8:00 - 21:00 | T7 9:00 - 17:00",
     lastVerifiedDate: "2026-10-19"

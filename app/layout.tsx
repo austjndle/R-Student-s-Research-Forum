@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { SupportModal } from "@/components/support/SupportModal";
+import { WhatsNewModal } from "@/components/changelog/WhatsNewModal";
 
 const plexSans = IBM_Plex_Sans({
   subsets: ["vietnamese", "latin"],

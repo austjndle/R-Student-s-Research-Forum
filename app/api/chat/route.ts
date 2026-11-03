@@ -10,16 +10,25 @@ import {
 import {
   isQueryInScope,
   detectChatLanguage,
+  isSimpleFactualQuery,
+  sanitizeChatHistory,
+  resolveConversationQuery,
+  isFoodFacilityQuery,
   isPracticalStudentLifeQuery,
+  isScholarshipQuery,
   buildRAGContext,
   buildEventContext,
   buildClubContext,
+  resolveContextClubId,
   buildGlobalExperienceContext,
+  buildScholarshipContext,
   buildSystemInstruction,
   formatKnowledgeAnswer,
-  formatStudentLifeFallback,
+  formatFoodFacilityFallback,
   formatClubFallback,
+  formatStudentLifeFallback,
   formatGlobalExperienceFallback,
+  formatScholarshipFallback,
 } from "@/lib/ai/gemini";
 import { GoogleGenAI } from "@google/genai";
 
@@ -55,8 +64,11 @@ function buildDeterministicAnswer(
   events: ReturnType<typeof buildEventContext>,
   clubs: ReturnType<typeof buildClubContext>,
   globalExperience: ReturnType<typeof buildGlobalExperienceContext>,
+  scholarships: ReturnType<typeof buildScholarshipContext>,
 ): string | null {
-  if (clubs.specificClub) return formatClubFallback(language, clubs);
+  if (isFoodFacilityQuery(message)) return formatFoodFacilityFallback(language, message);
+  if (isScholarshipQuery(message)) return formatScholarshipFallback(message, language, scholarships);
+  if (clubs.specificClub || clubs.needsClubClarification) return formatClubFallback(language, clubs);
   if (isPracticalStudentLifeQuery(message)) return formatStudentLifeFallback(message, language, events);
   if (globalExperience.contextText) return formatGlobalExperienceFallback(message, language, globalExperience);
   if (clubs.matchedClubNames.length > 0) return formatClubFallback(language, clubs);
@@ -148,11 +160,15 @@ export async function POST(request: NextRequest) {
   }
   const messageValue = "message" in rawBody ? rawBody.message : undefined;
   const languageValue = "language" in rawBody ? rawBody.language : undefined;
-  const message = typeof messageValue === "string" ? messageValue.trim() : "";
+  const historyValue = "history" in rawBody ? rawBody.history : undefined;
+  const contextClubId = resolveContextClubId("contextClubId" in rawBody ? rawBody.contextClubId : undefined);
+  let message = typeof messageValue === "string" ? messageValue.trim() : "";
+  const history = sanitizeChatHistory(historyValue);
   if (languageValue !== undefined && languageValue !== "en" && languageValue !== "vi") {
     return NextResponse.json({ error: "Language must be en or vi." }, { status: 400 });
   }
   const language = detectChatLanguage(message, languageValue === "vi" ? "vi" : "en");
+  message = resolveConversationQuery(message, history, language);
 
   // Validate length
   if (!message || message.length > MAX_MESSAGE_LENGTH) {
@@ -163,7 +179,7 @@ export async function POST(request: NextRequest) {
   }
 
   // 3. Domain scope check (Reject off-topic questions BEFORE deducting quota)
-  const scopeCheck = isQueryInScope(message);
+  const scopeCheck = isQueryInScope(message, contextClubId);
   if (!scopeCheck.inScope) {
     const refusalText =
       language === "vi"
@@ -196,12 +212,18 @@ export async function POST(request: NextRequest) {
   let providerStartedAt: number | null = null;
 
   try {
-    const rag = buildRAGContext(message, language);
-    const eventContext = buildEventContext(message, language);
-    const clubContext = buildClubContext(message, language);
+    const clubContext = buildClubContext(message, language, contextClubId);
+    const specificClubQuestion = clubContext.specificClub || clubContext.needsClubClarification;
+    const rag = specificClubQuestion
+      ? { contextText: "", sources: [], matchedDocTitles: [], bestDoc: undefined }
+      : buildRAGContext(message, language);
+    const eventContext = specificClubQuestion
+      ? { contextText: "", sources: [], matchedEventTitles: [], matchedActivityTitles: [] }
+      : buildEventContext(message, language);
     const globalExperienceContext = buildGlobalExperienceContext(message, language);
-    const deterministicAnswer = buildDeterministicAnswer(message, language, rag, eventContext, clubContext, globalExperienceContext);
-    const sources = [...rag.sources, ...eventContext.sources, ...clubContext.sources, ...globalExperienceContext.sources]
+    const scholarshipContext = buildScholarshipContext(message, language);
+    const deterministicAnswer = buildDeterministicAnswer(message, language, rag, eventContext, clubContext, globalExperienceContext, scholarshipContext);
+    const sources = [...rag.sources, ...eventContext.sources, ...clubContext.sources, ...globalExperienceContext.sources, ...scholarshipContext.sources]
       .filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index);
     const matchedTopics = [
       ...rag.matchedDocTitles,
@@ -210,6 +232,7 @@ export async function POST(request: NextRequest) {
       ...clubContext.matchedClubNames,
       ...globalExperienceContext.matchedProgramTitles,
       ...globalExperienceContext.matchedScholarshipTitles,
+      ...scholarshipContext.matchedScholarshipTitles,
     ];
     const apiKey = process.env.GEMINI_API_KEY;
     const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
@@ -217,7 +240,9 @@ export async function POST(request: NextRequest) {
     let answerText = "";
     let answerMode: "gemini" | "deterministic_fallback" = "deterministic_fallback";
 
-    if (isPracticalStudentLifeQuery(message)) {
+    if (deterministicAnswer && isSimpleFactualQuery(message)) {
+      answerText = deterministicAnswer;
+    } else if (isPracticalStudentLifeQuery(message) || isScholarshipQuery(message)) {
       answerText = deterministicAnswer ?? "";
     } else if (apiKey && !circuitOpen) {
       providerStartedAt = Date.now();
@@ -229,6 +254,7 @@ export async function POST(request: NextRequest) {
           eventContext.contextText ? `VERIFIED CAMPUS EVENT / ACTIVITY CONTEXT:\n${eventContext.contextText}` : "",
           clubContext.contextText ? `VERIFIED RMIT CLUB CONTEXT:\n${clubContext.contextText}` : "",
           globalExperienceContext.contextText ? `VERIFIED RMIT GLOBAL EXPERIENCE CONTEXT:\n${globalExperienceContext.contextText}` : "",
+          scholarshipContext.contextText ? `VERIFIED RMIT SCHOLARSHIP CONTEXT:\n${scholarshipContext.contextText}` : "",
         ].filter(Boolean).join("\n\n");
         const response = await ai.models.generateContent({
           model: modelName,

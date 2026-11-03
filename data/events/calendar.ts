@@ -1,3 +1,4 @@
+import { ACADEMIC_CALENDAR_2027_ENTRIES } from "./academic";
 import { getEventSource } from "./sources";
 
 export type CalendarEntryType = "academic_date" | "campus_event";
@@ -72,6 +73,7 @@ export interface CalendarEntry {
   verification: EventVerification;
   academicYear?: string;
   semester?: string;
+  programType?: "higher_education" | "foundation_studies" | "english_program" | "postgraduate";
   cancellationNoticeEn?: string;
   cancellationNoticeVi?: string;
 }
@@ -83,8 +85,8 @@ export const CAMPUS_ACTIVITY_HIGHLIGHTS: ActivityHighlight[] = [
     id: "activity-carnival-day",
     titleEn: "Carnival Day",
     titleVi: "Carnival Day",
-    descriptionEn: "Recurring campus carnival activity highlighted by RMIT Student Life. It is not an upcoming date unless a current announcement is published.",
-    descriptionVi: "Hoạt động carnival thường niên được RMIT Student Life giới thiệu. Chỉ hiển thị thành sự kiện sắp tới khi có thông báo lịch hiện tại.",
+    descriptionEn: "Annual campus carnival with food, outdoor games, live performances, and community activities.",
+    descriptionVi: "Lễ hội cơ sở thường niên với ẩm thực, trò chơi ngoài trời, biểu diễn trực tiếp và hoạt động kết nối cộng đồng.",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/student-activities-01.jpg",
     imageAlt: "RMIT students play outdoor games at a Carnival Day event.",
     imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
@@ -96,8 +98,8 @@ export const CAMPUS_ACTIVITY_HIGHLIGHTS: ActivityHighlight[] = [
     id: "activity-club-day",
     titleEn: "Club Day",
     titleVi: "Club Day",
-    descriptionEn: "Semesterly activity where students explore clubs, meet members, discover activities, and learn about membership opportunities. Current campus dates are not announced in the verified source.",
-    descriptionVi: "Hoạt động diễn ra mỗi học kỳ để sinh viên khám phá CLB, gặp gỡ thành viên, tìm hiểu hoạt động và cơ hội tham gia. Nguồn đã xác minh chưa công bố lịch hiện tại theo cơ sở.",
+    descriptionEn: "Semesterly activity where students explore clubs, meet members, and learn about membership opportunities.",
+    descriptionVi: "Hoạt động mỗi học kỳ để sinh viên khám phá CLB, gặp gỡ thành viên và tìm hiểu cơ hội tham gia.",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/current-students/student-news/2025/club-day-s3-2025/11-club-day-s3-25-students-visiting-booth.jpg",
     imageAlt: "Students at RMIT Business & Finance Club Hanoi's decorated booth during Club Day.",
     imageObjectPosition: "50% 35%",
@@ -110,8 +112,8 @@ export const CAMPUS_ACTIVITY_HIGHLIGHTS: ActivityHighlight[] = [
     id: "activity-welcome-day",
     titleEn: "Welcome Day",
     titleVi: "Welcome Day",
-    descriptionEn: "Recurring welcome activity highlighted by RMIT Student Life. No current date is asserted here.",
-    descriptionVi: "Hoạt động chào đón thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    descriptionEn: "Welcome activity with opportunities for new students to meet the RMIT community.",
+    descriptionVi: "Hoạt động chào đón giúp sinh viên mới làm quen với cộng đồng RMIT.",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/welcome-day-22.jpg",
     imageAlt: "New students meet and talk during RMIT Welcome Day.",
     imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
@@ -123,8 +125,8 @@ export const CAMPUS_ACTIVITY_HIGHLIGHTS: ActivityHighlight[] = [
     id: "activity-x-run",
     titleEn: "X-Run",
     titleVi: "X-Run",
-    descriptionEn: "Recurring student activity highlighted by RMIT Student Life. No current date is asserted here.",
-    descriptionVi: "Hoạt động sinh viên thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    descriptionEn: "Student activity featuring outdoor challenge and community participation.",
+    descriptionVi: "Hoạt động sinh viên kết hợp thử thách ngoài trời và kết nối cộng đồng.",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/x-day-2022.jpg",
     imageAlt: "RMIT students take part in an outdoor obstacle activity during X-Run.",
     imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
@@ -136,8 +138,8 @@ export const CAMPUS_ACTIVITY_HIGHLIGHTS: ActivityHighlight[] = [
     id: "activity-sports-day",
     titleEn: "Sports Day",
     titleVi: "Sports Day",
-    descriptionEn: "Recurring sports activity highlighted by RMIT Student Life. No current date is asserted here.",
-    descriptionVi: "Hoạt động thể thao thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    descriptionEn: "Sports activity with opportunities for participation, teamwork, and community connection.",
+    descriptionVi: "Hoạt động thể thao tạo cơ hội tham gia, rèn luyện tinh thần đồng đội và kết nối cộng đồng.",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/sports-day-2022.jpg",
     imageAlt: "A student stands beside a net at RMIT Sports Day.",
     imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
@@ -149,8 +151,8 @@ export const CAMPUS_ACTIVITY_HIGHLIGHTS: ActivityHighlight[] = [
     id: "activity-wellbeing-day",
     titleEn: "Wellbeing Day",
     titleVi: "Wellbeing Day",
-    descriptionEn: "Recurring wellbeing activity highlighted by RMIT Student Life. No current date is asserted here.",
-    descriptionVi: "Hoạt động chăm sóc sức khỏe tinh thần thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    descriptionEn: "Wellbeing activity with support and community-focused activities.",
+    descriptionVi: "Hoạt động chăm sóc sức khỏe tinh thần với các nội dung hỗ trợ và kết nối cộng đồng.",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/wellbeing-day-2022.jpg",
     imageAlt: "Students explore activity stalls at an RMIT wellbeing event.",
     imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
@@ -162,8 +164,8 @@ export const CAMPUS_ACTIVITY_HIGHLIGHTS: ActivityHighlight[] = [
     id: "activity-pride-week",
     titleEn: "Pride Week",
     titleVi: "Pride Week",
-    descriptionEn: "Recurring inclusion and community activity highlighted by RMIT Student Life. No current date is asserted here.",
-    descriptionVi: "Hoạt động cộng đồng và hòa nhập thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    descriptionEn: "Inclusion and community activity celebrating belonging at RMIT.",
+    descriptionVi: "Hoạt động về hòa nhập và cộng đồng, lan tỏa cảm giác thuộc về tại RMIT.",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/pride-week.jpg",
     imageAlt: "RMIT Pride Week banner displayed at a campus entrance.",
     imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
@@ -175,8 +177,8 @@ export const CAMPUS_ACTIVITY_HIGHLIGHTS: ActivityHighlight[] = [
     id: "activity-career-fair",
     titleEn: "Career Fair",
     titleVi: "Career Fair",
-    descriptionEn: "Recurring career activity highlighted by RMIT Student Life. No current date is asserted here.",
-    descriptionVi: "Hoạt động hướng nghiệp thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    descriptionEn: "Career activity with employer and career-development opportunities.",
+    descriptionVi: "Hoạt động hướng nghiệp với cơ hội kết nối nhà tuyển dụng và phát triển nghề nghiệp.",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/career-fair-2022.jpg",
     imageAlt: "Students visit employer booths at an RMIT Career Fair.",
     imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
@@ -188,8 +190,8 @@ export const CAMPUS_ACTIVITY_HIGHLIGHTS: ActivityHighlight[] = [
     id: "activity-international-day",
     titleEn: "International Day",
     titleVi: "International Day",
-    descriptionEn: "Recurring cultural activity highlighted by RMIT Student Life. No current date is asserted here.",
-    descriptionVi: "Hoạt động giao lưu văn hóa thường được RMIT Student Life giới thiệu. Chưa khẳng định lịch hiện tại.",
+    descriptionEn: "Cultural activity with student-led booths and community activities.",
+    descriptionVi: "Hoạt động giao lưu văn hóa với các gian hàng do sinh viên tổ chức và hoạt động cộng đồng.",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/vn-student-life-clubs-activities/student-activities/international-festival.jpg",
     imageAlt: "Students visit cultural booths at an RMIT International Day event.",
     imageSourceUrl: "https://www.rmit.edu.vn/students/campus-life/student-activities-and-events",
@@ -200,6 +202,7 @@ export const CAMPUS_ACTIVITY_HIGHLIGHTS: ActivityHighlight[] = [
 ];
 
 export const CALENDAR_ENTRIES: CalendarEntry[] = [
+  ...ACADEMIC_CALENDAR_2027_ENTRIES,
   {
     id: "academic-s3-2026-start",
     type: "academic_date",
@@ -220,6 +223,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     verification: "verified",
     academicYear: "2026",
     semester: "Semester 3",
+    programType: "higher_education",
   },
   {
     id: "academic-s3-2026-add-classes",
@@ -241,6 +245,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     verification: "verified",
     academicYear: "2026",
     semester: "Semester 3",
+    programType: "higher_education",
   },
   {
     id: "academic-s3-2026-tuition-payment",
@@ -262,6 +267,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     verification: "verified",
     academicYear: "2026",
     semester: "Semester 3",
+    programType: "higher_education",
   },
   {
     id: "rmit-carnival-2026-sgs",

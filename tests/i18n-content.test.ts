@@ -61,7 +61,28 @@ describe("English/Vietnamese interface copy", () => {
     expect(getLocalizedScheduleLabel(firstFloor, "sundayHours", "vi")).toBe("Đóng cửa (Ngoại trừ sự kiện của trường)");
     expect(getLocalizedFloorLabel(firstFloor, "en")).toBe("Level 1 (Main foyer)");
     expect(getLocalizedFloorLabel(firstFloor, "vi")).toBe("Tầng 1 (Sảnh chính)");
-    expect(getLocalizedScheduleLabel(building!.floors[2], "saturdayHours", "en")).toBe("08:00 - 17:00");
+    expect(getLocalizedScheduleLabel(building!.floors.find((floor) => floor.floorEn === "Level 3 (Beanland Library)")!, "saturdayHours", "en")).toBe("08:00 - 17:00");
+  });
+  it("keeps Building 8, Building 9, Active Hub, and Building 10 distinct", () => {
+    expect(RMIT_CAMPUS_HOURS.find((item) => item.id === "sgs-b8")?.nameEn).toBe("Building 8");
+    expect(RMIT_CAMPUS_HOURS.find((item) => item.id === "sgs-b9")?.nameEn).toBe("Building 9");
+    expect(RMIT_CAMPUS_HOURS.find((item) => item.id === "sgs-active-hub")?.nameEn).toContain("Active Hub");
+    expect(RMIT_CAMPUS_HOURS.find((item) => item.id === "sgs-b10")?.nameEn).toContain("Building 10");
+    expect(RMIT_CAMPUS_HOURS.find((item) => item.id === "sgs-b8")?.floors[0].facilitiesEn).toContain("Circle K");
+    expect(RMIT_CAMPUS_HOURS.find((item) => item.id === "sgs-b9")?.floors[0].facilitiesEn).toContain("Nine restaurant");
+  });
+  it("keeps Beanland Level 2 and Level 3 facts separate and source-linked", () => {
+    const building = RMIT_CAMPUS_HOURS.find((item) => item.id === "sgs-b1");
+    const level2 = building?.floors.find((floor) => floor.floorEn === "Level 2");
+    const level3 = building?.floors.find((floor) => floor.floorEn === "Level 3 (Beanland Library)");
+    expect(level2?.facilitiesEn).toContain("Lygon Café");
+    expect(level2?.facilitiesEn).toContain("Room 1.2.35");
+    expect(level2?.facilitiesEn).not.toContain("Beanland Library");
+    expect(level2?.sourcePage).toBe(2);
+    expect(level2?.verificationStatus).toBe("verified");
+    expect(level3?.facilitiesEn).toContain("Beanland Library");
+    expect(level3?.facilitiesEn).not.toContain("Lygon Café");
+    expect(level3?.sourcePage).toBe(3);
   });
   it("keeps translated event descriptions free of English-only wording", () => {
     const events = getPublishedCalendarEntries();

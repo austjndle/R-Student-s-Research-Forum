@@ -33,6 +33,8 @@ export interface KnowledgeDocument {
   lastVerifiedDate: string;
   verificationStatus: VerificationStatus;
   relatedDocIds?: string[];
+  /** Optional route for search records that are not guide pages. */
+  resultHref?: string;
   imageUrl?: string;
 }
 

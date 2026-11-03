@@ -17,7 +17,9 @@ import {
 const QUICK_BUILDING_LABELS: Record<string, { en: string; vi: string }> = {
   "sgs-b1": { en: "B1", vi: "B1" },
   "sgs-b2": { en: "B2", vi: "B2" },
-  "sgs-sports": { en: "B8", vi: "B8" },
+  "sgs-b8": { en: "B8", vi: "B8" },
+  "sgs-b9": { en: "B9", vi: "B9" },
+  "sgs-active-hub": { en: "Active Hub", vi: "Active Hub" },
   "sgs-b10": { en: "B10", vi: "B10" },
   "hn-main": { en: "Hanoi", vi: "Hà Nội" },
 };
@@ -137,8 +139,8 @@ export default function CampusHoursPage() {
           </p>
           <p className="text-[11px] text-[var(--secondary-text)]/90 italic pt-0.5">
             {language === "vi" 
-              ? "Được phát triển bởi sinh viên s3998345@rmit.edu.vn (RMIT Vietnam Student Project)." 
-              : "Created by student s3998345@rmit.edu.vn (RMIT Vietnam Student Project)."}
+              ? "Công cụ do sinh viên giới thiệu; hãy xác nhận tình trạng phòng với RMIT trước khi sử dụng."
+              : "Student-introduced tool; confirm room availability with RMIT before use."}
           </p>
         </div>
 
@@ -211,6 +213,18 @@ export default function CampusHoursPage() {
                     <ExternalLink className="w-3 h-3 text-[var(--accent)]" />
                   </a>
                 )}
+                {building.accessSchedule && (
+                  <a
+                    href={building.accessSchedule.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={language === "vi" ? building.accessSchedule.publishedVi : building.accessSchedule.publishedEn}
+                    className="inline-flex min-h-11 items-center gap-1.5 border border-[var(--border)] bg-[var(--surface)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  >
+                    <span className="inline-flex items-center gap-1.5"><Clock className="h-3 w-3 text-[var(--accent)]" aria-hidden="true" />{language === "vi" ? "Lịch vào tòa nhà (PDF)" : "Access schedule (PDF)"}</span>
+                    <ExternalLink className="w-3 h-3 text-[var(--accent)]" />
+                  </a>
+                )}
                 {building.googleMapsUrl && (
                   <a
                     href={building.googleMapsUrl}
@@ -237,44 +251,63 @@ export default function CampusHoursPage() {
                 <span>{language === "vi" ? "Vuốt ngang để xem đầy đủ bảng" : "Swipe horizontally to view the full table"}</span>
                 <ChevronRight className="h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
               </div>
-              <table className="w-full text-left text-xs sm:text-sm border-collapse min-w-[760px] md:min-w-full">
+              {building.accessSchedule && (
+                <p className="mb-3 text-[11px] leading-relaxed text-[var(--secondary-text)]">
+                  {language === "vi" ? building.accessSchedule.publishedVi : building.accessSchedule.publishedEn}
+                </p>
+              )}
+              <table className="w-full table-fixed text-left text-xs sm:text-sm border-collapse min-w-[900px] xl:min-w-full">
                 <thead>
                   <tr className="border-b border-[var(--border)] text-[var(--secondary-text)]">
-                    <th className="sticky left-0 z-20 w-[22%] min-w-[170px] bg-[var(--surface)] py-3.5 pr-4 font-semibold">{language === "vi" ? "Tầng / Khu vực" : "Floor / Facility"}</th>
-                    <th className="py-3.5 px-4 font-semibold w-[42%] min-w-[320px]">{language === "vi" ? "Cơ sở vật chất & Ghi chú phòng ban" : "Key Facilities & Operational Notes"}</th>
-                    <th className="py-3.5 px-3 font-semibold w-[12%] min-w-[105px] whitespace-nowrap">{language === "vi" ? "Thứ 2 - Thứ 6" : "Mon - Fri"}</th>
-                    <th className="py-3.5 px-3 font-semibold w-[12%] min-w-[105px] whitespace-nowrap">{language === "vi" ? "Thứ 7" : "Saturday"}</th>
-                    <th className="py-3.5 pl-3 font-semibold w-[12%] min-w-[105px] whitespace-nowrap">{language === "vi" ? "Chủ nhật" : "Sunday"}</th>
+                    <th className="w-[22%] min-w-[170px] xl:min-w-0 bg-[var(--surface)] py-3.5 pr-4 font-semibold">{language === "vi" ? "Tầng / Khu vực" : "Floor / Facility"}</th>
+                    <th className="py-3.5 px-4 font-semibold w-[42%] min-w-[320px] xl:min-w-0">{language === "vi" ? "Cơ sở vật chất" : "Key Facilities"}</th>
+                    <th className="py-3.5 px-3 font-semibold w-[12%] min-w-[105px] xl:min-w-0 whitespace-nowrap">{language === "vi" ? "Thứ 2 - Thứ 6" : "Mon - Fri"}</th>
+                    <th className="py-3.5 px-3 font-semibold w-[12%] min-w-[105px] xl:min-w-0 whitespace-nowrap">{language === "vi" ? "Thứ 7" : "Saturday"}</th>
+                    <th className="py-3.5 pl-3 font-semibold w-[12%] min-w-[105px] xl:min-w-0 whitespace-nowrap">{language === "vi" ? "Chủ nhật" : "Sunday"}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)]">
                   {building.floors.map((floor, fIdx) => (
                     <tr key={fIdx} className="hover:bg-[var(--surface-elevated)] transition-colors">
-                      <td className="sticky left-0 z-10 w-[22%] min-w-[170px] max-w-[240px] break-words whitespace-normal bg-[var(--surface)] py-3.5 pr-4 align-top font-bold text-[var(--main-text)]">
+                      <td className="w-[22%] min-w-[170px] xl:min-w-0 max-w-[240px] break-words whitespace-normal bg-[var(--surface)] py-3.5 pr-4 align-top font-bold text-[var(--main-text)]">
                         {getLocalizedFloorLabel(floor, language)}
                       </td>
                       <td className="py-4 px-4 text-xs sm:text-sm text-[var(--secondary-text)] leading-relaxed align-top">
                         <div className="font-normal text-[var(--main-text)]/90">{language === "vi" ? floor.facilitiesVi : floor.facilitiesEn}</div>
-                        {(language === "vi" ? floor.notesVi : floor.notesEn) && (
-                          <div className="editorial-info mt-2.5 flex w-full items-start gap-2.5 p-3 text-xs leading-relaxed sm:p-3.5">
-                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
-                            <span className="flex-1 font-medium text-[var(--main-text)] leading-normal">{language === "vi" ? floor.notesVi : floor.notesEn}</span>
-                          </div>
-                        )}
                       </td>
-                      <td className="py-4 px-3 font-mono font-semibold text-emerald-600 dark:text-emerald-400 whitespace-nowrap align-top">
+                      <td className="py-4 px-3 font-mono font-semibold text-emerald-600 dark:text-emerald-400 whitespace-normal break-words align-top">
                         {getLocalizedScheduleLabel(floor, "weekdayHours", language)}
                       </td>
-                      <td className="py-4 px-3 font-mono text-[var(--main-text)] whitespace-nowrap align-top">
+                      <td className="py-4 px-3 font-mono text-[var(--main-text)] whitespace-normal break-words align-top">
                         {getLocalizedScheduleLabel(floor, "saturdayHours", language)}
                       </td>
-                      <td className="py-4 pl-3 font-mono text-[var(--main-text)] whitespace-nowrap align-top">
+                      <td className="py-4 pl-3 font-mono text-[var(--main-text)] whitespace-normal break-words align-top">
                         {getLocalizedScheduleLabel(floor, "sundayHours", language)}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              {building.floors.some((floor) => language === "vi" ? floor.notesVi : floor.notesEn) && (
+                <div className="mt-4 space-y-2" aria-label={language === "vi" ? "Ghi chú vận hành" : "Operational notes"}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--secondary-text)]">
+                    {language === "vi" ? "Ghi chú vận hành" : "Operational notes"}
+                  </p>
+                  {building.floors.map((floor, fIdx) => {
+                    const note = language === "vi" ? floor.notesVi : floor.notesEn;
+                    if (!note) return null;
+                    return (
+                      <div key={`note-${fIdx}`} className="editorial-info flex w-full items-start gap-2.5 p-3 text-xs leading-relaxed sm:p-3.5">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[var(--main-text)]">{getLocalizedFloorLabel(floor, language)}</p>
+                          <p className="mt-1 text-[var(--main-text)]">{note}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
           </div>

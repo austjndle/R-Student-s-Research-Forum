@@ -135,6 +135,20 @@ export interface Translations {
     fallbackNotice: string;
     alternativeProviderNotice: string;
   };
+  whatsNew: {
+    heading: string;
+    latest: string;
+    feature: string;
+    improvement: string;
+    fix: string;
+    gotIt: string;
+    viewAll: string;
+    empty: string;
+    title: string;
+    history: string;
+    release: string;
+    newLabel: string;
+  };
   support: {
     label: string;
     title: string;
@@ -227,6 +241,124 @@ export interface Translations {
     imageAlt: string;
     facebookPage: string;
     directoryEyebrow: string;
+    directoryTitle: string;
+    backToDirectory: string;
+    overview: string;
+    category: string;
+    about: string;
+    activities: string;
+    gallery: string;
+    related: string;
+    relatedReason: string;
+    officialPage: string;
+    photoCredit: string;
+    imageUnavailable: string;
+    directoryOnly: string;
+    snapshotNotice: string;
+    askAboutClub: string;
+    contact: string;
+    notPublished: string;
+    yes: string;
+    no: string;
+    campusList: string;
+    onThisPage: string;
+  };
+  scholarshipsPage: {
+    eyebrow: string;
+    subtitle: string;
+    searchPlaceholder: string;
+    resultCount: string;
+    filters: string;
+    categoryFilter: string;
+    yearFilter: string;
+    campusFilter: string;
+    programFilter: string;
+    statusFilter: string;
+    allCategories: string;
+    allYears: string;
+    allCampuses: string;
+    allPrograms: string;
+    allStatuses: string;
+    categories: {
+      futureUndergraduate: string;
+      currentStudents: string;
+      postgraduateVietnam: string;
+      postgraduateMelbourne: string;
+      internationalStudents: string;
+      foundationStudies: string;
+    };
+    statuses: {
+      open: string;
+      upcoming: string;
+      closed: string;
+      notAnnounced: string;
+      unverified: string;
+    };
+    fields: {
+      targetGroup: string;
+      institution: string;
+      campus: string;
+      eligiblePrograms: string;
+      awardValue: string;
+      awardCount: string;
+      tuitionCoverage: string;
+      duration: string;
+      gpa: string;
+      credits: string;
+      english: string;
+      citizenship: string;
+      otherEligibility: string;
+      selection: string;
+      requiredDocuments: string;
+      interview: string;
+      applicationProcess: string;
+      openingDate: string;
+      deadline: string;
+      resultDate: string;
+      officialSource: string;
+      terms: string;
+      lastVerified: string;
+      cycle: string;
+      cycleDates: string;
+    };
+    actions: {
+      details: string;
+      applyNow: string;
+      notYetOpen: string;
+      closed: string;
+      howToApply: string;
+      unverifiedLink: string;
+      unavailableLink: string;
+      admissionPortal: string;
+      downloadForm: string;
+      compare: string;
+      compareSelected: string;
+      clearComparison: string;
+      remove: string;
+    };
+    states: {
+      verified: string;
+      partial: string;
+      manualReview: string;
+      noMatches: string;
+      noScholarships: string;
+      notSpecified: string;
+      noCycles: string;
+      currentCycle: string;
+      dateConflict: string;
+      formUnavailable: string;
+    };
+    comparison: {
+      title: string;
+      instructions: string;
+      noSelection: string;
+      scholarship: string;
+      value: string;
+      gpa: string;
+      deadline: string;
+      eligibility: string;
+      application: string;
+    };
   };
   footer: {
     aboutText: string;
@@ -409,6 +541,20 @@ export const translations: Record<Language, Translations> = {
       fallbackNotice: "Quick fallback guidance",
       alternativeProviderNotice: "Answered by the backup AI provider",
     },
+    whatsNew: {
+      heading: "What's New?",
+      latest: "Latest Updates",
+      feature: "New Feature",
+      improvement: "Improvement",
+      fix: "Bug Fix",
+      gotIt: "Got it!",
+      viewAll: "View All Updates",
+      empty: "No release announcements have been published yet. Future updates will appear here.",
+      title: "What's New",
+      history: "Release history",
+      release: "Release",
+      newLabel: "New",
+    },
     support: {
       label: "Independent project support",
       title: "Support R-Students ☕",
@@ -501,6 +647,124 @@ export const translations: Record<Language, Translations> = {
       imageAlt: "Official club image for",
       facebookPage: "Facebook page for",
       directoryEyebrow: "STUDENT LIFE / CLUB DIRECTORY",
+      directoryTitle: "Student Clubs",
+      backToDirectory: "Back to club directory",
+      overview: "Club overview",
+      category: "Category",
+      about: "About the club",
+      activities: "Main activities",
+      gallery: "Official photos",
+      related: "Explore related clubs",
+      relatedReason: "More clubs in this category at the same campus.",
+      officialPage: "View official RMIT page",
+      photoCredit: "Photo source: RMIT Vietnam",
+      imageUnavailable: "Official image unavailable",
+      directoryOnly: "This club is listed in RMIT's campus directory. A current individual profile has not been verified; no activities or photographs have been inferred.",
+      snapshotNotice: "Showing the last checked public information. Open the official source for current details.",
+      askAboutClub: "Ask Mr Hachiware about this club",
+      contact: "Contact",
+      notPublished: "Not published in the checked source",
+      yes: "Yes",
+      no: "No",
+      campusList: "Official campus club list (PDF)",
+      onThisPage: "On this page",
+    },
+    scholarshipsPage: {
+      eyebrow: "RMIT VIETNAM / SCHOLARSHIPS",
+      subtitle: "Compare verified scholarships for future students, current students and international applicants. Check each cycle and official application route before applying.",
+      searchPlaceholder: "Search scholarship, program, or eligibility...",
+      resultCount: "{count} scholarships",
+      filters: "Scholarship filters",
+      categoryFilter: "Student group",
+      yearFilter: "Academic year",
+      campusFilter: "Campus",
+      programFilter: "Program",
+      statusFilter: "Application status",
+      allCategories: "All student groups",
+      allYears: "All years",
+      allCampuses: "All campuses",
+      allPrograms: "All programs",
+      allStatuses: "All statuses",
+      categories: {
+        futureUndergraduate: "Future undergraduate students",
+        currentStudents: "Current students",
+        postgraduateVietnam: "Postgraduate — RMIT Vietnam",
+        postgraduateMelbourne: "Postgraduate — RMIT Melbourne alumni",
+        internationalStudents: "International students",
+        foundationStudies: "Foundation Studies",
+      },
+      statuses: {
+        open: "Open",
+        upcoming: "Upcoming",
+        closed: "Closed",
+        notAnnounced: "Not announced",
+        unverified: "Unverified",
+      },
+      fields: {
+        targetGroup: "Who can apply",
+        institution: "Institution",
+        campus: "Campus",
+        eligiblePrograms: "Eligible programs",
+        awardValue: "Scholarship value",
+        awardCount: "Awards available",
+        tuitionCoverage: "Tuition coverage",
+        duration: "Duration",
+        gpa: "GPA requirement",
+        credits: "Completed credits",
+        english: "English requirement",
+        citizenship: "Citizenship",
+        otherEligibility: "Other eligibility",
+        selection: "Selection criteria",
+        requiredDocuments: "Required documents",
+        interview: "Interview or assessment",
+        applicationProcess: "Application process",
+        openingDate: "Opens",
+        deadline: "Deadline",
+        resultDate: "Results",
+        officialSource: "Official scholarship page",
+        terms: "Terms and conditions",
+        lastVerified: "Last verified",
+        cycle: "Application cycle",
+        cycleDates: "Important dates",
+      },
+      actions: {
+        details: "View details",
+        applyNow: "Apply Now",
+        notYetOpen: "Applications Not Yet Open",
+        closed: "Applications Closed",
+        howToApply: "How to Apply",
+        unverifiedLink: "Application Link Unverified",
+        unavailableLink: "Application form unavailable",
+        admissionPortal: "Open admission portal",
+        downloadForm: "Download application form",
+        compare: "Compare",
+        compareSelected: "Compare selected",
+        clearComparison: "Clear comparison",
+        remove: "Remove",
+      },
+      states: {
+        verified: "Verified",
+        partial: "Partially verified",
+        manualReview: "Manual review needed",
+        noMatches: "No scholarships match these filters.",
+        noScholarships: "No scholarship records are currently listed.",
+        notSpecified: "Not specified on the official page",
+        noCycles: "No application cycle announced",
+        currentCycle: "Current cycle",
+        dateConflict: "Source dates conflict; confirm with RMIT",
+        formUnavailable: "The official application form is not available yet.",
+      },
+      comparison: {
+        title: "Compare scholarships",
+        instructions: "Select two or more scholarships to compare verified details.",
+        noSelection: "Select scholarships above to start a comparison.",
+        scholarship: "Scholarship",
+        value: "Value",
+        gpa: "GPA",
+        deadline: "Deadline",
+        eligibility: "Eligibility",
+        application: "Application",
+      },
     },
     footer: {
       aboutText: "An independent, bilingual research and information discovery platform created by students for students at RMIT University Vietnam.",
@@ -690,6 +954,20 @@ export const translations: Record<Language, Translations> = {
       fallbackNotice: "Gợi ý dự phòng",
       alternativeProviderNotice: "Phản hồi từ nhà cung cấp AI dự phòng",
     },
+    whatsNew: {
+      heading: "Có gì mới?",
+      latest: "Cập nhật mới nhất",
+      feature: "Tính năng mới",
+      improvement: "Cải tiến",
+      fix: "Sửa lỗi",
+      gotIt: "Đã hiểu!",
+      viewAll: "Xem tất cả cập nhật",
+      empty: "Chưa có thông báo phát hành nào được công bố. Các cập nhật tiếp theo sẽ xuất hiện tại đây.",
+      title: "Có gì mới?",
+      history: "Lịch sử cập nhật",
+      release: "Phiên bản",
+      newLabel: "Mới",
+    },
     support: {
       label: "Ủng hộ dự án độc lập",
       title: "Ủng hộ R-Students ☕",
@@ -782,6 +1060,124 @@ export const translations: Record<Language, Translations> = {
       imageAlt: "Hình ảnh chính thức của câu lạc bộ",
       facebookPage: "Trang Facebook của",
       directoryEyebrow: "ĐỜI SỐNG SINH VIÊN / DANH BẠ CÂU LẠC BỘ",
+      directoryTitle: "Câu lạc bộ sinh viên",
+      backToDirectory: "Quay lại danh sách câu lạc bộ",
+      overview: "Thông tin CLB",
+      category: "Danh mục",
+      about: "Giới thiệu CLB",
+      activities: "Hoạt động chính",
+      gallery: "Ảnh chính thức",
+      related: "Khám phá CLB liên quan",
+      relatedReason: "Các CLB cùng danh mục và cùng cơ sở.",
+      officialPage: "Xem trang RMIT chính thức",
+      photoCredit: "Nguồn ảnh: RMIT Việt Nam",
+      imageUnavailable: "Ảnh chính thức hiện không khả dụng",
+      directoryOnly: "CLB có tên trong danh sách cơ sở của RMIT. Chưa xác minh được trang giới thiệu riêng hiện tại; không suy đoán hoạt động hoặc ảnh của CLB.",
+      snapshotNotice: "Đang hiển thị thông tin công khai được kiểm tra gần nhất. Mở nguồn chính thức để xem cập nhật.",
+      askAboutClub: "Hỏi Mr Hachiware về CLB này",
+      contact: "Liên hệ",
+      notPublished: "Nguồn đã kiểm tra chưa công bố",
+      yes: "Có",
+      no: "Không",
+      campusList: "Danh sách CLB chính thức theo cơ sở (PDF)",
+      onThisPage: "Nội dung trang",
+    },
+    scholarshipsPage: {
+      eyebrow: "RMIT VIETNAM / HỌC BỔNG",
+      subtitle: "So sánh học bổng đã xác minh dành cho sinh viên tương lai, sinh viên đang học và sinh viên quốc tế. Kiểm tra từng đợt và kênh ứng tuyển chính thức trước khi nộp.",
+      searchPlaceholder: "Tìm học bổng, chương trình hoặc điều kiện...",
+      resultCount: "{count} học bổng",
+      filters: "Bộ lọc học bổng",
+      categoryFilter: "Nhóm sinh viên",
+      yearFilter: "Năm học",
+      campusFilter: "Cơ sở",
+      programFilter: "Chương trình",
+      statusFilter: "Trạng thái ứng tuyển",
+      allCategories: "Tất cả nhóm sinh viên",
+      allYears: "Tất cả năm",
+      allCampuses: "Tất cả cơ sở",
+      allPrograms: "Tất cả chương trình",
+      allStatuses: "Tất cả trạng thái",
+      categories: {
+        futureUndergraduate: "Sinh viên đại học tương lai",
+        currentStudents: "Sinh viên hiện tại",
+        postgraduateVietnam: "Sau đại học — RMIT Việt Nam",
+        postgraduateMelbourne: "Sau đại học — Cựu sinh viên RMIT Melbourne",
+        internationalStudents: "Sinh viên quốc tế",
+        foundationStudies: "Chương trình Dự bị Đại học",
+      },
+      statuses: {
+        open: "Đang mở",
+        upcoming: "Sắp mở",
+        closed: "Đã đóng",
+        notAnnounced: "Chưa công bố",
+        unverified: "Chưa xác minh",
+      },
+      fields: {
+        targetGroup: "Đối tượng ứng tuyển",
+        institution: "Trường áp dụng",
+        campus: "Cơ sở",
+        eligiblePrograms: "Chương trình đủ điều kiện",
+        awardValue: "Giá trị học bổng",
+        awardCount: "Số lượng suất",
+        tuitionCoverage: "Mức hỗ trợ học phí",
+        duration: "Thời gian áp dụng",
+        gpa: "Yêu cầu GPA",
+        credits: "Tín chỉ đã hoàn thành",
+        english: "Yêu cầu tiếng Anh",
+        citizenship: "Quốc tịch",
+        otherEligibility: "Điều kiện khác",
+        selection: "Tiêu chí xét tuyển",
+        requiredDocuments: "Hồ sơ cần nộp",
+        interview: "Phỏng vấn hoặc đánh giá",
+        applicationProcess: "Quy trình ứng tuyển",
+        openingDate: "Ngày mở đơn",
+        deadline: "Hạn nộp",
+        resultDate: "Ngày công bố kết quả",
+        officialSource: "Trang học bổng chính thức",
+        terms: "Điều khoản và điều kiện",
+        lastVerified: "Xác minh lần cuối",
+        cycle: "Đợt ứng tuyển",
+        cycleDates: "Mốc thời gian quan trọng",
+      },
+      actions: {
+        details: "Xem chi tiết",
+        applyNow: "Ứng tuyển ngay",
+        notYetOpen: "Chưa mở đơn",
+        closed: "Đã đóng đơn",
+        howToApply: "Cách ứng tuyển",
+        unverifiedLink: "Link ứng tuyển chưa xác minh",
+        unavailableLink: "Biểu mẫu chưa khả dụng",
+        admissionPortal: "Mở cổng nhập học",
+        downloadForm: "Tải biểu mẫu ứng tuyển",
+        compare: "So sánh",
+        compareSelected: "So sánh học bổng đã chọn",
+        clearComparison: "Xóa so sánh",
+        remove: "Bỏ chọn",
+      },
+      states: {
+        verified: "Đã xác minh",
+        partial: "Xác minh một phần",
+        manualReview: "Cần xem xét thủ công",
+        noMatches: "Không có học bổng phù hợp với bộ lọc.",
+        noScholarships: "Hiện chưa có bản ghi học bổng.",
+        notSpecified: "Trang chính thức chưa nêu thông tin này",
+        noCycles: "Chưa công bố đợt ứng tuyển",
+        currentCycle: "Đợt hiện tại",
+        dateConflict: "Nguồn có ngày khác nhau; hãy xác nhận với RMIT",
+        formUnavailable: "Biểu mẫu chính thức hiện chưa khả dụng.",
+      },
+      comparison: {
+        title: "So sánh học bổng",
+        instructions: "Chọn ít nhất hai học bổng để so sánh thông tin đã xác minh.",
+        noSelection: "Chọn học bổng ở trên để bắt đầu so sánh.",
+        scholarship: "Học bổng",
+        value: "Giá trị",
+        gpa: "GPA",
+        deadline: "Hạn nộp",
+        eligibility: "Điều kiện",
+        application: "Cách nộp",
+      },
     },
     footer: {
       aboutText: "Nền tảng tra cứu và khám phá thông tin song ngữ độc lập do sinh viên RMIT phát triển nhằm hỗ trợ cộng đồng sinh viên.",

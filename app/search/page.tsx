@@ -142,7 +142,7 @@ function SearchContent() {
         {results.map((res, resultIndex) => {
           const doc = res.document;
           const isVerified = doc.verificationStatus === "verified";
-          const detailUrl = doc.slug ? `/guides/${doc.slug}` : `/topics/${doc.categoryId}`;
+          const detailUrl = doc.resultHref ?? (doc.slug ? `/guides/${doc.slug}` : `/topics/${doc.categoryId}`);
           const isCardExpanded = expandedCardId === doc.id;
 
           return (

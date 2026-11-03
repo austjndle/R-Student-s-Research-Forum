@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/context";
 import { KNOWLEDGE_CATEGORIES } from "@/data/knowledge/schema";
+import { ScholarshipDirectory } from "@/components/scholarships/ScholarshipDirectory";
 import { KNOWLEDGE_DOCUMENTS } from "@/data/knowledge/documents";
 import {
   ArrowLeft,
@@ -22,6 +23,10 @@ export default function TopicDetailPage({
 }) {
   const { slug } = use(params);
   const { language, t } = useLanguage();
+  if (slug === "scholarships") {
+    return <ScholarshipDirectory />;
+  }
+
 
   const category = KNOWLEDGE_CATEGORIES.find((c) => c.id === slug);
 

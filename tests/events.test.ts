@@ -13,6 +13,15 @@ describe("Verified calendar data", () => {
       expect(entry.sourceLastVerified).toMatch(/^2026-/);
     }
   });
+  it("contains the published 2027 Higher Education milestones from the official PDF", () => {
+    const academic2027 = getPublishedCalendarEntries().filter((entry) => entry.academicYear === "2027");
+    expect(academic2027.length).toBeGreaterThanOrEqual(20);
+    expect(academic2027.every((entry) => entry.programType === "higher_education")).toBe(true);
+    expect(academic2027.find((entry) => entry.id === "academic-s1-start-2027")?.startAt).toBe("2027-03-01T00:00:00+07:00");
+    expect(academic2027.find((entry) => entry.id === "academic-s2-start-2027")?.startAt).toBe("2027-06-28T00:00:00+07:00");
+    expect(academic2027.find((entry) => entry.id === "academic-s3-start-2027")?.startAt).toBe("2027-10-25T00:00:00+07:00");
+    expect(academic2027.map((entry) => entry.startAt).sort()).toEqual(academic2027.map((entry) => entry.startAt));
+  });
 });
 describe("Official RMIT activity and event images", () => {
   it("includes all nine activity highlights with accessible, source-traceable images", () => {

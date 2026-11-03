@@ -1,6 +1,10 @@
 import { KNOWLEDGE_DOCUMENTS } from "@/data/knowledge/documents";
 import { DEPARTMENT_CONTACTS, type DepartmentContact } from "@/data/contacts/departments";
+import { RMIT_CAMPUS_HOURS } from "@/data/facilities/campusHours";
+import { getPublishedCalendarEntries } from "@/data/events/calendar";
+import { getVerifiedClubs } from "@/data/clubs/clubs";
 import type { KnowledgeDocument, Campus } from "@/data/knowledge/schema";
+import { KNOWLEDGE_INDEX_VERSION } from "@/data/knowledge/indexManifest";
 
 /**
  * Remove Vietnamese accents and diacritics for insensitive matching.
@@ -56,6 +60,89 @@ const BILINGUAL_SYNONYM_MAP: Record<string, string[]> = {
   "gpa": ["thang diem", "grading scale", "diem trung binh", "hd", "di", "cr", "pa", "nn"],
   "gia han": ["special consideration", "extension", "nop tre", "hoan canh dac biet"]
 };
+function buildAuxiliarySearchDocuments(): KnowledgeDocument[] {
+  const clubDocuments = getVerifiedClubs().map((club): KnowledgeDocument => ({
+    id: `club-${club.id}`,
+    slug: club.id,
+    titleEn: club.nameEn,
+    titleVi: club.nameVi,
+    categoryId: "clubs",
+    keywords: [club.nameEn, club.nameVi, club.category, club.campus],
+    synonymsEn: ["student club", "club", "society", "join club"],
+    synonymsVi: ["câu lạc bộ", "clb", "tham gia clb"],
+    summaryEn: club.descriptionEn ?? "Verified RMIT Vietnam student club record.",
+    summaryVi: club.descriptionVi ?? "Thông tin câu lạc bộ sinh viên RMIT Việt Nam đã được xác minh.",
+    detailedGuidanceEn: "Open the club detail page for verified profile, public channels, recruitment status, and source links.",
+    detailedGuidanceVi: "Mở trang chi tiết CLB để xem hồ sơ đã xác minh, kênh công khai, trạng thái tuyển thành viên và nguồn.",
+    keyDetailsEn: [`Campus: ${club.campus}`, `Category: ${club.category}`, club.contactEmail ? `Email: ${club.contactEmail}` : "Public email not published in the checked source."],
+    keyDetailsVi: [`Cơ sở: ${club.campus}`, `Danh mục: ${club.category}`, club.contactEmail ? `Email: ${club.contactEmail}` : "Nguồn đã kiểm tra chưa công bố email."],
+    officialSourceUrl: club.officialClubUrl ?? club.sourceUrl,
+    sourceTitle: "RMIT Vietnam student clubs",
+    departmentId: "dept-student-connect",
+    campus: club.campus,
+    lastVerifiedDate: club.lastVerifiedDate,
+    verificationStatus: "verified",
+    resultHref: `/clubs/${club.id}`,
+  }));
+
+  const facilityDocuments = RMIT_CAMPUS_HOURS.map((building): KnowledgeDocument => ({
+    id: `facility-${building.id}`,
+    slug: building.id,
+    titleEn: building.nameEn,
+    titleVi: building.nameVi,
+    categoryId: "campus-facilities",
+    keywords: [
+      building.nameEn,
+      building.nameVi,
+      building.id,
+      building.buildingCode ?? "",
+      ...building.floors.flatMap((floor) => [floor.floorEn ?? floor.floor, floor.floorVi ?? floor.floor, floor.facilitiesEn, floor.facilitiesVi]),
+    ],
+    synonymsEn: ["building", "facility", "campus map", "where is", "library", "student connect", "gym", "health centre", "clinic", "international sos"],
+    synonymsVi: ["tòa nhà", "cơ sở vật chất", "bản đồ cơ sở", "ở đâu", "thư viện", "phòng gym"],
+    summaryEn: building.overviewEn,
+    summaryVi: building.overviewVi,
+    detailedGuidanceEn: "Use the official floor-plan or campus map link for navigation. Building access and facility hours are shown only when published in the checked source.",
+    detailedGuidanceVi: "Dùng liên kết sơ đồ tầng hoặc bản đồ cơ sở chính thức để tìm đường. Chỉ hiển thị giờ mở cửa khi nguồn đã kiểm tra công bố.",
+    keyDetailsEn: building.floors.map((floor) => `${floor.floorEn ?? floor.floor}: ${floor.facilitiesEn} (${floor.weekdayHours})`),
+    keyDetailsVi: building.floors.map((floor) => `${floor.floorVi ?? floor.floor}: ${floor.facilitiesVi} (${floor.weekdayHours})`),
+    sourceTitle: "RMIT Vietnam campus facilities",
+    officialSourceUrl: building.floorPlanPdfUrl ?? building.floors.find((floor) => floor.sourceUrl)?.sourceUrl ?? "https://www.rmit.edu.vn/students/campus-life/campus-facilities",
+    departmentId: "dept-student-connect",
+    campus: building.campus,
+    lastVerifiedDate: "2026-11-03",
+    verificationStatus: "verified",
+    resultHref: `/facilities#${building.id}`,
+  }));
+
+  const calendarDocuments = getPublishedCalendarEntries().map((entry): KnowledgeDocument => ({
+    id: `calendar-${entry.id}`,
+    slug: entry.id,
+    titleEn: entry.titleEn,
+    titleVi: entry.titleVi,
+    categoryId: entry.type === "academic_date" ? "academic-calendar" : "campus-events",
+    keywords: [entry.titleEn, entry.titleVi, entry.semester ?? "", entry.academicYear ?? "", entry.category],
+    synonymsEn: entry.type === "academic_date" ? ["academic calendar", "deadline", "semester date", "census", "enrolment"] : ["event", "campus event", "student activity"],
+    synonymsVi: entry.type === "academic_date" ? ["lịch học vụ", "hạn chót", "học kỳ", "đăng ký môn"] : ["sự kiện", "hoạt động sinh viên", "sự kiện cơ sở"],
+    summaryEn: entry.descriptionEn,
+    summaryVi: entry.descriptionVi,
+    detailedGuidanceEn: "Check the official source linked below. Program-specific calendars may differ where RMIT says so.",
+    detailedGuidanceVi: "Kiểm tra nguồn chính thức bên dưới. Lịch riêng của từng chương trình có thể khác khi RMIT có ghi chú.",
+    keyDetailsEn: [`Date: ${entry.startAt}`, entry.semester ? `Semester: ${entry.semester}` : "", entry.academicYear ? `Academic year: ${entry.academicYear}` : ""].filter(Boolean),
+    keyDetailsVi: [`Ngày: ${entry.startAt}`, entry.semester ? `Học kỳ: ${entry.semester}` : "", entry.academicYear ? `Năm học: ${entry.academicYear}` : ""].filter(Boolean),
+    officialSourceUrl: entry.originalUrl,
+    sourceTitle: "RMIT Vietnam official calendar and events",
+    departmentId: "dept-student-connect",
+    campus: entry.campus,
+    lastVerifiedDate: entry.sourceLastVerified,
+    verificationStatus: entry.verification === "verified" ? "verified" : "needs_review",
+    resultHref: entry.type === "academic_date" ? "/calendar" : "/events",
+  }));
+
+  return [...clubDocuments, ...facilityDocuments, ...calendarDocuments];
+}
+
+const AUXILIARY_SEARCH_DOCUMENTS = buildAuxiliarySearchDocuments();
 type NormalizedTerm = { value: string; normalized: string };
 type SearchDocumentIndex = {
   document: KnowledgeDocument;
@@ -72,15 +159,57 @@ const NORMALIZED_SYNONYMS = Object.entries(BILINGUAL_SYNONYM_MAP).map(([phrase, 
   synonyms: synonyms.map(removeVietnameseDiacritics),
 }));
 
-const SEARCH_DOCUMENT_INDEX: SearchDocumentIndex[] = KNOWLEDGE_DOCUMENTS.map((document) => ({
-  document,
-  titleEn: removeVietnameseDiacritics(document.titleEn),
-  titleVi: removeVietnameseDiacritics(document.titleVi),
-  summaryEn: removeVietnameseDiacritics(document.summaryEn),
-  summaryVi: removeVietnameseDiacritics(document.summaryVi),
-  keywords: document.keywords.map((value) => ({ value, normalized: removeVietnameseDiacritics(value) })),
-  synonyms: [...document.synonymsEn, ...document.synonymsVi].map((value) => ({ value, normalized: removeVietnameseDiacritics(value) })),
-}));
+function indexDocuments(documents: KnowledgeDocument[]): SearchDocumentIndex[] {
+  return documents.map((document) => ({
+    document,
+    titleEn: removeVietnameseDiacritics(document.titleEn),
+    titleVi: removeVietnameseDiacritics(document.titleVi),
+    summaryEn: removeVietnameseDiacritics(document.summaryEn),
+    summaryVi: removeVietnameseDiacritics(document.summaryVi),
+    keywords: document.keywords.map((value) => ({ value, normalized: removeVietnameseDiacritics(value) })),
+    synonyms: [...document.synonymsEn, ...document.synonymsVi].map((value) => ({ value, normalized: removeVietnameseDiacritics(value) })),
+  }));
+}
+
+const CORE_SEARCH_DOCUMENT_INDEX = indexDocuments(KNOWLEDGE_DOCUMENTS);
+const SEARCH_DOCUMENT_INDEX = [...CORE_SEARCH_DOCUMENT_INDEX, ...indexDocuments(AUXILIARY_SEARCH_DOCUMENTS)];
+const SEARCH_RESULT_CACHE = new Map<string, SearchResultItem[]>();
+function cacheSearchResult(key: string, results: SearchResultItem[]): SearchResultItem[] {
+  if (SEARCH_RESULT_CACHE.size >= 128) SEARCH_RESULT_CACHE.clear();
+  SEARCH_RESULT_CACHE.set(key, results);
+  return results;
+}
+const AUXILIARY_SEARCH_HINTS = [
+  "club", "clb", "cau lac bo", "câu lạc bộ", "building", "facility", "library", "gym", "health centre", "clinic", "international sos", "circle k", "beanland", "lygon", "melbourne theatre", "calendar", "semester",
+  "học kỳ", "lịch học", "event", "sự kiện", "where is", "ở đâu", "tòa nhà", "co so", "cơ sở", "tầng", "floor", "level",
+];
+const AUXILIARY_DISCOVERY_STOP_TERMS = new Set(["rmit", "club", "campus", "building", "calendar", "semester", "official", "student", "hanoi", "saigon", "south", "university", "academic", "hub"]);
+const AUXILIARY_DISCOVERY_TERMS = new Set(
+  AUXILIARY_SEARCH_DOCUMENTS.flatMap((document) => [document.titleEn, document.titleVi, ...document.keywords])
+    .flatMap((title) => removeVietnameseDiacritics(title).split(/\s+/))
+    .filter((term) => term.length > 3 && !AUXILIARY_DISCOVERY_STOP_TERMS.has(term)),
+);
+
+const AUXILIARY_QUERY_DECISION_CACHE = new Map<string, boolean>();
+
+export function shouldSearchAuxiliaryDocuments(query: string): boolean {
+  const normalized = removeVietnameseDiacritics(query);
+  const cached = AUXILIARY_QUERY_DECISION_CACHE.get(normalized);
+  if (cached !== undefined) return cached;
+  const hasLocationIntent = /\b(?:where is|ở đâu|building|tòa nhà|cơ sở)\b/i.test(normalized);
+  const hasHoursIntent = /\b(?:hours?|giờ|mo cua|mở cửa)\b/i.test(normalized);
+  if (hasHoursIntent && !hasLocationIntent) {
+    AUXILIARY_QUERY_DECISION_CACHE.set(normalized, false);
+    return false;
+  }
+  const result = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(query)
+    ? AUXILIARY_SEARCH_HINTS.some((hint) => normalized.includes(removeVietnameseDiacritics(hint)))
+    : AUXILIARY_SEARCH_HINTS.some((hint) => normalized.includes(removeVietnameseDiacritics(hint)))
+      || normalized.split(/\s+/).some((term) => AUXILIARY_DISCOVERY_TERMS.has(term));
+  if (AUXILIARY_QUERY_DECISION_CACHE.size >= 128) AUXILIARY_QUERY_DECISION_CACHE.clear();
+  AUXILIARY_QUERY_DECISION_CACHE.set(normalized, result);
+  return result;
+}
 
 const DEPARTMENT_BY_ID = new Map(DEPARTMENT_CONTACTS.map((department) => [department.id, department]));
 
@@ -89,6 +218,7 @@ export interface SearchFilterOptions {
   campus?: Campus;
   language?: "en" | "vi";
   limit?: number;
+  includeAuxiliary?: boolean;
 }
 
 export interface SearchResultItem {
@@ -144,14 +274,20 @@ export function searchKnowledgeBase(
     return [];
   }
 
-  const { language = "en", categoryId, campus, limit = 10 } = options;
+  const { language = "en", categoryId, campus, limit = 10, includeAuxiliary = true } = options;
+  const cacheKey = `${KNOWLEDGE_INDEX_VERSION}|${query.trim().toLocaleLowerCase()}|${language}|${categoryId ?? "all"}|${campus ?? "all"}|${limit}|${includeAuxiliary}`;
+  const cachedResults = SEARCH_RESULT_CACHE.get(cacheKey);
+  if (cachedResults) return cachedResults;
   const { diacriticFree, tokens } = processQuery(query);
   const tokenMatchers = tokens.map((token) => new RegExp(`\\b${token}\\b`, "i"));
 
 
   const scoredResults: SearchResultItem[] = [];
 
-  for (const indexed of SEARCH_DOCUMENT_INDEX) {
+  const searchIndex = includeAuxiliary && shouldSearchAuxiliaryDocuments(query)
+    ? SEARCH_DOCUMENT_INDEX
+    : CORE_SEARCH_DOCUMENT_INDEX;
+  for (const indexed of searchIndex) {
     const doc = indexed.document;
     // 1. Filter by category if requested
     if (categoryId && categoryId !== "all" && doc.categoryId !== categoryId) {
@@ -164,6 +300,11 @@ export function searchKnowledgeBase(
     }
 
     let score = 0;
+    const requestedBuilding = diacriticFree.match(/\b(?:building\s*|b)(1|2|8|9|10)\b/)?.[1];
+    if (requestedBuilding && doc.resultHref?.startsWith("/facilities#")) {
+      const exactBuilding = doc.id.endsWith(`b${requestedBuilding}`) || indexed.titleEn.includes(`building ${requestedBuilding}`);
+      score += exactBuilding ? 300 : -150;
+    }
     let matchedKeywords: string[] | undefined;
 
     const titleEnClean = indexed.titleEn;
@@ -271,7 +412,7 @@ export function searchKnowledgeBase(
   scoredResults.sort((a, b) => b.score - a.score);
 
   if (scoredResults.length === 0) {
-    return [];
+    return cacheSearchResult(cacheKey, []);
   }
 
   const topScore = scoredResults[0].score;
@@ -282,9 +423,9 @@ export function searchKnowledgeBase(
     const strictFiltered = scoredResults.filter(
       (res) => res.score >= topScore * 0.65
     );
-    return strictFiltered.slice(0, 2);
+    return cacheSearchResult(cacheKey, strictFiltered.slice(0, 2));
   }
 
   // For broader exploratory searches, return at most top 3 only if their score is high
-  return scoredResults.filter((res) => res.score >= Math.max(50, topScore * 0.6)).slice(0, 3);
+  return cacheSearchResult(cacheKey, scoredResults.filter((res) => res.score >= Math.max(50, topScore * 0.6)).slice(0, 3));
 }

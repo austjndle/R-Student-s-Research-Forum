@@ -100,6 +100,18 @@ export const EVENT_SOURCES: EventSource[] = [
     notesVi: "PDF chính thức. Cập nhật lần cuối ngày 10/11/2025; sinh viên cần đối chiếu lịch riêng của chương trình trên trang nguồn.",
   },
   {
+    id: "rmit-academic-calendar-2027",
+    nameEn: "Vietnam Campus Academic Calendar 2027",
+    nameVi: "Lịch học vụ cơ sở Việt Nam năm 2027",
+    organisation: "RMIT University Vietnam",
+    sourceType: "official_website",
+    url: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/documents/pdfs/academic-calendar/academic-calendar-2027.pdf",
+    verificationStatus: "verified",
+    lastSuccessfulCheck: "2026-11-03",
+    notesEn: "Official approved Vietnam Campus Higher Education calendar for 2027. Program-specific schedules may differ.",
+    notesVi: "Lịch học vụ cơ sở Việt Nam năm 2027 chính thức đã được phê duyệt. Lịch riêng của từng chương trình có thể khác.",
+  },
+  {
     id: "rmit-vietnam-facebook",
     nameEn: "RMIT University Vietnam Facebook",
     nameVi: "Facebook RMIT University Vietnam",

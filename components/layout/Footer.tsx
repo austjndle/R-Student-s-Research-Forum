@@ -4,7 +4,8 @@ import React from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/context";
 import { requestOpenSupport } from "@/components/support/supportEvents";
-import { Coffee, ExternalLink, ShieldCheck, Heart } from "lucide-react";
+import { Coffee, ExternalLink, ShieldCheck, Sparkles } from "lucide-react";
+import { requestOpenWhatsNew } from "@/components/changelog/changelogEvents";
 
 export function Footer() {
   const { t } = useLanguage();
@@ -105,6 +106,12 @@ export function Footer() {
                 <Link href="/about" className="hover:text-[var(--accent)] transition-colors">
                   {t.footer.about}
                 </Link>
+              </li>
+              <li>
+                <button type="button" onClick={requestOpenWhatsNew} className="inline-flex min-h-11 items-center gap-2 transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+                  <Sparkles className="h-4 w-4" aria-hidden="true" />
+                  {t.whatsNew.title}
+                </button>
               </li>
             </ul>
           </div>

@@ -60,6 +60,23 @@ describe("Smart Search Engine", () => {
     expect(results.length).toBeGreaterThan(0);
     expect(results[0].document.id).toBe("doc-scholarships-types");
   });
+  it("searches verified club, facility, and calendar records with correct routes", () => {
+    const cineverse = searchKnowledgeBase("Cineverse", { limit: 5 });
+    expect(cineverse.some((result) => result.document.id === "club-hn-cineverse" && result.document.resultHref === "/clubs/hn-cineverse")).toBe(true);
+
+    const building = searchKnowledgeBase("Building 8 Circle K", { limit: 5 });
+    expect(building.some((result) => result.document.id === "facility-sgs-b8" && result.document.resultHref === "/facilities#sgs-b8")).toBe(true);
+
+    const calendar = searchKnowledgeBase("Semester 1 2027 begins", { limit: 5 });
+    expect(calendar.some((result) => result.document.id === "calendar-academic-s1-start-2027" && result.document.resultHref === "/calendar")).toBe(true);
+
+    const procedure = searchKnowledgeBase("myRMIT leave of absence", { limit: 5 });
+    expect(procedure.some((result) => result.document.id === "doc-myrmit-submit-requests" && result.document.officialSourceUrl.includes("/myrmit/submit-requests"))).toBe(true);
+    const lygon = searchKnowledgeBase("The Lygon Café", { limit: 5 });
+    expect(lygon.some((result) => result.document.id === "facility-sgs-b1" && result.document.resultHref === "/facilities#sgs-b1")).toBe(true);
+    const melbourneTheatre = searchKnowledgeBase("Melbourne Theatre Room 1.2.35", { limit: 5 });
+    expect(melbourneTheatre.some((result) => result.document.id === "facility-sgs-b1")).toBe(true);
+  });
 });
 
 describe("Gemini AI Guardrails and Scope Filter", () => {
