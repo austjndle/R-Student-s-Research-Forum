@@ -35,7 +35,7 @@ export interface DepartmentContact {
   locationEn: string;
   locationVi: string;
   campusContacts?: Array<{
-    campus: "saigon_south" | "hanoi";
+    campus: "saigon_south" | "hanoi" | "da_nang";
     email: string | null;
     phone: string | null;
     locationEn: string;

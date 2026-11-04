@@ -154,6 +154,7 @@ export const ACADEMIC_SCHOOL_CONTACTS: DepartmentContact[] = [
     campusContacts: [
       { campus: "saigon_south", email: null, phone: null, locationEn: "RMIT Saigon South Campus — direct room details not published on the checked page", locationVi: "Cơ sở RMIT Nam Sài Gòn — trang đã kiểm tra không nêu phòng cụ thể" },
       { campus: "hanoi", email: null, phone: null, locationEn: "Hanoi City campus — direct room details not published on the checked page", locationVi: "Cơ sở Hà Nội — trang đã kiểm tra không nêu phòng cụ thể" },
+      { campus: "da_nang", email: null, phone: null, locationEn: "RMIT Foreign Language Centre Da Nang, FHome Building, Level 4, 16 Ly Thuong Kiet, Hai Chau District", locationVi: "Trung tâm Ngoại ngữ RMIT Đà Nẵng, Tòa nhà FHome, Tầng 4, 16 Lý Thường Kiệt, Quận Hải Châu" },
     ],
     specializedContacts: [
       { id: "seup-english-south", labelEn: "English programs — Saigon South", labelVi: "Chương trình tiếng Anh — Nam Sài Gòn", purposeEn: "Use the official SEUP enquiry form; no direct campus email is published on the checked contact page.", purposeVi: "Sử dụng biểu mẫu liên hệ SEUP chính thức; trang đã kiểm tra không công bố email trực tiếp theo cơ sở.", email: null, campus: "saigon_south", verificationStatus: "verified", sourceUrl: "https://www.rmit.edu.vn/about-us/schools-and-centres/school-english-university-pathways/contact" },

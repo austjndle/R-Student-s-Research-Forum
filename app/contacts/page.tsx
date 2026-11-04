@@ -59,7 +59,7 @@ function AcademicSchoolCard({ department, language, t, onCopyEmail }: { departme
       </div>
       {expanded && (
         <div className="space-y-4 border-t border-[var(--border)] pt-4 text-xs">
-          {department.campusContacts && <div><h4 className="font-semibold text-[var(--main-text)]">{t.common.campus}</h4><ul className="mt-2 space-y-2 text-[var(--secondary-text)]">{department.campusContacts.map((contact) => <li key={contact.campus}><strong>{contact.campus === "hanoi" ? t.common.hanoi : t.common.saigonSouth}:</strong> {language === "vi" ? contact.locationVi : contact.locationEn}{contact.email ? ` · ${contact.email}` : ""}</li>)}</ul></div>}
+          {department.campusContacts && <div><h4 className="font-semibold text-[var(--main-text)]">{t.common.campus}</h4><ul className="mt-2 space-y-2 text-[var(--secondary-text)]">{department.campusContacts.map((contact) => <li key={contact.campus}><strong>{contact.campus === "hanoi" ? t.common.hanoi : contact.campus === "da_nang" ? (language === "vi" ? "Đà Nẵng" : "Da Nang") : t.common.saigonSouth}:</strong> {language === "vi" ? contact.locationVi : contact.locationEn}{contact.email ? ` · ${contact.email}` : ""}</li>)}</ul></div>}
           <div><h4 className="font-semibold text-[var(--main-text)]">{t.contacts.specializedContacts}</h4><ul className="mt-2 space-y-3 text-[var(--secondary-text)]">{specialized.map((contact) => <li key={contact.id}><strong className="text-[var(--main-text)]">{language === "vi" ? contact.labelVi : contact.labelEn}</strong><p className="mt-1">{language === "vi" ? contact.purposeVi : contact.purposeEn}</p>{contact.email ? <a href={`mailto:${contact.email}`} className="mt-1 inline-flex text-[var(--accent)] hover:underline">{contact.email}</a> : <span className="mt-1 block italic">{t.contacts.noDirectContact}</span>}</li>)}</ul></div>
         </div>
       )}
@@ -144,6 +144,7 @@ export default function ContactsPage() {
             <option value="all">{t.common.allCampuses}</option>
             <option value="saigon_south">{t.common.saigonSouth}</option>
             <option value="hanoi">{t.common.hanoi}</option>
+            <option value="da_nang">{language === "vi" ? "Đà Nẵng" : "Da Nang"}</option>
           </select>
           <select value={contactType} onChange={(e) => setContactType(e.target.value as typeof contactType)} aria-label={t.contacts.allContactTypes} className="editorial-control px-3 text-sm focus:outline-none">
             <option value="all">{t.contacts.allContactTypes}</option>
