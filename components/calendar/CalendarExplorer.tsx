@@ -25,6 +25,8 @@ import {
 import { EVENT_SOURCES } from "@/data/events/sources";
 import { EventImage } from "./EventImage";
 import { useLanguage } from "@/lib/i18n/context";
+import { ReportIssue } from "@/components/feedback/ReportIssue";
+import { RecentUpdates } from "@/components/updates/RecentUpdates";
 
 type TimeFilter = "all" | "upcoming" | "ongoing" | "ended" | "this_month";
 type ViewFilter = "list" | "calendar";
@@ -140,22 +142,15 @@ function EntryRow({ entry, language, now }: { entry: CalendarEntry; language: "e
   const visibleRegistrationLinks = registrationStatus === "closed" || temporalStatus === "ended" ? [] : registrationLinks;
 
   return (
-    <article className="group grid min-w-0 gap-4 border-t border-[var(--border)] py-5 md:grid-cols-[120px_minmax(0,1fr)_auto] md:items-start">
-      <EventImage
-        src={entry.imageUrl}
-        alt={language === "vi" ? entry.imageAltVi ?? title : entry.imageAltEn ?? entry.imageAlt ?? title}
-        className="col-span-full aspect-[16/7] w-full md:col-start-2 md:col-span-2 md:max-w-[720px]"
-        objectPosition={entry.imageObjectPosition}
-        aspectRatio={entry.imageAspectRatio}
-      />
-      <div className="flex items-center gap-3 md:block">
+    <article className="group grid min-w-0 gap-5 border border-[var(--border)] bg-[var(--surface-elevated)] p-4 md:grid-cols-[112px_minmax(0,1fr)] md:gap-6 md:p-5">
+      <div className="min-w-0 md:pt-1">
         <div className="border-l-4 border-[var(--accent)] pl-3">
           <p className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent)]">
             {entry.type === "academic_date"
               ? language === "vi" ? "NGÀY" : "DATE"
               : language === "vi" ? "SỰ KIỆN" : "EVENT"}
           </p>
-          <p className="mt-1 whitespace-nowrap text-base font-bold leading-none text-[var(--main-text)] md:text-lg">
+          <p className="mt-1 text-lg font-bold leading-tight text-[var(--main-text)]">
             {new Intl.DateTimeFormat(language === "vi" ? "vi-VN" : "en-GB", {
               timeZone: "Asia/Ho_Chi_Minh",
               day: "2-digit",
@@ -166,61 +161,92 @@ function EntryRow({ entry, language, now }: { entry: CalendarEntry; language: "e
       </div>
 
       <div className="min-w-0">
-        <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-[0.08em] text-[var(--secondary-text)]">
-          <span>{categoryLabels[language][entry.category]}</span>
-          <span aria-hidden="true">/</span>
-          <span>{getCampusLabel(entry.campus, language)}</span>
-          {entry.semester && <><span aria-hidden="true">/</span><span>{getSemesterLabel(entry.semester, language)}</span></>}
-        </div>
-        <h3 className="text-xl font-semibold leading-tight text-[var(--main-text)] group-hover:text-[var(--accent)] transition-colors duration-200">
-          {title}
-        </h3>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--secondary-text)]">{description}</p>
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--secondary-text)]">
-          <span>{organiser}</span>
-          {venue && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" aria-hidden="true" />{venue}</span>}
-        </div>
-      </div>
+        {entry.imageUrl && (
+          <EventImage
+            src={entry.imageUrl}
+            alt={language === "vi" ? entry.imageAltVi ?? title : entry.imageAltEn ?? entry.imageAlt ?? title}
+            className="mb-5 aspect-[16/7] w-full"
+            objectPosition={entry.imageObjectPosition}
+            aspectRatio={entry.imageAspectRatio}
+          />
+        )}
 
-      <div className="flex flex-wrap items-center gap-3 md:justify-end">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-[0.08em] text-[var(--secondary-text)]">
+              <span>{categoryLabels[language][entry.category]}</span>
+              <span aria-hidden="true">/</span>
+              <span>{getCampusLabel(entry.campus, language)}</span>
+              {entry.semester && <><span aria-hidden="true">/</span><span>{getSemesterLabel(entry.semester, language)}</span></>}
+            </div>
+            <h3 className="text-xl font-semibold leading-tight text-[var(--main-text)] transition-colors duration-200 group-hover:text-[var(--accent)]">
+              {title}
+            </h3>
+          </div>
+
           {entry.verification === "verified" ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+            <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
               <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
               {language === "vi" ? "Đã xác minh" : "Verified"}
             </span>
           ) : (
-            <span className="border border-amber-700 px-2 py-1 text-xs font-semibold text-amber-800 dark:border-amber-300 dark:text-amber-200">{language === "vi" ? "Cần xem xét" : "Needs review"}</span>
+            <span className="shrink-0 border border-amber-700 px-2 py-1 text-xs font-semibold text-amber-800 dark:border-amber-300 dark:text-amber-200">
+              {language === "vi" ? "Cần xem xét" : "Needs review"}
+            </span>
           )}
+        </div>
+
+        <p className="mt-3 text-sm leading-6 text-[var(--secondary-text)]">{description}</p>
+
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--secondary-text)]">
+          <span>{organiser}</span>
+          {venue && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" aria-hidden="true" />{venue}</span>}
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           {temporalStatus && <span className="border border-[var(--border)] px-2 py-1 text-xs text-[var(--secondary-text)]">{getTemporalStatusLabel(temporalStatus, language)}</span>}
           {registrationStatus && <span className="border border-[var(--border)] px-2 py-1 text-xs text-[var(--secondary-text)]">{getRegistrationStatusLabel(registrationStatus, language)}</span>}
         </div>
-        <a
-          href={entry.originalUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex min-h-11 items-center gap-1.5 border border-[var(--border)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
-        >
-          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-          {language === "vi" ? "Nguồn gốc" : "Original source"}
-        </a>
-        {visibleRegistrationLinks.map((registration) => (
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           <a
-            key={registration.url}
-            href={registration.url}
+            href={entry.originalUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex min-h-11 items-center border border-[var(--accent)] bg-[var(--accent)] px-3 text-xs font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
+            className="inline-flex min-h-11 items-center gap-1.5 border border-[var(--border)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
           >
-            {registrationStatus === "unverified"
-              ? language === "vi" ? "Thông tin đăng ký" : "Registration details"
-              : language === "vi" ? registration.labelVi : registration.labelEn}
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            {language === "vi" ? "Nguồn gốc" : "Original source"}
           </a>
-        ))}
+          {visibleRegistrationLinks.map((registration) => (
+            <a
+              key={registration.url}
+              href={registration.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-11 items-center border border-[var(--accent)] bg-[var(--accent)] px-3 text-xs font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
+            >
+              {registrationStatus === "unverified"
+                ? language === "vi" ? "Thông tin đăng ký" : "Registration details"
+                : language === "vi" ? registration.labelVi : registration.labelEn}
+            </a>
+          ))}
+          {!/tba|tbd|not announced/i.test(`${entry.startAt} ${title}`) && (
+            <a
+              href={`/api/events/${encodeURIComponent(entry.id)}/ics`}
+              download={`${entry.id}.ics`}
+              className="inline-flex min-h-11 items-center border border-[var(--border)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
+            >
+              {language === "vi" ? "Thêm vào lịch" : "Add to calendar"}
+            </a>
+          )}
+          <ReportIssue recordId={entry.id} pageUrl={typeof window === "undefined" ? entry.originalUrl : window.location.href} />
+        </div>
+
+        <p className="mt-4 font-mono text-[11px] text-[var(--secondary-text)]">
+          {language === "vi" ? "Xác minh lần cuối" : "Last verified"}: {source?.lastSuccessfulCheck ?? entry.sourceLastVerified}
+        </p>
       </div>
-      <p className="font-mono text-[11px] text-[var(--secondary-text)] md:col-start-2">
-        {language === "vi" ? "Xác minh lần cuối" : "Last verified"}: {source?.lastSuccessfulCheck ?? entry.sourceLastVerified}
-      </p>
     </article>
   );
 }
@@ -235,9 +261,15 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("upcoming");
   const [viewFilter, setViewFilter] = useState<ViewFilter>("list");
   const [currentTime, setCurrentTime] = useState<string | null>(null);
+  const [dynamicEntries, setDynamicEntries] = useState<CalendarEntry[]>([]);
+  const allEntries = useMemo(() => {
+    const byId = new Map(getPublishedCalendarEntries().map((entry) => [entry.id, entry]));
+    for (const entry of dynamicEntries) byId.set(entry.id, entry);
+    return [...byId.values()];
+  }, [dynamicEntries]);
   const availableAcademicYears = useMemo(
-    () => [...new Set(getPublishedCalendarEntries().filter((entry) => entry.type === "academic_date" && entry.academicYear).map((entry) => entry.academicYear!))].sort(),
-    [],
+    () => [...new Set(allEntries.filter((entry) => entry.type === "academic_date" && entry.academicYear).map((entry) => entry.academicYear!))].sort(),
+    [allEntries],
   );
   const availableCategories = Object.entries(categoryLabels[language]).filter(([value]) =>
     activeType === "all" || (activeType === "academic_date" ? value === "academic" : value !== "academic")
@@ -245,6 +277,16 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
 
   useEffect(() => {
     setCurrentTime(new Date().toISOString());
+  }, []);
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/events", { headers: { Accept: "application/json" } })
+      .then((response) => response.ok ? response.json() as Promise<{ events?: CalendarEntry[] }> : { events: [] })
+      .then((payload) => {
+        if (active && Array.isArray(payload.events)) setDynamicEntries(payload.events);
+      })
+      .catch(() => undefined);
+    return () => { active = false; };
   }, []);
   useEffect(() => {
     if (activeType === "academic_date" && (timeFilter === "ongoing" || timeFilter === "ended")) {
@@ -256,7 +298,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
     const now = currentTime ? new Date(currentTime) : null;
     const currentDayStart = currentTime ? new Date(`${toDateKey(currentTime)}T00:00:00+07:00`) : null;
     const currentMonth = currentTime ? toDateKey(currentTime).slice(0, 7) : null;
-    return getPublishedCalendarEntries()
+    return allEntries
       .filter((entry) => activeType === "all" || entry.type === activeType)
       .filter((entry) => campusFilter === "all" || entry.campus === "all" || entry.campus === campusFilter)
       .filter((entry) => categoryFilter === "all" || entry.category === categoryFilter)
@@ -274,7 +316,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         return toDateKey(entry.startAt).slice(0, 7) === currentMonth || (!!entry.endAt && toDateKey(entry.endAt).slice(0, 7) === currentMonth);
       })
       .sort((a, b) => a.startAt.localeCompare(b.startAt));
-  }, [activeType, campusFilter, categoryFilter, yearFilter, timeFilter, currentTime]);
+  }, [activeType, campusFilter, categoryFilter, yearFilter, timeFilter, currentTime, allEntries]);
 
   const monthGroups = useMemo(() => {
     const groups = new Map<string, CalendarEntry[]>();
@@ -370,6 +412,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
           <p className="mt-2">{ui.sourceText}</p>
         </div>
       </header>
+      <RecentUpdates language={language} />
 
       <section className="border-b border-[var(--border)] py-5" aria-label={language === "vi" ? "Bộ lọc lịch" : "Calendar filters"}>
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">

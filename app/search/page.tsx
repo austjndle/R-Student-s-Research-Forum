@@ -4,7 +4,7 @@ import React, { useState, useEffect, useTransition, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/context";
-import { searchKnowledgeBase, type SearchResultItem } from "@/lib/search/engine";
+import { searchKnowledgeBase, getSearchResultHref, type SearchResultItem } from "@/lib/search/engine";
 import { KNOWLEDGE_CATEGORIES } from "@/data/knowledge/schema";
 import {
   Search,
@@ -142,7 +142,7 @@ function SearchContent() {
         {results.map((res, resultIndex) => {
           const doc = res.document;
           const isVerified = doc.verificationStatus === "verified";
-          const detailUrl = doc.resultHref ?? (doc.slug ? `/guides/${doc.slug}` : `/topics/${doc.categoryId}`);
+          const detailUrl = getSearchResultHref(doc);
           const isCardExpanded = expandedCardId === doc.id;
 
           return (

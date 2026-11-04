@@ -15,6 +15,7 @@ import {
   type GlobalExperienceProgramId,
 } from "@/data/guides/globalExperience";
 import { SCHOLARSHIPS, type ScholarshipRecord } from "@/data/scholarships";
+import { isClassroomPermissionQuery } from "@/lib/ai/query-router";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -145,7 +146,7 @@ export function isQueryInScope(query: string, contextClubId?: unknown): { inScop
   if (clubNameMentions(normalizeEventText(trimmed), getVerifiedClubs()).length > 0) {
     return { inScope: true };
   }
-  if (isFoodFacilityQuery(trimmed) || /\b(?:building|facility|facilities|library|shuttle|parking|hanoi|saigon south|sgs|toa nha|co so|thu vien|xe buyt|bai xe)\b/i.test(removeVietnameseDiacritics(trimmed))) {
+  if (isClassroomPermissionQuery(trimmed) || isFoodFacilityQuery(trimmed) || /\b(?:building|facility|facilities|library|shuttle|parking|hanoi|saigon south|sgs|toa nha|co so|thu vien|xe buyt|bai xe)\b/i.test(removeVietnameseDiacritics(trimmed))) {
     return { inScope: true };
   }
   // 4. Match explicit RMIT university topical keywords
@@ -192,6 +193,7 @@ const FOOD_FACILITY_PATTERN = /\b(?:food|eat|restaurant|cafe|coffee|noodle|soya|
 const VIETNAMESE_FOOD_PATTERN = /ăn|nhà hàng|quán|cà phê|đồ ăn/i;
 const FOOD_FACILITY_RECORD_PATTERN = /\b(?:food|restaurant|cafe|café|coffee|noodle|soya|boost juice|circle k|nine|sorrento|vending)\b|global café|kootoro|highlands|curry hut|la cantina|4gs|nhà hàng|quán|cà phê/i;
 export function isFoodFacilityQuery(query: string): boolean {
+  if (isClassroomPermissionQuery(query)) return false;
   return FOOD_FACILITY_PATTERN.test(normalizeEventText(query)) || VIETNAMESE_FOOD_PATTERN.test(query);
 }
 function extractFoodLabel(value: string): string {

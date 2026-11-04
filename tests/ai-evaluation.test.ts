@@ -8,6 +8,7 @@ import {
   formatStudentLifeFallback,
   detectChatLanguage,
 } from "../lib/ai/gemini";
+import { classifyChatRoute, isClassroomPermissionQuery } from "../lib/ai/query-router";
 
 type EvaluationCase = {
   query: string;
@@ -46,7 +47,18 @@ const cases: EvaluationCase[] = [
   { query: "Where is Student Connect?", intent: "admin" },
   { query: "Tell me a funny joke.", intent: "out-of-scope" },
 ];
-
+describe("Smart query router edge cases", () => {
+  it.each([
+    "Can I eat in the room? Will the lecturer allow me?",
+    "Can I eat in the toilet?",
+    "Is it okay to drink inside the library?",
+    "Am I allowed to eat in the study room?",
+  ])("does not route arbitrary eating-permission questions to dining: %s", (query) => {
+    expect(isClassroomPermissionQuery(query)).toBe(true);
+    expect(classifyChatRoute(query, "insufficient_evidence", false)).toBe("insufficient_evidence");
+    expect(isQueryInScope(query).inScope).toBe(true);
+  });
+});
 describe("Mr Hachiware deterministic intent evaluation", () => {
   it.each(cases)("routes: $query", ({ query, intent }) => {
     const scope = isQueryInScope(query);

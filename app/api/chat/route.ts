@@ -30,7 +30,11 @@ import {
   formatGlobalExperienceFallback,
   formatScholarshipFallback,
 } from "@/lib/ai/gemini";
-import { GoogleGenAI } from "@google/genai";
+import { GeminiProvider } from "@/lib/rag/providers";
+import { retrieveEvidence, toChatCitations } from "@/lib/rag/chat-service";
+import { reserveGlobalLlmCall } from "@/lib/ai/budget";
+import { getPublicAnswer, publicAnswerCacheKey, setPublicAnswer } from "@/lib/ai/public-answer-cache";
+import { classifyChatRoute, classroomPermissionFallback, isClassroomPermissionQuery, type ChatRoute } from "@/lib/ai/query-router";
 
 const COOKIE_NAME = "r_forum_uid";
 const MAX_MESSAGE_LENGTH = 2000;
@@ -66,12 +70,12 @@ function buildDeterministicAnswer(
   globalExperience: ReturnType<typeof buildGlobalExperienceContext>,
   scholarships: ReturnType<typeof buildScholarshipContext>,
 ): string | null {
+  if (isClassroomPermissionQuery(message)) return classroomPermissionFallback(language);
   if (isFoodFacilityQuery(message)) return formatFoodFacilityFallback(language, message);
   if (isScholarshipQuery(message)) return formatScholarshipFallback(message, language, scholarships);
-  if (clubs.specificClub || clubs.needsClubClarification) return formatClubFallback(language, clubs);
   if (isPracticalStudentLifeQuery(message)) return formatStudentLifeFallback(message, language, events);
   if (globalExperience.contextText) return formatGlobalExperienceFallback(message, language, globalExperience);
-  if (clubs.matchedClubNames.length > 0) return formatClubFallback(language, clubs);
+  if (clubs.specificClub || clubs.needsClubClarification) return formatClubFallback(language, clubs);
   if (events.matchedEventTitles.length > 0 || events.matchedActivityTitles.length > 0) {
     return formatStudentLifeFallback(message, language, events);
   }
@@ -221,9 +225,12 @@ export async function POST(request: NextRequest) {
       ? { contextText: "", sources: [], matchedEventTitles: [], matchedActivityTitles: [] }
       : buildEventContext(message, language);
     const globalExperienceContext = buildGlobalExperienceContext(message, language);
+    const { evidence } = retrieveEvidence(message, language);
     const scholarshipContext = buildScholarshipContext(message, language);
     const deterministicAnswer = buildDeterministicAnswer(message, language, rag, eventContext, clubContext, globalExperienceContext, scholarshipContext);
-    const sources = [...rag.sources, ...eventContext.sources, ...clubContext.sources, ...globalExperienceContext.sources, ...scholarshipContext.sources]
+    const routingDecision: ChatRoute = classifyChatRoute(message, evidence.status, Boolean(deterministicAnswer));
+    const skipGeneration = routingDecision === "direct_retrieval" || routingDecision === "general_guidance" || isClassroomPermissionQuery(message);
+    const sources = [...rag.sources, ...eventContext.sources, ...clubContext.sources, ...globalExperienceContext.sources, ...scholarshipContext.sources, ...(specificClubQuestion ? [] : toChatCitations(evidence))]
       .filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index);
     const matchedTopics = [
       ...rag.matchedDocTitles,
@@ -233,40 +240,45 @@ export async function POST(request: NextRequest) {
       ...globalExperienceContext.matchedProgramTitles,
       ...globalExperienceContext.matchedScholarshipTitles,
       ...scholarshipContext.matchedScholarshipTitles,
+      ...evidence.chunks.map((candidate) => candidate.chunk.title),
     ];
+    const canUsePublicCache = history.length === 0 && !contextClubId;
+    const answerCacheKey = publicAnswerCacheKey({ question: message, language, sourceIds: evidence.sources.map((source) => source.id) });
+    const cachedAnswer = canUsePublicCache ? getPublicAnswer(answerCacheKey) : undefined;
     const apiKey = process.env.GEMINI_API_KEY;
     const modelName = process.env.GEMINI_MODEL || "gemini-2.5-flash";
     const systemPrompt = buildSystemInstruction(language);
     let answerText = "";
-    let answerMode: "gemini" | "deterministic_fallback" = "deterministic_fallback";
+    let answerMode: "gemini" | "cached" | "deterministic_fallback" = "deterministic_fallback";
+    const shouldCallProvider = !cachedAnswer && !skipGeneration && !isPracticalStudentLifeQuery(message) && !isScholarshipQuery(message) && Boolean(apiKey) && !circuitOpen;
+    const globalBudgetDecision = shouldCallProvider ? reserveGlobalLlmCall(Number(process.env.AI_GLOBAL_DAILY_LIMIT || "1000")) : null;
 
-    if (deterministicAnswer && isSimpleFactualQuery(message)) {
-      answerText = deterministicAnswer;
-    } else if (isPracticalStudentLifeQuery(message) || isScholarshipQuery(message)) {
+    if (cachedAnswer) {
+      answerText = cachedAnswer.answer;
+      answerMode = "cached";
+    } else if ((deterministicAnswer && isSimpleFactualQuery(message)) || isClassroomPermissionQuery(message)) {
+      answerText = deterministicAnswer ?? classroomPermissionFallback(language);
+    } else if (skipGeneration || isPracticalStudentLifeQuery(message) || isScholarshipQuery(message)) {
       answerText = deterministicAnswer ?? "";
-    } else if (apiKey && !circuitOpen) {
+    } else if (apiKey && !circuitOpen && globalBudgetDecision?.allowed !== false) {
       providerStartedAt = Date.now();
       try {
-        const ai = new GoogleGenAI({ apiKey });
+        const ai = new GeminiProvider(apiKey, modelName);
         const prompt = [
           `Student Question: ${message}`,
-          rag.contextText ? `VERIFIED RMIT KNOWLEDGE CONTEXT:\n${rag.contextText}` : "",
+          evidence.contextText ? `RAG EVIDENCE (retrieved facts only):\n${evidence.contextText}` : "",
           eventContext.contextText ? `VERIFIED CAMPUS EVENT / ACTIVITY CONTEXT:\n${eventContext.contextText}` : "",
           clubContext.contextText ? `VERIFIED RMIT CLUB CONTEXT:\n${clubContext.contextText}` : "",
           globalExperienceContext.contextText ? `VERIFIED RMIT GLOBAL EXPERIENCE CONTEXT:\n${globalExperienceContext.contextText}` : "",
           scholarshipContext.contextText ? `VERIFIED RMIT SCHOLARSHIP CONTEXT:\n${scholarshipContext.contextText}` : "",
         ].filter(Boolean).join("\n\n");
-        const response = await ai.models.generateContent({
-          model: modelName,
-          contents: prompt,
-          config: {
-            systemInstruction: systemPrompt,
-            temperature: 0.2,
-            maxOutputTokens: 1024,
-            httpOptions: { timeout: 25000 },
-          },
+        const response = await ai.generate({
+          systemPrompt,
+          userQuestion: message,
+          context: { ...evidence, contextText: prompt },
+          maxOutputTokens: 1024,
         });
-        answerText = typeof response.text === "string" ? response.text.trim() : "";
+        answerText = response.text;
         if (answerText) {
           answerMode = "gemini";
           consecutiveGeminiErrors = 0;
@@ -281,14 +293,19 @@ export async function POST(request: NextRequest) {
         });
         answerText = deterministicAnswer ?? "";
       }
+    } else if (globalBudgetDecision && !globalBudgetDecision.allowed) {
+      answerText = deterministicAnswer ?? "";
     } else {
       answerText = deterministicAnswer ?? "";
+    }
+    if (answerText && canUsePublicCache && !cachedAnswer && evidence.status === "grounded") {
+      setPublicAnswer(answerCacheKey, { answer: answerText, groundingStatus: evidence.status, sources, matchedTopics });
     }
 
     if (!answerText) {
       refundMemoryQuota(visitorId);
       const remaining = checkMemoryQuota(visitorId).remaining;
-      const code = !apiKey ? "AI_PROVIDER_NOT_CONFIGURED" : circuitOpen ? "AI_CIRCUIT_OPEN" : "AI_PROVIDER_UNAVAILABLE";
+      const code = globalBudgetDecision && !globalBudgetDecision.allowed ? "GLOBAL_LLM_BUDGET_EXHAUSTED" : !apiKey ? "AI_PROVIDER_NOT_CONFIGURED" : circuitOpen ? "AI_CIRCUIT_OPEN" : "AI_PROVIDER_UNAVAILABLE";
       const response = NextResponse.json(
         {
           error: language === "vi"
@@ -308,10 +325,13 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       answer: answerText,
       answerMode,
+      groundingStatus: evidence.status,
+      route: routingDecision,
       remaining: currentQuota.remaining,
       limit: currentQuota.limit,
       sources,
       matchedTopics,
+      retrievalDiagnostics: evidence.diagnostics,
     });
     return await attachVisitorCookie(response, isNewVisitor, visitorId, secret);
   } catch (error: unknown) {

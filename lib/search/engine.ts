@@ -230,6 +230,10 @@ export interface SearchResultItem {
   relevantDepartment?: DepartmentContact;
   relatedQuestions: string[];
 }
+export function getSearchResultHref(document: KnowledgeDocument): string {
+  if (document.categoryId === "scholarships") return "/topics/scholarships";
+  return document.resultHref ?? (document.slug ? `/guides/${document.slug}` : `/topics/${document.categoryId}`);
+}
 
 /**
  * Normalizes query into tokens and expanded synonyms.

@@ -22,9 +22,9 @@ interface ChatMessage {
   id: string;
   sender: "user" | "bot";
   text: string;
-  sources?: { title: string; url: string; departmentName?: string }[];
+  sources?: { id?: string; title: string; url: string; page?: number; sourceType?: string; departmentName?: string }[];
   outOfScope?: boolean;
-  answerMode?: "gemini" | "workers_ai" | "deterministic_fallback";
+  answerMode?: "gemini" | "cached" | "workers_ai" | "deterministic_fallback";
 }
 
 export function ChatWidget() {
@@ -192,12 +192,11 @@ export function ChatWidget() {
 
       const data = (await res.json()) as {
         answer?: string;
-        answerMode?: "gemini" | "workers_ai" | "deterministic_fallback";
+        answerMode?: "gemini" | "cached" | "workers_ai" | "deterministic_fallback";
         remaining?: number;
         outOfScope?: boolean;
         quotaExhausted?: boolean;
-        sources?: { title: string; url: string; departmentName?: string }[];
-        error?: string;
+        sources?: { id?: string; title: string; url: string; page?: number; sourceType?: string; departmentName?: string }[];
       };
       if (typeof data.remaining === "number") {
         setRemainingQuota(data.remaining);
@@ -476,7 +475,7 @@ export function ChatWidget() {
                       );
                     })}
                   </div>
-                  {msg.sender === "bot" && msg.answerMode && msg.answerMode !== "gemini" && (
+                  {msg.sender === "bot" && msg.answerMode && msg.answerMode !== "gemini" && msg.answerMode !== "cached" && (
                     <p className="border-t border-[var(--border)] pt-2 text-[10px] leading-4 text-[var(--secondary-text)]">
                       {msg.answerMode === "workers_ai" ? t.ai.alternativeProviderNotice : t.ai.fallbackNotice}
                     </p>
@@ -498,7 +497,7 @@ export function ChatWidget() {
                             >
                               <ExternalLink className="w-3 h-3 shrink-0" />
                               <span className="truncate max-w-[280px]">
-                                {src.title}
+                                {src.title}{src.page ? ` (PDF p. ${src.page})` : ""}
                               </span>
                             </a>
                           </li>

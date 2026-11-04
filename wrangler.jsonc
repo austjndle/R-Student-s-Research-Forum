@@ -19,6 +19,10 @@
       {
         "name": "EVENT_REVIEW_DO",
         "class_name": "EventReviewDurableObject"
+      },
+      {
+        "name": "CONTENT_SYNC_DO",
+        "class_name": "ContentSyncDurableObject"
       }
     ]
   },
@@ -30,14 +34,19 @@
     {
       "tag": "v2",
       "new_sqlite_classes": ["EventReviewDurableObject"]
+    },
+    {
+      "tag": "v3",
+      "new_sqlite_classes": ["ContentSyncDurableObject"]
     }
   ],
   "vars": {
     "AI_DAILY_LIMIT": "10",
     "APP_TIMEZONE": "Asia/Ho_Chi_Minh",
-    "GEMINI_MODEL": "gemini-2.5-flash"
-  }
-,
+    "GEMINI_MODEL": "gemini-2.5-flash",
+    "CONTENT_SYNC_ENABLED": "true",
+    "AI_GLOBAL_DAILY_LIMIT": "1000"
+  },
   "assets": {
     "directory": "dist/client",
     "html_handling": "auto-trailing-slash",

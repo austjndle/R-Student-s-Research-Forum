@@ -1,14 +1,20 @@
 import apiRouter from "./index.js";
 import nextHandler from "../dist/server/index.js";
 import { checkOfficialEventSources } from "../lib/events/refresh";
+import { runContentSync } from "../lib/sync/monitor";
+import { WorkerContentSyncStore } from "../lib/sync/worker-store";
 export { AiQuotaDurableObject } from "../durable-objects/ai-quota";
 export { EventReviewDurableObject } from "../durable-objects/event-review";
+export { ContentSyncDurableObject } from "../durable-objects/content-sync";
 
 export interface Env {
   AI_QUOTA_DO: DurableObjectNamespace;
   EVENT_REVIEW_DO: DurableObjectNamespace;
+  CONTENT_SYNC_DO: DurableObjectNamespace;
+  CONTENT_SYNC_ENABLED?: string;
   EVENT_ADMIN_TOKEN?: string;
-  AI_DAILY_LIMIT: string;
+  CAMPUS_BUZZ_INGEST_TOKEN?: string;
+  AI_GLOBAL_DAILY_LIMIT?: string;
   APP_TIMEZONE: string;
   GEMINI_MODEL: string;
   GEMINI_API_KEY: string;
@@ -75,14 +81,18 @@ export default {
     return withSecurityHeaders(new Response("R-Students' Research Forum Cloudflare Worker", { status: 200 }));
   },
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    if (!env.EVENT_REVIEW_DO) return;
-    const checks = await checkOfficialEventSources();
-    const reviewId = env.EVENT_REVIEW_DO.idFromName("r-students-event-review");
-    const reviewStub = env.EVENT_REVIEW_DO.get(reviewId);
-    ctx.waitUntil(reviewStub.fetch("https://event-review/refresh", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(checks),
-    }));
+    if (env.EVENT_REVIEW_DO) {
+      const checks = await checkOfficialEventSources();
+      const reviewId = env.EVENT_REVIEW_DO.idFromName("r-students-event-review");
+      const reviewStub = env.EVENT_REVIEW_DO.get(reviewId);
+      ctx.waitUntil(reviewStub.fetch("https://event-review/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(checks),
+      }));
+    }
+    if (env.CONTENT_SYNC_ENABLED === "true" && env.CONTENT_SYNC_DO) {
+      ctx.waitUntil(runContentSync(new WorkerContentSyncStore(env.CONTENT_SYNC_DO)).catch(() => undefined));
+    }
   },
 };

@@ -1,6 +1,7 @@
 export interface Env {
   AI_QUOTA_DO?: DurableObjectNamespace;
   AI_DAILY_LIMIT?: string;
+  AI_GLOBAL_DAILY_LIMIT?: string;
   APP_TIMEZONE?: string;
   GEMINI_MODEL?: string;
   GEMINI_API_KEY?: string;
@@ -62,6 +63,29 @@ export class AiQuotaDurableObject {
     const limit = parseInt(this.env.AI_DAILY_LIMIT || "10", 10);
     const { dateString, nextMidnightIso } = this.getVietnamDate();
 
+    const globalLimit = parseInt(this.env.AI_GLOBAL_DAILY_LIMIT || "1000", 10);
+    const globalProvider = url.searchParams.get("provider") || "all";
+    const globalKey = `global-quota:${globalProvider}`;
+    if ((url.pathname === "/global-status" && method === "GET") || (url.pathname === "/global-reserve" && method === "POST")) {
+      let record = (await this.state.storage.get<AiQuotaRecord>(globalKey)) || { date: dateString, count: 0, lastUpdated: Date.now() };
+      if (record.date !== dateString) record = { date: dateString, count: 0, lastUpdated: Date.now() };
+      if (url.pathname === "/global-reserve" && record.count < globalLimit) {
+        record.count += 1;
+        record.lastUpdated = Date.now();
+        await this.state.storage.put(globalKey, record);
+      } else if (url.pathname === "/global-reserve" && record.count >= globalLimit) {
+        return Response.json({ allowed: false, remaining: 0, limit: globalLimit, provider: globalProvider }, { status: 429 });
+      }
+      return Response.json({ allowed: url.pathname === "/global-reserve" ? record.count <= globalLimit : record.count < globalLimit, remaining: Math.max(0, globalLimit - record.count), limit: globalLimit, provider: globalProvider, resetAt: nextMidnightIso, currentDate: dateString });
+    }
+    if (url.pathname === "/global-refund" && method === "POST") {
+      const record = await this.state.storage.get<AiQuotaRecord>(globalKey);
+      if (record && record.date === dateString && record.count > 0) {
+        record.count -= 1;
+        await this.state.storage.put(globalKey, record);
+      }
+      return Response.json({ refunded: true, remaining: Math.max(0, globalLimit - (record?.count || 0)), limit: globalLimit, provider: globalProvider });
+    }
     // 1. Check quota status
     if (url.pathname === "/status" && method === "GET") {
       let record = (await this.state.storage.get<AiQuotaRecord>("quota")) || {

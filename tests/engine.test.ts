@@ -3,6 +3,7 @@ import {
   removeVietnameseDiacritics,
   processQuery,
   searchKnowledgeBase,
+  getSearchResultHref,
 } from "../lib/search/engine";
 import {
   isQueryInScope,
@@ -59,6 +60,11 @@ describe("Smart Search Engine", () => {
     const results = searchKnowledgeBase("scholarships", { limit: 3 });
     expect(results.length).toBeGreaterThan(0);
     expect(results[0].document.id).toBe("doc-scholarships-types");
+  });
+  it("routes scholarship search results to the existing Scholarships topic", () => {
+    const result = searchKnowledgeBase("RMIT Academic Merit Scholarship", { limit: 5 }).find((item) => item.document.id === "doc-scholarship-academic-merit");
+    expect(result).toBeDefined();
+    expect(getSearchResultHref(result!.document)).toBe("/topics/scholarships");
   });
   it("searches verified club, facility, and calendar records with correct routes", () => {
     const cineverse = searchKnowledgeBase("Cineverse", { limit: 5 });

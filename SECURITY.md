@@ -85,3 +85,20 @@ Tested using Vitest & k6 scenarios:
 - Submit invalid event payloads and verify rejection of unregistered sources, non-HTTPS URLs, oversized fields, and invalid dates.
 - Verify no secrets, cookies, or tokens are rendered in public HTML or logged by the Worker.
 - Check security headers on rendered pages, static assets, and API responses.
+### RAG-specific controls
+- Retrieved webpages, PDFs, and structured records are delimited evidence; embedded instructions are never treated as privileged instructions.
+- Public chat cannot trigger ingestion, D1 writes, Vectorize writes, or source crawling.
+- Ingestion URLs are HTTPS allow-listed, source IDs/chunk IDs are stable, and source hashes support idempotent updates.
+- Citation links are generated from retrieved source metadata only; model-supplied URLs are rejected by citation validation.
+- Explicit campus filters remove cross-campus candidates for location/dining/contact queries; ambiguous campus questions return insufficient evidence.
+- RMIT-specific provider credentials remain server-side. Retrieval diagnostics do not log raw questions, source excerpts, cookies, or secrets.
+- D1 access uses prepared statements in the optional adapter and the FTS migration contains only index tables/triggers.
+
+### Automated content monitoring controls
+- The monitor fetches only `MONITORED_SOURCES` HTTPS RMIT hosts; user input never selects a crawl URL.
+- Conditional requests, normalized hashes, bounded response size, timeout, and failure retention prevent repeated or unsafe crawling.
+- Parser ambiguity queues review and does not replace a published event.
+- `/api/events` exposes published event records only. `/api/sync` and `/api/admin/sync` are protected by the existing event-admin token.
+- Sync diagnostics exclude page bodies, credentials, cookies, student conversations, and raw provider data.
+- `CONTENT_SYNC_ENABLED=false` prevents scheduled monitor execution until a maintainer approves the schedule and cost envelope.
+The current system intentionally does not enable D1, Vectorize, R2, or a public indexing endpoint. Before enabling semantic indexing, verify the embedding model/dimensions, bind only reviewed resources, stage the index, and run the retrieval evaluation suite. **TODO(security):** replace the existing framework-required CSP `unsafe-inline` allowances with nonce/hash-based policy when the Vinext runtime supports it.

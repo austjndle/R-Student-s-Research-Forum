@@ -146,4 +146,13 @@ describe("Next chat runtime configuration and provider handling", () => {
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "Message must be between 1 and 2000 characters." });
   });
+  it("routes classroom food-permission questions away from dining retrieval", async () => {
+    const { POST: postChat } = await import("../app/api/chat/route");
+    const response = await postChat(chatRequest("Can I eat in the room? Will the lecturer allow me?"));
+    const payload = await readPayload(response);
+    expect(response.status).toBe(200);
+    expect(payload.answer).toMatch(/lecturer|classroom|room/i);
+    expect(payload.answer).not.toMatch(/Noodle U|Global Café|Highlands Coffee/i);
+    expect(providerState.calls).toBe(0);
+  });
 });

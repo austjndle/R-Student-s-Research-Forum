@@ -88,6 +88,29 @@ APP_TIMEZONE=Asia/Ho_Chi_Minh
 ```
 
 `EVENT_ADMIN_TOKEN` protects the private `/api/admin/events` review workflow. It is not needed by public visitors. Facebook event discovery is manual/admin-assisted; no personal Facebook credentials, cookies, or tokens enter the Worker.
+### RAG architecture and operations
+
+The assistant now has a provider-independent RAG boundary around the existing verified TypeScript datasets. The active deployment uses structured, campus-aware lexical retrieval with stable chunk/source IDs; optional D1 FTS5, Vectorize, and Workers AI embedding adapters are documented but not enabled by `wrangler.jsonc`.
+
+- Architecture assessment: [`docs/rag-architecture.md`](docs/rag-architecture.md)
+- Knowledge inventory: [`docs/knowledge-base-inventory.md`](docs/knowledge-base-inventory.md)
+- Operations and reindexing: [`docs/rag-operations.md`](docs/rag-operations.md)
+- Optional D1 schema: [`migrations/0001_rag.sql`](migrations/0001_rag.sql)
+
+Run local corpus validation and retrieval smoke tests with:
+
+```bash
+bun run rag:inventory
+bun run rag:validate
+bun run rag:smoke
+```
+
+No production deployment or new billable Cloudflare resource is created by this upgrade.
+
+### Automated RMIT content monitoring
+
+The staged monitoring prototype is documented in [`docs/content-sync.md`](docs/content-sync.md). It is disabled by default with `CONTENT_SYNC_ENABLED=false`; no production cron or deployment was enabled. The protected `/api/admin/sync` route is available only after the binding and secret are configured.
+
 
 ### Running Tests
 ```bash
