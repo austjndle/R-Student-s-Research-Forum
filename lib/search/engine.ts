@@ -139,7 +139,34 @@ function buildAuxiliarySearchDocuments(): KnowledgeDocument[] {
     resultHref: entry.type === "academic_date" ? "/calendar" : "/events",
   }));
 
-  return [...clubDocuments, ...facilityDocuments, ...calendarDocuments];
+  const contactDocuments = DEPARTMENT_CONTACTS.filter((department) => department.isAcademicSchool).map((department): KnowledgeDocument => {
+    const specialized = department.specializedContacts ?? [];
+    const keywords = [department.nameEn, department.nameVi, department.abbreviation ?? "", department.email ?? "", department.isAcademicSchool ? "contact" : "", department.isAcademicSchool ? "academic school" : "", ...specialized.flatMap((contact) => [contact.labelEn, contact.labelVi])].filter(Boolean);
+    return {
+      id: `contact-${department.id}`,
+      slug: department.id,
+      titleEn: department.nameEn,
+      titleVi: department.nameVi,
+      categoryId: department.isAcademicSchool ? "academic-info" : "student-connect",
+      keywords,
+      synonymsEn: department.isAcademicSchool ? ["academic school", "faculty", "school contact", "academic progress", "show cause", "course coordinator"] : ["department contact", "student support", "official contact"],
+      synonymsVi: department.isAcademicSchool ? ["khoa", "liên hệ khoa", "học vụ", "tiến độ học tập", "show cause", "giảng viên phụ trách"] : ["liên hệ phòng ban", "hỗ trợ sinh viên", "liên hệ chính thức"],
+      summaryEn: department.descriptionEn,
+      summaryVi: department.descriptionVi,
+      detailedGuidanceEn: [...department.responsibilitiesEn, ...specialized.map((contact) => `${contact.labelEn}: ${contact.purposeEn}`)].join(" "),
+      detailedGuidanceVi: [...department.responsibilitiesVi, ...specialized.map((contact) => `${contact.labelVi}: ${contact.purposeVi}`)].join(" "),
+      keyDetailsEn: [department.email ? `${department.emailLabelEn ?? "Official email"}: ${department.email}` : "No direct email published in the checked official source.", department.phone ? `Phone: ${department.phone}` : "No direct phone published in the checked official source.", department.locationEn, ...specialized.map((contact) => `${contact.labelEn}: ${contact.email ?? "Use the official school contact route."}`)],
+      keyDetailsVi: [department.email ? `${department.emailLabelVi ?? "Email chính thức"}: ${department.email}` : "Nguồn chính thức đã kiểm tra chưa công bố email trực tiếp.", department.phone ? `Điện thoại: ${department.phone}` : "Nguồn chính thức đã kiểm tra chưa công bố số điện thoại trực tiếp.", department.locationVi, ...specialized.map((contact) => `${contact.labelVi}: ${contact.email ?? "Sử dụng kênh liên hệ chính thức của Khoa."}`)],
+      officialSourceUrl: department.websiteUrl,
+      sourceTitle: department.nameEn,
+      departmentId: department.id,
+      campus: department.campus,
+      lastVerifiedDate: department.lastVerifiedDate,
+      verificationStatus: "verified",
+      resultHref: `/contacts#contact-${department.id}`,
+    };
+  });
+  return [...clubDocuments, ...facilityDocuments, ...calendarDocuments, ...contactDocuments];
 }
 
 const AUXILIARY_SEARCH_DOCUMENTS = buildAuxiliarySearchDocuments();
@@ -182,6 +209,7 @@ function cacheSearchResult(key: string, results: SearchResultItem[]): SearchResu
 const AUXILIARY_SEARCH_HINTS = [
   "club", "clb", "cau lac bo", "câu lạc bộ", "building", "facility", "library", "gym", "health centre", "clinic", "international sos", "circle k", "beanland", "lygon", "melbourne theatre", "calendar", "semester",
   "học kỳ", "lịch học", "event", "sự kiện", "where is", "ở đâu", "tòa nhà", "co so", "cơ sở", "tầng", "floor", "level",
+  "school", "schools", "faculty", "sset", "tbs", "scd", "seup", "academic progress", "show cause", "foundation studies", "unistart", "english for university", "khoa", "liên hệ khoa", "học vụ",
 ];
 const AUXILIARY_DISCOVERY_STOP_TERMS = new Set(["rmit", "club", "campus", "building", "calendar", "semester", "official", "student", "hanoi", "saigon", "south", "university", "academic", "hub"]);
 const AUXILIARY_DISCOVERY_TERMS = new Set(

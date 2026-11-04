@@ -18,10 +18,61 @@ import {
   ChevronUp,
 } from "lucide-react";
 
+function AcademicSchoolCard({ department, language, t, onCopyEmail }: { department: DepartmentContact; language: "en" | "vi"; t: ReturnType<typeof useLanguage>["t"]; onCopyEmail: (email: string) => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const specialized = department.specializedContacts ?? [];
+  return (
+    <article id={`contact-${department.id}`} className="editorial-card flex min-w-0 flex-col gap-5 p-6 transition-colors hover:border-[var(--accent)]">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent)]">{department.abbreviation} · {language === "vi" ? "Khoa học thuật" : "Academic school"}</span>
+          <h3 className="mt-2 text-xl font-bold text-[var(--main-text)]">{language === "vi" ? department.nameVi : department.nameEn}</h3>
+        </div>
+        <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-label={t.common.verified} />
+      </div>
+      <p className="text-sm leading-relaxed text-[var(--secondary-text)]">{language === "vi" ? department.descriptionVi : department.descriptionEn}</p>
+      <div className="space-y-2 text-xs">
+        {department.email ? (
+          <div className="editorial-info flex items-center justify-between gap-2 p-2.5">
+            <a href={`mailto:${department.email}`} className="min-w-0 break-words font-mono text-[var(--accent)] hover:underline">
+              <span className="block text-[10px] font-semibold uppercase tracking-wide text-[var(--secondary-text)]">{language === "vi" ? department.emailLabelVi ?? t.contacts.email : department.emailLabelEn ?? t.contacts.email}</span>
+              {department.email}
+            </a>
+            <button type="button" onClick={() => onCopyEmail(department.email!)} aria-label={t.contacts.copyEmail} className="inline-flex h-9 w-9 shrink-0 items-center justify-center border border-[var(--border)] text-[var(--accent)]">
+              <Copy className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        ) : (
+          <p className="editorial-info p-2.5 text-[var(--secondary-text)]">{t.contacts.noDirectContact}</p>
+        )}
+        {department.phone && <a href={`tel:${department.phone.replace(/[^\d+]/g, "")}`} className="inline-flex min-h-10 items-center gap-2 px-1 font-mono text-[var(--accent)] hover:underline"><Phone className="h-3.5 w-3.5" aria-hidden="true" />{department.phone}</a>}
+        <div className="flex items-start gap-2 px-1 text-[var(--secondary-text)]"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" aria-hidden="true" /><span>{language === "vi" ? department.locationVi : department.locationEn}</span></div>
+        <div className="flex items-start gap-2 px-1 text-[var(--secondary-text)]"><Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" aria-hidden="true" /><span>{language === "vi" ? department.serviceHoursVi : department.serviceHoursEn}</span></div>
+      </div>
+      <div className="flex flex-wrap items-center gap-3 border-t border-[var(--border)] pt-4 text-xs">
+        <button type="button" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded} className="inline-flex min-h-11 items-center gap-1 font-semibold text-[var(--accent)]">
+          {expanded ? t.contacts.collapse : t.contacts.specializedContacts}
+          {expanded ? <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" /> : <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />}
+        </button>
+        <a href={department.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold text-[var(--accent)] hover:underline">{t.contacts.visitWebsite}<Globe className="h-3.5 w-3.5" aria-hidden="true" /></a>
+        {department.formUrl && department.formUrl !== department.websiteUrl && <a href={department.formUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1 font-semibold text-[var(--accent)] hover:underline">{t.contacts.form}<Globe className="h-3.5 w-3.5" aria-hidden="true" /></a>}
+      </div>
+      {expanded && (
+        <div className="space-y-4 border-t border-[var(--border)] pt-4 text-xs">
+          {department.campusContacts && <div><h4 className="font-semibold text-[var(--main-text)]">{t.common.campus}</h4><ul className="mt-2 space-y-2 text-[var(--secondary-text)]">{department.campusContacts.map((contact) => <li key={contact.campus}><strong>{contact.campus === "hanoi" ? t.common.hanoi : t.common.saigonSouth}:</strong> {language === "vi" ? contact.locationVi : contact.locationEn}{contact.email ? ` · ${contact.email}` : ""}</li>)}</ul></div>}
+          <div><h4 className="font-semibold text-[var(--main-text)]">{t.contacts.specializedContacts}</h4><ul className="mt-2 space-y-3 text-[var(--secondary-text)]">{specialized.map((contact) => <li key={contact.id}><strong className="text-[var(--main-text)]">{language === "vi" ? contact.labelVi : contact.labelEn}</strong><p className="mt-1">{language === "vi" ? contact.purposeVi : contact.purposeEn}</p>{contact.email ? <a href={`mailto:${contact.email}`} className="mt-1 inline-flex text-[var(--accent)] hover:underline">{contact.email}</a> : <span className="mt-1 block italic">{t.contacts.noDirectContact}</span>}</li>)}</ul></div>
+        </div>
+      )}
+      <p className="text-[11px] text-[var(--secondary-text)]">{t.common.lastVerified}: <time dateTime={department.lastVerifiedDate}>{department.lastVerifiedDate}</time></p>
+    </article>
+  );
+}
+
 export default function ContactsPage() {
   const { language, t } = useLanguage();
   const [search, setSearch] = useState("");
   const [selectedCampus, setSelectedCampus] = useState("all");
+  const [contactType, setContactType] = useState<"all" | "departments" | "academic-schools">("all");
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const categoryLabels = {
@@ -32,18 +83,21 @@ export default function ContactsPage() {
     specialized: t.contacts.categorySpecialized,
   };
 
+  const normalizedSearch = search.toLowerCase();
   const filteredDepartments = DEPARTMENT_CONTACTS.filter((dept) => {
-    const matchesSearch =
-      dept.nameEn.toLowerCase().includes(search.toLowerCase()) ||
-      dept.nameVi.toLowerCase().includes(search.toLowerCase()) ||
-      dept.descriptionEn.toLowerCase().includes(search.toLowerCase()) ||
-      dept.descriptionVi.toLowerCase().includes(search.toLowerCase()) ||
-      (dept.email && dept.email.toLowerCase().includes(search.toLowerCase()));
-
-    const matchesCampus =
-      selectedCampus === "all" || dept.campus === "all" || dept.campus === selectedCampus;
-
-    return matchesSearch && matchesCampus;
+    const searchable = [
+      dept.nameEn,
+      dept.nameVi,
+      dept.abbreviation ?? "",
+      dept.descriptionEn,
+      dept.descriptionVi,
+      dept.email ?? "",
+      ...(dept.specializedContacts ?? []).flatMap((contact) => [contact.labelEn, contact.labelVi, contact.purposeEn, contact.purposeVi]),
+    ].join(" ").toLowerCase();
+    const matchesSearch = searchable.includes(normalizedSearch);
+    const matchesCampus = selectedCampus === "all" || dept.campus === "all" || dept.campus === selectedCampus;
+    const matchesType = contactType === "all" || (contactType === "academic-schools" ? dept.isAcademicSchool : !dept.isAcademicSchool);
+    return matchesSearch && matchesCampus && matchesType;
   });
 
   const handleCopyEmail = (email: string) => {
@@ -91,12 +145,17 @@ export default function ContactsPage() {
             <option value="saigon_south">{t.common.saigonSouth}</option>
             <option value="hanoi">{t.common.hanoi}</option>
           </select>
+          <select value={contactType} onChange={(e) => setContactType(e.target.value as typeof contactType)} aria-label={t.contacts.allContactTypes} className="editorial-control px-3 text-sm focus:outline-none">
+            <option value="all">{t.contacts.allContactTypes}</option>
+            <option value="departments">{t.contacts.allDepartments}</option>
+            <option value="academic-schools">{t.contacts.academicSchools}</option>
+          </select>
         </div>
       </div>
 
       {/* Directory Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredDepartments.map((dept) => {
+        {filteredDepartments.filter((dept) => !dept.isAcademicSchool).map((dept) => {
           const isExpanded = expandedId === dept.id;
 
           return (
@@ -131,9 +190,9 @@ export default function ContactsPage() {
                     <div className="editorial-info flex items-center justify-between p-2.5">
                       <div className="flex items-center gap-2 truncate">
                         <Mail className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
-                        <span className="min-w-0 break-words font-mono text-[var(--main-text)]">
+                        <a href={`mailto:${dept.email}`} className="min-w-0 break-words font-mono text-[var(--accent)] hover:underline" aria-label={`${t.contacts.email}: ${dept.email}`}>
                           {dept.email}
-                        </span>
+                        </a>
                       </div>
                       <button
                         type="button"
@@ -154,9 +213,9 @@ export default function ContactsPage() {
                   {dept.phone && (
                     <div className="editorial-info flex items-start gap-2 p-2.5">
                       <Phone className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
-                      <span className="font-mono text-[var(--main-text)]">
+                      <a href={`tel:${dept.phone.replace(/[^\d+]/g, "")}`} className="font-mono text-[var(--accent)] hover:underline" aria-label={`${t.contacts.phone}: ${dept.phone}`}>
                         {dept.phone}
-                      </span>
+                      </a>
                     </div>
                   )}
 
@@ -233,6 +292,19 @@ export default function ContactsPage() {
           );
         })}
       </div>
+      {contactType !== "departments" && (
+        <section aria-labelledby="academic-schools-title" className="space-y-5">
+          <div className="border-b border-[var(--border)] pb-3">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">Academic Schools / Khoa học thuật</p>
+            <h2 id="academic-schools-title" className="mt-2 text-2xl font-bold text-[var(--main-text)]">{t.contacts.academicSchools}</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {filteredDepartments.filter((dept) => dept.isAcademicSchool).map((department) => (
+              <AcademicSchoolCard key={department.id} department={department} language={language} t={t} onCopyEmail={handleCopyEmail} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

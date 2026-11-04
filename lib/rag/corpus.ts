@@ -2,6 +2,7 @@ import { KNOWLEDGE_DOCUMENTS } from "@/data/knowledge/documents";
 import { RMIT_CAMPUS_HOURS, type BuildingInfo, type FloorHours } from "@/data/facilities/campusHours";
 import { getVerifiedClubs, type ClubRecord } from "@/data/clubs/clubs";
 import { CAMPUS_ACTIVITY_HIGHLIGHTS, getPublishedCalendarEntries, type CalendarEntry } from "@/data/events/calendar";
+import { DEPARTMENT_CONTACTS } from "@/data/contacts/departments";
 import { SCHOLARSHIPS, type LocalizedText, type ScholarshipRecord } from "@/data/scholarships";
 import { GLOBAL_EXPERIENCE_PROGRAMS, GLOBAL_EXPERIENCE_LAST_VERIFIED } from "@/data/guides/globalExperience";
 import { KNOWLEDGE_INDEX_VERSION, KNOWLEDGE_INDEX_SOURCES } from "@/data/knowledge/indexManifest";
@@ -231,6 +232,55 @@ function scholarshipChunks(): KnowledgeChunk[] {
   });
 }
 
+function contactChunks(): KnowledgeChunk[] {
+  return DEPARTMENT_CONTACTS.map((department) => {
+    const sourceId = sourceIdFor("contact", department.id);
+    const specialized = department.specializedContacts ?? [];
+    const source = makeSource({
+      id: sourceId,
+      title: department.nameEn,
+      url: department.websiteUrl,
+      type: "official_page",
+      authority: 1,
+      campus: department.campus,
+      category: department.isAcademicSchool ? "academic-schools" : "contacts",
+      lastVerified: department.lastVerifiedDate,
+      content: JSON.stringify(department),
+    });
+    if (source && !SOURCE_BY_ID.has(source.id)) {
+      SOURCE_BY_ID.set(source.id, source);
+      SOURCE_REGISTRY.push(source);
+    }
+    const text = [
+      department.nameEn,
+      department.nameVi,
+      department.abbreviation,
+      department.descriptionEn,
+      department.descriptionVi,
+      department.email,
+      department.phone,
+      department.locationEn,
+      department.locationVi,
+      ...department.responsibilitiesEn,
+      ...department.responsibilitiesVi,
+      ...specialized.flatMap((contact) => [contact.labelEn, contact.labelVi, contact.purposeEn, contact.purposeVi, contact.email]),
+    ].filter(Boolean).join("\n");
+    return chunkFromSource({
+      id: `chunk:contact:${department.id}`,
+      documentId: department.id,
+      sourceId,
+      text,
+      title: department.nameEn,
+      campus: department.campus,
+      category: department.isAcademicSchool ? "academic-schools" : "contacts",
+      sourceUrl: department.websiteUrl,
+      sourceType: "official_page",
+      verificationStatus: "verified",
+      metadata: { recordId: department.id, academicSchool: department.isAcademicSchool === true },
+    });
+  });
+}
+
 function globalExperienceChunks(): KnowledgeChunk[] {
   return GLOBAL_EXPERIENCE_PROGRAMS.map((program) => {
     const title = program.title.en;
@@ -251,6 +301,7 @@ export const KNOWLEDGE_CHUNKS: readonly KnowledgeChunk[] = Object.freeze([
   ...clubChunks(),
   ...eventChunks(),
   ...scholarshipChunks(),
+  ...contactChunks(),
   ...globalExperienceChunks(),
 ]);
 

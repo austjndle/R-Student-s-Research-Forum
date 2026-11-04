@@ -19,6 +19,7 @@ The inventory is generated from the checked-in authoritative datasets and the ex
 The checked-in corpus currently generates **181 source registry entries** and **199 stable chunks**: 86 campus-agnostic, 34 Hanoi, and 79 Saigon South. It covers 7 structured campus buildings, 5 building floor-plan PDF references, 61 verified club records, and 38 campus/floor location chunks. These counts are reproducible with `bun scripts/rag-index.ts inventory`.
 
 - Academic procedures, enrolment, tuition, policies, contacts, Student Connect, study support, scholarships, global experience, events, clubs, facilities, opening hours, and campus floor-plan facts are already represented in the repository.
+- Academic school contact records cover SSET, The Business School, SCD, and SEUP; official general contacts and campus locations are indexed. School-specific academic-progress emails are not published on the checked public pages and remain unverified.
 - Saigon South and Hanoi facilities are separate records. Ambiguous facility names require an explicit campus or a clarification response.
 - Academic calendar records include 2027 structured dates and source links; older/current applicability is preserved by source metadata rather than inferred from HTTP success.
 - Floor-plan records retain source PDF URL and page where manually reviewed. The code does not claim OCR/text extraction for image-heavy plans.

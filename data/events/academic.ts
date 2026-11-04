@@ -11,6 +11,7 @@ interface AcademicMilestone {
   titleVi: string;
   startAt: string;
   endAt?: string;
+  campus?: "saigon_south" | "hanoi";
   semester: string;
   descriptionEn: string;
   descriptionVi: string;
@@ -69,6 +70,7 @@ const milestones: AcademicMilestone[] = [
     startAt: "2027-04-06T00:00:00+07:00",
     endAt: "2027-04-09T23:59:59+07:00",
     semester: "Semester 1",
+    campus: "saigon_south",
     descriptionEn: "Planned Saigon South graduation ceremony period listed in the official calendar.",
     descriptionVi: "Khoảng thời gian lễ tốt nghiệp dự kiến tại Nam Sài Gòn được ghi trong lịch chính thức.",
   },
@@ -78,6 +80,7 @@ const milestones: AcademicMilestone[] = [
     titleVi: "Lễ tốt nghiệp — Cơ sở Hà Nội",
     startAt: "2027-04-13T00:00:00+07:00",
     semester: "Semester 1",
+    campus: "hanoi",
     descriptionEn: "Planned Hanoi graduation ceremony date listed in the official calendar.",
     descriptionVi: "Ngày lễ tốt nghiệp dự kiến tại Hà Nội được ghi trong lịch chính thức.",
   },
@@ -310,7 +313,7 @@ function toCalendarEntry(milestone: AcademicMilestone): CalendarEntry {
     category: "academic",
     organiserEn: "RMIT University Vietnam",
     organiserVi: "RMIT Việt Nam",
-    campus: "all",
+    campus: milestone.campus ?? "all",
     startAt: milestone.startAt,
     endAt: milestone.endAt,
     originalUrl: ACADEMIC_CALENDAR_2027_SOURCE_URL,

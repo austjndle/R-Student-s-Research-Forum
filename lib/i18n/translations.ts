@@ -164,12 +164,16 @@ export interface Translations {
     subtitle: string;
     searchPlaceholder: string;
     allDepartments: string;
+    academicSchools: string;
+    allContactTypes: string;
     email: string;
     phone: string;
     form: string;
     serviceHours: string;
     responsibilities: string;
     typicalEnquiries: string;
+    specializedContacts: string;
+    noDirectContact: string;
     copyEmail: string;
     visitWebsite: string;
     categoryAdministrative: string;
@@ -569,13 +573,17 @@ export const translations: Record<Language, Translations> = {
       title: "University Contact Directory",
       subtitle: "Official, verified contact channels for RMIT University Vietnam departments.",
       searchPlaceholder: "Search departments or enquiries (e.g., Student Connect, IT, fees)...",
-      allDepartments: "All Departments",
+      allDepartments: "All departments",
+      academicSchools: "Academic Schools",
+      allContactTypes: "All contact types",
       email: "Official Email",
       phone: "Phone",
       form: "Enquiry Form / Portal",
       serviceHours: "Service Hours",
       responsibilities: "Responsibilities",
       typicalEnquiries: "Common Enquiries",
+      specializedContacts: "Specialized contacts",
+      noDirectContact: "No direct contact was published on the checked official page.",
       copyEmail: "Copy Email",
       visitWebsite: "Visit Website",
       categoryAdministrative: "Administrative",
@@ -983,12 +991,16 @@ export const translations: Record<Language, Translations> = {
       subtitle: "Kênh liên lạc chính thức đã được xác minh của các phòng ban tại RMIT Việt Nam.",
       searchPlaceholder: "Tìm phòng ban hoặc vấn đề cần hỏi (ví dụ: Student Connect, IT, học phí)...",
       allDepartments: "Tất cả phòng ban",
+      academicSchools: "Các khoa học thuật",
+      allContactTypes: "Tất cả loại liên hệ",
       email: "Email chính thức",
       phone: "Số điện thoại",
       form: "Biểu mẫu / Cổng hỗ trợ",
       serviceHours: "Giờ làm việc",
       responsibilities: "Nhiệm vụ chính",
       typicalEnquiries: "Các thắc mắc thường gặp",
+      specializedContacts: "Liên hệ chuyên biệt",
+      noDirectContact: "Trang chính thức đã kiểm tra chưa công bố liên hệ trực tiếp.",
       copyEmail: "Sao chép Email",
       visitWebsite: "Xem trang web",
       categoryAdministrative: "Hành chính",

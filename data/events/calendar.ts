@@ -69,6 +69,8 @@ export interface CalendarEntry {
   sourceId: string;
   sourceType: "official_website" | "official_facebook";
   sourceLastVerified: string;
+  sourceLastChecked?: string;
+  sourceLastChanged?: string;
   publicationStatus: PublicationStatus;
   verification: EventVerification;
   academicYear?: string;
@@ -323,7 +325,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
       { labelEn: "Register students", labelVi: "Đăng ký sinh viên", url: "https://apps.rmit.edu.vn/r/26Carnival-StudentHN" },
       { labelEn: "Register alumni", labelVi: "Đăng ký cựu sinh viên", url: "https://apps.rmit.edu.vn/r/26Carnival-AlumniHN" },
     ],
-    registrationStatus: "open",
+    registrationStatus: "closed",
     registrationDeadline: "2026-11-02T23:59:59+07:00",
     eligibilityEn: "Current students, staff, and alumni.",
     eligibilityVi: "Sinh viên, nhân viên và cựu sinh viên hiện tại.",
@@ -536,6 +538,15 @@ export function getPublishedCalendarEntries(): CalendarEntry[] {
 export function getCalendarEntriesByType(type: CalendarEntryType): CalendarEntry[] {
   return getPublishedCalendarEntries().filter((entry) => entry.type === type);
 }
+export function getEffectiveRegistrationStatus(entry: Pick<CalendarEntry, "registrationStatus" | "registrationDeadline">, now = new Date()): RegistrationStatus | undefined {
+  if (!entry.registrationStatus) return undefined;
+  if (entry.registrationStatus === "open" && entry.registrationDeadline) {
+    const deadline = new Date(entry.registrationDeadline);
+    if (!Number.isNaN(deadline.getTime()) && now.getTime() > deadline.getTime()) return "closed";
+  }
+  return entry.registrationStatus;
+}
+
 export function getEventTemporalStatus(entry: CalendarEntry, now = new Date()): EventTemporalStatus {
   const start = new Date(entry.startAt).getTime();
   const end = new Date(entry.endAt ?? entry.startAt).getTime();
@@ -552,4 +563,10 @@ export function formatCalendarDate(value: string, language: "en" | "vi"): string
     month: "short",
     year: "numeric",
   }).format(new Date(value));
+}
+
+export function formatCalendarDateRange(startAt: string, endAt: string | undefined, language: "en" | "vi"): string {
+  const start = formatCalendarDate(startAt, language);
+  if (!endAt || startAt.slice(0, 10) === endAt.slice(0, 10)) return start;
+  return `${start} – ${formatCalendarDate(endAt, language)}`;
 }

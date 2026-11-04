@@ -1,7 +1,7 @@
 import type { Campus, EventCategory } from "@/data/events/calendar";
 import type { ConflictStatus, FreshnessStatus } from "./quality";
 
-export type MonitorCategory = "events" | "student-news" | "clubs" | "scholarships" | "global-experience" | "academic-calendar" | "procedures" | "campus-facilities";
+export type MonitorCategory = "events" | "student-news" | "clubs" | "scholarships" | "global-experience" | "academic-calendar" | "procedures" | "campus-facilities" | "academic-schools";
 export type MonitorParser = "events" | "review-only" | "unimplemented";
 export type SyncStatus = "healthy" | "unchanged" | "changed" | "failed" | "review_required";
 export type EventLifecycle = "upcoming" | "ongoing" | "ended" | "postponed" | "cancelled" | "date_tba";
@@ -53,6 +53,7 @@ export interface MonitoredEvent {
   originalUrl: string;
   sourceId: string;
   sourceLastVerified: string;
+  sourceLastChecked?: string;
   lifecycle: EventLifecycle;
   contentHash: string;
   lastVerified: string;

@@ -1,3 +1,4 @@
+import { getEffectiveRegistrationStatus } from "@/data/events/calendar";
 import { eventContentHash, eventIdentityKey, extractEventCandidates } from "./extract-events";
 import { contentHash } from "./normalize";
 import { MONITORED_SOURCES } from "./registry";
@@ -33,10 +34,12 @@ function toEvent(candidate: ReturnType<typeof extractEventCandidates>[number], f
   const contentHashValue = eventContentHash(candidate.event);
   return {
     ...candidate.event,
+    registrationStatus: getEffectiveRegistrationStatus({ registrationStatus: candidate.event.registrationStatus, registrationDeadline: candidate.event.registrationDeadline }, new Date(fetchedAt)) ?? candidate.event.registrationStatus,
     id: `monitored-event:${stableHash(identityKey)}`,
     identityKey,
     contentHash: contentHashValue,
     lastVerified: fetchedAt,
+    sourceLastChecked: fetchedAt,
     freshnessStatus: getFreshnessStatus("events", fetchedAt),
     conflictStatus: "no_conflict",
     sourceLastModified,

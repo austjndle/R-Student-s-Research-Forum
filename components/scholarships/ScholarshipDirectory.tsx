@@ -42,15 +42,27 @@ function vietnamToday(): string {
 
 function getCycleStatus(cycle: ScholarshipCycle | undefined, today = vietnamToday()): ScholarshipStatus {
   if (!cycle) return "not_announced";
-  if (cycle.publishedStatus === "open" || cycle.publishedStatus === "rolling") return "open";
+  if (cycle.dateStatus === "conflicting" || cycle.dateStatus === "partial") return "unverified";
+  if (cycle.dateStatus === "not_announced") return "not_announced";
+  if (cycle.opensOn || cycle.closesOn) {
+    if (!cycle.opensOn || !cycle.closesOn) return "unverified";
+    if (today < cycle.opensOn) return "upcoming";
+    if (today <= cycle.closesOn) return "open";
+    return "closed";
+  }
+  if (cycle.publishedStatus === "rolling" || cycle.publishedStatus === "open") return "open";
   if (cycle.publishedStatus === "closed") return "closed";
   if (cycle.publishedStatus === "upcoming") return "upcoming";
-  if (cycle.publishedStatus === "not_announced" || cycle.dateStatus === "not_announced") return "not_announced";
-  if (cycle.dateStatus === "conflicting" || cycle.dateStatus === "partial") return "unverified";
-  if (!cycle.opensOn || !cycle.closesOn) return "not_announced";
-  if (today < cycle.opensOn) return "upcoming";
-  if (today <= cycle.closesOn) return "open";
-  return "closed";
+  return "not_announced";
+}
+
+function formatScholarshipDate(value: string, language: "en" | "vi"): string {
+  return new Intl.DateTimeFormat(language === "vi" ? "vi-VN" : "en-GB", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00+07:00`));
 }
 
 function getCurrentCycle(record: ScholarshipRecord): { cycle?: ScholarshipCycle; status: ScholarshipStatus } {
@@ -112,7 +124,7 @@ function ScholarshipCard({
         <div className="grid gap-3 border-y border-[var(--border)] py-4 text-sm sm:grid-cols-2">
           <div><dt className="font-mono text-[10px] uppercase tracking-wider text-[var(--secondary-text)]">{labels.fields.awardValue}</dt><dd className="mt-1 font-semibold text-[var(--main-text)]">{record.award.display[language]}</dd></div>
           <div><dt className="font-mono text-[10px] uppercase tracking-wider text-[var(--secondary-text)]">{labels.statusFilter}</dt><dd className="mt-1 font-semibold text-[var(--accent)]">{statusLabel}</dd></div>
-          <div><dt className="font-mono text-[10px] uppercase tracking-wider text-[var(--secondary-text)]">{labels.fields.deadline}</dt><dd className="mt-1 text-[var(--main-text)]">{cycle?.closesOn ?? labels.states.noCycles}{cycle?.closingTime ? ` · ${cycle.closingTime}` : ""}</dd></div>
+          <div><dt className="font-mono text-[10px] uppercase tracking-wider text-[var(--secondary-text)]">{labels.fields.deadline}</dt><dd className="mt-1 text-[var(--main-text)]">{cycle?.closesOn ? formatScholarshipDate(cycle.closesOn, language) : labels.states.noCycles}{cycle?.closingTime ? ` · ${cycle.closingTime}` : ""}</dd></div>
           <div><dt className="font-mono text-[10px] uppercase tracking-wider text-[var(--secondary-text)]">{labels.fields.lastVerified}</dt><dd className="mt-1 text-[var(--main-text)]">{record.lastVerified}</dd></div>
         </div>
         <div className="flex flex-wrap items-center gap-2">

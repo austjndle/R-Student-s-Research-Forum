@@ -83,6 +83,12 @@ describe("Smart Search Engine", () => {
     const melbourneTheatre = searchKnowledgeBase("Melbourne Theatre Room 1.2.35", { limit: 5 });
     expect(melbourneTheatre.some((result) => result.document.id === "facility-sgs-b1")).toBe(true);
   });
+  it("finds academic school contacts and routes them to the directory", () => {
+    const sset = searchKnowledgeBase("How can I contact SSET?", { limit: 5 });
+    expect(sset.some((result) => result.document.id === "contact-school-sset" && result.document.resultHref === "/contacts#contact-school-sset")).toBe(true);
+    const business = searchKnowledgeBase("Liên hệ Khoa Kinh doanh", { language: "vi", limit: 5 });
+    expect(business.some((result) => result.document.id === "contact-school-tbs")).toBe(true);
+  });
 });
 
 describe("Gemini AI Guardrails and Scope Filter", () => {

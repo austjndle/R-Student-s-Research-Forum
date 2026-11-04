@@ -7,7 +7,7 @@ import { requestOpenMrHachiware } from "@/components/chat/chatEvents";
 import { useLanguage } from "@/lib/i18n/context";
 import { KNOWLEDGE_CATEGORIES } from "@/data/knowledge/schema";
 import { ALL_RESEARCH_GUIDES } from "@/data/guides/guides";
-import { getPublishedCalendarEntries, formatCalendarDate } from "@/data/events/calendar";
+import { getEventTemporalStatus, formatCalendarDateRange, getPublishedCalendarEntries } from "@/data/events/calendar";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -41,8 +41,17 @@ export default function HomePage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const calendarEntries = getPublishedCalendarEntries();
-  const featuredEvents = calendarEntries.filter((entry) => entry.type === "campus_event").slice(0, 3);
-  const featuredAcademicDates = calendarEntries.filter((entry) => entry.type === "academic_date").slice(0, 3);
+  const now = new Date();
+  const featuredEvents = calendarEntries
+    .filter((entry) => entry.type === "campus_event")
+    .filter((entry) => ["ongoing", "upcoming"].includes(getEventTemporalStatus(entry, now)))
+    .sort((a, b) => a.startAt.localeCompare(b.startAt))
+    .slice(0, 3);
+  const featuredAcademicDates = calendarEntries
+    .filter((entry) => entry.type === "academic_date")
+    .filter((entry) => new Date(entry.endAt ?? entry.startAt).getTime() >= now.getTime())
+    .sort((a, b) => a.startAt.localeCompare(b.startAt))
+    .slice(0, 3);
 
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -216,7 +225,7 @@ export default function HomePage() {
           <div className="divide-y divide-[var(--border)]">
             {featuredEvents.map((entry) => (
               <Link key={entry.id} href={entry.originalUrl} target="_blank" rel="noreferrer" className="group block py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset">
-                <p className="font-mono text-xs text-[var(--accent)]">{formatCalendarDate(entry.startAt, language)}</p>
+                <p className="font-mono text-xs text-[var(--accent)]">{formatCalendarDateRange(entry.startAt, entry.endAt, language)}</p>
                 <h3 className="mt-1 text-base font-semibold text-[var(--main-text)] group-hover:text-[var(--accent)]">{language === "vi" ? entry.titleVi : entry.titleEn}</h3>
                 <p className="mt-1 text-sm text-[var(--secondary-text)]">{language === "vi" ? entry.organiserVi : entry.organiserEn}</p>
               </Link>
@@ -234,7 +243,7 @@ export default function HomePage() {
           <div className="divide-y divide-[var(--border)]">
             {featuredAcademicDates.map((entry) => (
               <Link key={entry.id} href={entry.originalUrl} target="_blank" rel="noreferrer" className="group block py-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset">
-                <p className="font-mono text-xs text-[var(--accent)]">{formatCalendarDate(entry.startAt, language)}</p>
+                <p className="font-mono text-xs text-[var(--accent)]">{formatCalendarDateRange(entry.startAt, entry.endAt, language)}</p>
                 <h3 className="mt-1 text-base font-semibold text-[var(--main-text)] group-hover:text-[var(--accent)]">{language === "vi" ? entry.titleVi : entry.titleEn}</h3>
                 <p className="mt-1 text-sm text-[var(--secondary-text)]">{language === "vi" ? "Nguồn học vụ chính thức" : "Official academic source"}</p>
               </Link>

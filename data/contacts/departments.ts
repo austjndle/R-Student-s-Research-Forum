@@ -1,3 +1,17 @@
+import { ACADEMIC_SCHOOL_CONTACTS } from "./academicSchools";
+
+export interface SpecializedContact {
+  id: string;
+  labelEn: string;
+  labelVi: string;
+  purposeEn: string;
+  purposeVi: string;
+  email: string | null;
+  phone?: string | null;
+  campus?: "saigon_south" | "hanoi";
+  verificationStatus: "verified" | "not_published" | "manual_review_required";
+  sourceUrl: string;
+}
 export interface DepartmentContact {
   id: string;
   nameEn: string;
@@ -9,7 +23,11 @@ export interface DepartmentContact {
   responsibilitiesVi: string[];
   typicalEnquiriesEn: string[];
   typicalEnquiriesVi: string[];
+  abbreviation?: string;
+  isAcademicSchool?: boolean;
   email: string | null;
+  emailLabelEn?: string;
+  emailLabelVi?: string;
   phone: string | null;
   formUrl: string | null;
   websiteUrl: string;
@@ -26,9 +44,10 @@ export interface DepartmentContact {
   serviceHoursEn: string;
   serviceHoursVi: string;
   lastVerifiedDate: string;
+  specializedContacts?: SpecializedContact[];
 }
 
-export const DEPARTMENT_CONTACTS: DepartmentContact[] = [
+const CORE_DEPARTMENT_CONTACTS: DepartmentContact[] = [
   {
     id: "dept-student-connect",
     nameEn: "Student Connect",
@@ -206,8 +225,8 @@ export const DEPARTMENT_CONTACTS: DepartmentContact[] = [
     nameEn: "Scholarships Department",
     nameVi: "Bộ phận Học bổng",
     category: "specialized",
-    descriptionEn: "Coordinates university-wide scholarships, applications, renewal GPA verifications, and financial aid grants.",
-    descriptionVi: "Phụ trách các chương trình học bổng toàn trường, xét duyệt hồ sơ, kiểm tra điều kiện duy trì GPA và trợ cấp học tập.",
+    descriptionEn: "Coordinates university-wide scholarships, applications, renewal GPA verifications, and financial aid grants through the official scholarship contact route.",
+    descriptionVi: "Phụ trách các chương trình học bổng toàn trường, hồ sơ, kiểm tra GPA duy trì và trợ cấp học tập thông qua kênh liên hệ học bổng chính thức.",
     responsibilitiesEn: [
       "Administration of Vice-Chancellor's and Academic Merit scholarships",
       "Eligibility review for prospective and current students",
@@ -233,14 +252,14 @@ export const DEPARTMENT_CONTACTS: DepartmentContact[] = [
       "Cách nộp bổ sung chứng chỉ và giấy khen trong hồ sơ xét duyệt?"
     ],
     email: "scholarships@rmit.edu.vn",
-    phone: "+84 28 3776 1300",
+    phone: null,
     formUrl: "https://www.rmit.edu.vn/vi/hoc-tap-tai-rmit/hoc-bong",
     websiteUrl: "https://www.rmit.edu.vn/vi/hoc-tap-tai-rmit/hoc-bong",
     campus: "all",
-    locationEn: "Saigon South & Hanoi Admissions / Student Central offices",
-    locationVi: "Văn phòng Tuyển sinh và Quản lý sinh viên tại Nam Sài Gòn & Hà Nội",
-    serviceHoursEn: "Monday - Friday: 8:30 AM - 5:00 PM",
-    serviceHoursVi: "Thứ Hai - Thứ Sáu: 8:30 - 17:00",
+    locationEn: "Use the official scholarship contact page; no dedicated office location is published there.",
+    locationVi: "Sử dụng trang liên hệ học bổng chính thức; trang không công bố địa điểm văn phòng riêng.",
+    serviceHoursEn: "Monday - Friday: 9:00 AM - 5:00 PM",
+    serviceHoursVi: "Thứ Hai - Thứ Sáu: 9:00 - 17:00",
     lastVerifiedDate: "2026-10-18"
   },
   {
@@ -287,20 +306,20 @@ export const DEPARTMENT_CONTACTS: DepartmentContact[] = [
   },
   {
     id: "dept-exchange",
-    nameEn: "Global Experience Office (International Mobility & Transfer)",
-    nameVi: "Văn phòng Trải nghiệm Toàn cầu (Global Experience)",
+    nameEn: "Global Experience Office (Exchange & Permanent Transfer)",
+    nameVi: "Văn phòng Trải nghiệm Toàn cầu (Trao đổi & Chuyển tiếp dài hạn)",
     category: "specialized",
     descriptionEn: "Guides students through cross-campus transfers to RMIT Melbourne, study abroad, and partner university exchange.",
     descriptionVi: "Hướng dẫn sinh viên chương trình chuyển tiếp sang RMIT Melbourne, du học hè và trao đổi sinh viên quốc tế.",
     responsibilitiesEn: [
-      "Advising on RMIT Melbourne cross-campus study options (transfer@rmit.edu.vn)",
-      "Coordination of semester-based international exchange applications (mobility@rmit.edu.vn)",
+      "Advising on RMIT Melbourne cross-campus and permanent-transfer pathways through the official Global Experience route",
+      "Coordination of semester-based international exchange applications through mobility@rmit.edu.vn",
       "Course mapping and academic approval coordination with program managers",
       "Pre-departure visa guidance and overseas briefing sessions"
     ],
     responsibilitiesVi: [
-      "Tư vấn lộ trình chuyển tiếp cơ sở sang RMIT Melbourne (transfer@rmit.edu.vn)",
-      "Điều phối và tiếp nhận hồ sơ trao đổi sinh viên tại các đại học đối tác (mobility@rmit.edu.vn)",
+      "Tư vấn lộ trình học tại RMIT Melbourne theo chương trình trao đổi hoặc chuyển tiếp dài hạn qua kênh Global Experience chính thức",
+      "Điều phối hồ sơ trao đổi sinh viên theo học kỳ qua mobility@rmit.edu.vn",
       "Hỗ trợ quy đổi môn học tương đương với Trưởng ngành",
       "Hướng dẫn thủ tục visa du học và tổ chức các buổi chuẩn bị trước khi lên đường"
     ],
@@ -323,8 +342,8 @@ export const DEPARTMENT_CONTACTS: DepartmentContact[] = [
     campus: "all",
     locationEn: "Saigon South: Room 1.3.08 | Hanoi: Room 1.1.006 (Handi Resco)",
     locationVi: "Nam Sài Gòn: Phòng 1.3.08 | Hà Nội: Phòng 1.1.006 (Handi Resco)",
-    serviceHoursEn: "Monday - Friday: 9:00 AM - 5:00 PM",
-    serviceHoursVi: "Thứ Hai - Thứ Sáu: 9:00 - 17:00",
+    serviceHoursEn: "Monday - Friday: 9:00 AM - 12:00 PM and 1:00 PM - 5:00 PM",
+    serviceHoursVi: "Thứ Hai - Thứ Sáu: 9:00 - 12:00 và 13:00 - 17:00",
     lastVerifiedDate: "2026-10-30"
   },
   {
@@ -370,3 +389,5 @@ export const DEPARTMENT_CONTACTS: DepartmentContact[] = [
     lastVerifiedDate: "2026-10-17"
   }
 ];
+
+export const DEPARTMENT_CONTACTS: DepartmentContact[] = [...CORE_DEPARTMENT_CONTACTS, ...ACADEMIC_SCHOOL_CONTACTS];

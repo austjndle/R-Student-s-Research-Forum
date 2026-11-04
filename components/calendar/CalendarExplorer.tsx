@@ -18,7 +18,8 @@ import {
   type Campus,
   type EventTemporalStatus,
   CAMPUS_ACTIVITY_HIGHLIGHTS,
-  formatCalendarDate,
+  formatCalendarDateRange,
+  getEffectiveRegistrationStatus,
   getEventTemporalStatus,
   getPublishedCalendarEntries,
 } from "@/data/events/calendar";
@@ -127,7 +128,6 @@ function ActivityHighlights({ language, ui }: { language: "en" | "vi"; ui: { hig
 }
 
 function EntryRow({ entry, language, now }: { entry: CalendarEntry; language: "en" | "vi"; now: Date | null }) {
-  const source = EVENT_SOURCES.find((item) => item.id === entry.sourceId);
   const title = getEntryTitle(entry, language);
   const description = getEntryDescription(entry, language);
   const organiser = language === "vi" ? entry.organiserVi : entry.organiserEn;
@@ -138,7 +138,7 @@ function EntryRow({ entry, language, now }: { entry: CalendarEntry; language: "e
     url: entry.registrationUrl,
   }] : []);
   const temporalStatus = entry.type === "campus_event" && now ? getEventTemporalStatus(entry, now) : null;
-  const registrationStatus = entry.registrationStatus ?? (registrationLinks.length > 0 ? "unverified" : undefined);
+  const registrationStatus = getEffectiveRegistrationStatus(entry, now ?? new Date()) ?? (registrationLinks.length > 0 ? "unverified" : undefined);
   const visibleRegistrationLinks = registrationStatus === "closed" || temporalStatus === "ended" ? [] : registrationLinks;
 
   return (
@@ -151,15 +151,11 @@ function EntryRow({ entry, language, now }: { entry: CalendarEntry; language: "e
               : language === "vi" ? "SỰ KIỆN" : "EVENT"}
           </p>
           <p className="mt-1 text-lg font-bold leading-tight text-[var(--main-text)]">
-            {new Intl.DateTimeFormat(language === "vi" ? "vi-VN" : "en-GB", {
-              timeZone: "Asia/Ho_Chi_Minh",
-              day: "2-digit",
-              month: "short",
-            }).format(new Date(entry.startAt))}
+            {formatCalendarDateRange(entry.startAt, entry.endAt, language)}
           </p>
-        </div>
       </div>
 
+      </div>
       <div className="min-w-0">
         {entry.imageUrl && (
           <EventImage
@@ -243,9 +239,15 @@ function EntryRow({ entry, language, now }: { entry: CalendarEntry; language: "e
           <ReportIssue recordId={entry.id} pageUrl={typeof window === "undefined" ? entry.originalUrl : window.location.href} />
         </div>
 
-        <p className="mt-4 font-mono text-[11px] text-[var(--secondary-text)]">
-          {language === "vi" ? "Xác minh lần cuối" : "Last verified"}: {source?.lastSuccessfulCheck ?? entry.sourceLastVerified}
-        </p>
+        <div className="mt-4 space-y-1 font-mono text-[11px] text-[var(--secondary-text)]">
+          <p>{language === "vi" ? "Xác minh lần cuối" : "Last verified"}: {entry.sourceLastVerified}</p>
+          {entry.sourceLastChecked && (
+            <p>{language === "vi" ? "Kiểm tra nguồn lần cuối" : "Source last checked"}: {entry.sourceLastChecked}</p>
+          )}
+          {entry.sourceLastChanged && (
+            <p>{language === "vi" ? "Nội dung đổi lần cuối" : "Content last changed"}: {entry.sourceLastChanged}</p>
+          )}
+        </div>
       </div>
     </article>
   );
@@ -498,7 +500,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
                 <div className="mt-3 divide-y divide-[var(--border)] border-b border-[var(--border)]">
                   {monthEntries.map((entry) => (
                     <Link key={entry.id} href={entry.originalUrl} target="_blank" rel="noreferrer" className="block py-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset">
-                      <p className="font-mono text-xs text-[var(--accent)]">{formatCalendarDate(entry.startAt, language)}</p>
+                      <p className="font-mono text-xs text-[var(--accent)]">{formatCalendarDateRange(entry.startAt, entry.endAt, language)}</p>
                       {entry.imageUrl && <EventImage src={entry.imageUrl} alt={entry.imageAlt ?? getEntryTitle(entry, language)} className="mt-2 aspect-[16/7] w-full" />}
                       <p className="mt-1 font-semibold text-[var(--main-text)]">{getEntryTitle(entry, language)}</p>
                     </Link>

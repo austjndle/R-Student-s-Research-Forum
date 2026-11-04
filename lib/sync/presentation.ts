@@ -1,5 +1,6 @@
 import type { KnowledgeDocument } from "@/data/knowledge/schema";
 import type { SearchResultItem } from "@/lib/search/engine";
+import { getEffectiveRegistrationStatus } from "@/data/events/calendar";
 import type { CalendarEntry } from "@/data/events/calendar";
 import { analyzeQuery } from "@/lib/rag/query";
 import type { MonitoredEvent } from "./types";
@@ -21,12 +22,14 @@ export function toCalendarEntry(event: MonitoredEvent): CalendarEntry {
     startAt: event.startAt,
     endAt: event.endAt,
     registrationUrl: event.registrationUrl,
-    registrationStatus: event.registrationStatus,
+    registrationStatus: getEffectiveRegistrationStatus({ registrationStatus: event.registrationStatus, registrationDeadline: event.registrationDeadline }),
     registrationDeadline: event.registrationDeadline,
     originalUrl: event.originalUrl,
     sourceId: event.sourceId,
     sourceType: "official_website",
     sourceLastVerified: event.sourceLastVerified,
+    sourceLastChecked: event.sourceLastChecked,
+    sourceLastChanged: event.contentLastChangedAt,
     publicationStatus: event.publicationStatus === "published" ? "published" : "draft",
     verification: "verified",
   };
