@@ -18,6 +18,7 @@ function tokenScore(query: QueryAnalysis, chunk: KnowledgeChunk): { score: numbe
   if (query.normalized.includes("student connect") && haystack.includes("student connect")) score += 180;
   if (query.normalized.includes("beanland library") && haystack.includes("beanland library")) score += 120;
   if (query.normalized.includes("beanland") && haystack.includes("1.3.30")) score += 100;
+  if (query.intent === "lost_property" && chunk.category === "campus-facilities" && /lost|found|security|thất lạc|mất đồ/.test(haystack)) score += 260;
   for (const term of [...query.exactTerms, ...query.expandedTerms]) {
     if (term.length < 2 || !haystack.includes(term.toLowerCase())) continue;
     matchedTerms.push(term);
@@ -57,6 +58,11 @@ function selectCampusSpecific(candidates: RetrievalCandidate[], query: QueryAnal
 }
 function topicRelevant(query: QueryAnalysis, candidate: RetrievalCandidate): boolean {
   const text = removeVietnameseDiacritics(`${candidate.chunk.category}\n${candidate.chunk.title}\n${candidate.chunk.text}`).toLowerCase();
+  if (query.intent === "lost_property") return candidate.chunk.category === "campus-facilities" && /lost|found|security|thất lạc|mất đồ|lost and found/.test(text);
+  const ssetQuery = /\bsset\b|robotics|mechatronics|bh123|bh073|program map|program guide|student project|project showcase|canvas shell|science engineering technology/.test(query.normalized);
+  const ssetProjectQuery = /student project|project showcase/.test(query.normalized);
+  if (ssetProjectQuery) return candidate.chunk.category === "sset-projects" || candidate.chunk.documentId === "sset-overview";
+  if (ssetQuery) return candidate.chunk.category === "sset" || candidate.chunk.category === "sset-projects" || candidate.chunk.category === "academic-recognition" || /sset|robotics|mechatronics|bh123|bh073|program map|program guide|student project|project showcase|canvas shell/.test(text);
   if (query.intent === "dining") return /\b(?:food|eat|dining|restaurant|cafe|coffee|canteen|highlands|noodle|vending|boost|juice|kootoro|sorrento|nine|global)\b/.test(text);
   if (query.intent === "club" || query.intent === "recruitment") return candidate.chunk.category === "clubs" || /\bclub\b|\bclb\b|cau lac bo/.test(text);
   if (query.intent === "scholarship") return candidate.chunk.category === "scholarships" || /scholarship|hoc bong/.test(text);

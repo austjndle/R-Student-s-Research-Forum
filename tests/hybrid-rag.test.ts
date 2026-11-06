@@ -104,7 +104,7 @@ describe("Hybrid RAG exact facility facts", () => {
     expect(answer).not.toMatch(/Noodle U.*Circle K.*Sorrento Café/);
   });
   it("has an explicit static index version and official source boundary", () => {
-    expect(KNOWLEDGE_INDEX_VERSION).toMatch(/^2026-11-03-/);
+    expect(KNOWLEDGE_INDEX_VERSION).toMatch(/^2026-11-06-lost-and-found-scope-/);
     expect(KNOWLEDGE_INDEX_SOURCES.some((source) => source.id === "beanland-building-map")).toBe(true);
     expect(KNOWLEDGE_INDEX_SOURCES.every((source) => source.url.startsWith("https://"))).toBe(true);
   });

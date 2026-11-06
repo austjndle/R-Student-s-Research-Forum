@@ -20,6 +20,7 @@ import {
   HeartPulse,
   Building2,
   Briefcase,
+  Palette,
   ChevronRight,
   FileText,
 } from "lucide-react";
@@ -39,6 +40,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   HeartPulse,
   Building2,
   Briefcase,
+  Palette,
 };
 
 export default function TopicsPage() {

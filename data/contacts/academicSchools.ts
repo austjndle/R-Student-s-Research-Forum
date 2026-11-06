@@ -40,6 +40,7 @@ export const ACADEMIC_SCHOOL_CONTACTS: DepartmentContact[] = [
     ],
     specializedContacts: [
       { id: "sset-academic-progress", labelEn: "Academic Progress / Show Cause", labelVi: "Tiến độ học tập / Show Cause", purposeEn: "RMIT's public academic-progress page says students should first speak with staff in their School. No school-specific email is published on the checked public pages.", purposeVi: "Trang tiến độ học tập công khai của RMIT hướng dẫn sinh viên trao đổi trước với nhân sự của Khoa. Các trang công khai đã kiểm tra chưa công bố email riêng của Khoa.", email: null, verificationStatus: "not_published", sourceUrl: ACADEMIC_PROGRESS_SOURCE },
+      { id: "sset-phone-conflict", labelEn: "Phone number conflict review", labelVi: "Rà soát xung đột số điện thoại", purposeEn: "The checked SSET contact page lists +84 28 3776 1416, while the SSET overview and some subpages display +84 28 3776 1369. Confirm the current number with SSET before relying on it.", purposeVi: "Trang liên hệ SSET đã kiểm tra ghi +84 28 3776 1416, trong khi trang tổng quan và một số trang con ghi +84 28 3776 1369. Hãy xác nhận số hiện hành với SSET trước khi sử dụng.", email: null, phone: "+84 28 3776 1369 / +84 28 3776 1416", verificationStatus: "manual_review_required", sourceUrl: "https://www.rmit.edu.vn/about-us/schools-and-centres/school-of-science-engineering-and-technology" },
     ],
     serviceHoursEn: "Monday - Friday: 9:00 AM - 5:00 PM",
     serviceHoursVi: "Thứ Hai - Thứ Sáu: 9:00 - 17:00",

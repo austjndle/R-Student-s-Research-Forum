@@ -1,4 +1,5 @@
 import { KnowledgeDocument } from "./schema";
+import { LOST_AND_FOUND_SERVICE } from "../studentServices";
 
 export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
   {
@@ -869,5 +870,45 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     lastVerifiedDate: "2026-11-03",
     verificationStatus: "verified",
     relatedDocIds: ["doc-student-connect"]
-  }
+  },
+  {
+    id: "doc-lost-and-found-services",
+    slug: "lost-and-found-services",
+    titleEn: "Lost and Found Services at RMIT Vietnam",
+    titleVi: "Dịch vụ Đồ thất lạc tại RMIT Việt Nam",
+    categoryId: "campus-facilities",
+    keywords: [
+      "lost and found", "lost property", "lost belongings", "lost", "lose", "losing", "stuff", "things", "belongings", "misplaced item", "missing item", "lost wallet", "lost phone", "lost airpods", "found property", "found item", "security enquiries", "security counter", "lost ticket", "found ticket", "stolen bag", "security",
+      "đồ thất lạc", "mất đồ", "làm mất đồ", "để quên đồ", "đồ bị mất", "nhặt được đồ", "phiếu Lost", "phiếu Found", "an ninh", "quầy an ninh", "mất thẻ sinh viên",
+    ],
+    synonymsEn: ["where is lost and found", "where do I report a lost item", "return found belongings", "campus lost property", "lost item procedure"],
+    synonymsVi: ["tìm đồ thất lạc", "báo mất đồ", "trả đồ nhặt được", "đồ thất lạc trong trường", "mất tài sản"],
+    summaryEn: LOST_AND_FOUND_SERVICE.overview.en,
+    summaryVi: LOST_AND_FOUND_SERVICE.overview.vi,
+    detailedGuidanceEn: [...LOST_AND_FOUND_SERVICE.lostProcedure, ...LOST_AND_FOUND_SERVICE.foundProcedure, LOST_AND_FOUND_SERVICE.resultTimeline, LOST_AND_FOUND_SERVICE.collectionRule, LOST_AND_FOUND_SERVICE.lostStudentIdGuidance].map((item) => item.en).join(" "),
+    detailedGuidanceVi: [...LOST_AND_FOUND_SERVICE.lostProcedure, ...LOST_AND_FOUND_SERVICE.foundProcedure, LOST_AND_FOUND_SERVICE.resultTimeline, LOST_AND_FOUND_SERVICE.collectionRule, LOST_AND_FOUND_SERVICE.lostStudentIdGuidance].map((item) => item.vi).join(" "),
+    keyDetailsEn: [
+      ...LOST_AND_FOUND_SERVICE.locations.map((location) => `${location.campusLabel.en}: ${location.location.en}; ${location.hours.en}; phone ${location.phone}`),
+      `Security RUVN: ${LOST_AND_FOUND_SERVICE.securityEmail}`,
+      `24/7 Security Hotline: ${LOST_AND_FOUND_SERVICE.securityHotline}`,
+      "Lost reports receive a result within three working days; this is not a recovery guarantee.",
+      "Found items must be brought to the relevant campus counter and recorded on a Found ticket.",
+      "Lost student IDs use the official RMIT Student Cards and Student Connect route.",
+    ],
+    keyDetailsVi: [
+      ...LOST_AND_FOUND_SERVICE.locations.map((location) => `${location.campusLabel.vi}: ${location.location.vi}; ${location.hours.vi}; điện thoại ${location.phone}`),
+      `Security RUVN: ${LOST_AND_FOUND_SERVICE.securityEmail}`,
+      `Đường dây nóng an ninh 24/7: ${LOST_AND_FOUND_SERVICE.securityHotline}`,
+      "Báo mất nhận kết quả trong vòng ba ngày làm việc; đây không phải cam kết tìm lại được đồ.",
+      "Đồ nhặt được phải mang đến quầy tương ứng và ghi nhận bằng phiếu Found.",
+      "Mất thẻ sinh viên dùng trang RMIT Student Cards và kênh Student Connect chính thức.",
+    ],
+    officialSourceUrl: LOST_AND_FOUND_SERVICE.sourceUrls[0],
+    sourceTitle: "RMIT Vietnam Lost and Found services",
+    departmentId: "dept-student-connect",
+    campus: "all",
+    lastVerifiedDate: LOST_AND_FOUND_SERVICE.lastVerified,
+    verificationStatus: "verified",
+    relatedDocIds: ["doc-student-connect"],
+  },
 ];

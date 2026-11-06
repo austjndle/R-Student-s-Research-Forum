@@ -6,6 +6,9 @@ import { notFound } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/context";
 import { KNOWLEDGE_CATEGORIES } from "@/data/knowledge/schema";
 import { ScholarshipDirectory } from "@/components/scholarships/ScholarshipDirectory";
+import { SSETDirectory } from "@/components/sset/SSETDirectory";
+import { getSchoolDirectory } from "@/data/schoolDirectories";
+import { SchoolDirectory } from "@/components/schools/SchoolDirectory";
 import { KNOWLEDGE_DOCUMENTS } from "@/data/knowledge/documents";
 import {
   ArrowLeft,
@@ -25,6 +28,12 @@ export default function TopicDetailPage({
   const { language, t } = useLanguage();
   if (slug === "scholarships") {
     return <ScholarshipDirectory />;
+  }
+  if (slug === "sset") {
+    return <SSETDirectory />;
+  }
+  if (slug === "tbs" || slug === "scd") {
+    return <SchoolDirectory school={getSchoolDirectory(slug)} />;
   }
 
 

@@ -3,6 +3,9 @@ import { RMIT_CAMPUS_HOURS, type BuildingInfo, type FloorHours } from "@/data/fa
 import { getVerifiedClubs, type ClubRecord } from "@/data/clubs/clubs";
 import { CAMPUS_ACTIVITY_HIGHLIGHTS, getPublishedCalendarEntries, type CalendarEntry } from "@/data/events/calendar";
 import { DEPARTMENT_CONTACTS } from "@/data/contacts/departments";
+import { ACADEMIC_RECOGNITION } from "@/data/academicRecognition";
+import { SSET_INDUSTRY, SSET_INFRASTRUCTURE, SSET_OVERVIEW, SSET_PROGRAMS, SSET_PROJECTS, SSET_RESEARCH, SSET_URLS } from "@/data/sset";
+import { SCHOOL_DIRECTORIES } from "@/data/schoolDirectories";
 import { SCHOLARSHIPS, type LocalizedText, type ScholarshipRecord } from "@/data/scholarships";
 import { GLOBAL_EXPERIENCE_PROGRAMS, GLOBAL_EXPERIENCE_LAST_VERIFIED } from "@/data/guides/globalExperience";
 import { KNOWLEDGE_INDEX_VERSION, KNOWLEDGE_INDEX_SOURCES } from "@/data/knowledge/indexManifest";
@@ -10,8 +13,8 @@ import type { Campus } from "@/data/knowledge/schema";
 import type { KnowledgeChunk, SourceRegistryEntry, SourceAuthority } from "./types";
 
 const EMBEDDING_VERSION = "lexical-v1";
-const DEFAULT_VERIFIED = "2026-11-03";
-const OFFICIAL_HOSTS = new Set(["www.rmit.edu.vn", "rmit.edu.vn"]);
+const DEFAULT_VERIFIED = "2026-11-06";
+const OFFICIAL_HOSTS = new Set(["www.rmit.edu.vn", "rmit.edu.vn", "www.rmit.edu.au", "rmit.edu.au", "handbook.rmit.edu.au", "rmitvn-showcase.com", "www.rmitvn-showcase.com"]);
 
 /** Stable non-cryptographic content key for build-time identity. Ingestion uses SHA-256. */
 export function stableHash(value: string): string {
@@ -116,6 +119,25 @@ export function buildSourceRegistry(): SourceRegistryEntry[] {
   }
   for (const scholarship of SCHOLARSHIPS) {
     add(makeSource({ id: sourceIdFor("scholarship", scholarship.id), title: scholarship.name.en, url: scholarship.sources[0]?.url ?? "https://www.rmit.edu.vn/study-at-rmit/scholarships", type: "curated_static_dataset", authority: 3, campus: "all", category: "scholarships", lastVerified: scholarship.lastVerified, content: JSON.stringify(scholarship) }));
+  }
+  for (const recognition of ACADEMIC_RECOGNITION) {
+    add(makeSource({ id: sourceIdFor("recognition", recognition.id), title: recognition.name.en, url: recognition.sourceUrl, type: "curated_static_dataset", authority: recognition.verificationStatus === "verified" ? 1 : 3, campus: "all", category: "academic-recognition", lastVerified: recognition.lastVerified, content: JSON.stringify(recognition), status: recognition.verificationStatus === "unavailable" ? "needs_review" : "indexed" }));
+  }
+  add(makeSource({ id: "sset:overview", title: "RMIT Vietnam SSET official website", url: SSET_URLS.overview, type: "official_page", authority: 1, campus: "all", category: "sset", lastVerified: "2026-11-05", content: SSET_OVERVIEW.en }));
+  add(makeSource({ id: "sset:research", title: "RMIT Vietnam SSET research", url: SSET_URLS.research, type: "official_page", authority: 1, campus: "all", category: "sset", lastVerified: "2026-11-05", content: SSET_RESEARCH.en }));
+  add(makeSource({ id: "sset:infrastructure", title: "RMIT Vietnam SSET infrastructure", url: SSET_URLS.infrastructure, type: "official_page", authority: 1, campus: "all", category: "sset", lastVerified: "2026-11-05", content: SSET_INFRASTRUCTURE.en }));
+  add(makeSource({ id: "sset:industry", title: "RMIT Vietnam SSET industry", url: SSET_URLS.industry, type: "official_page", authority: 1, campus: "all", category: "sset", lastVerified: "2026-11-05", content: SSET_INDUSTRY.en }));
+  add(makeSource({ id: "sset:projects", title: "RMIT Vietnam SSET student projects", url: SSET_URLS.projects, type: "official_page", authority: 1, campus: "all", category: "sset", lastVerified: "2026-11-05", content: JSON.stringify(SSET_PROJECTS) }));
+  add(makeSource({ id: "sset:showcase", title: "RMIT Vietnam SSET project showcase", url: SSET_URLS.showcase, type: "official_organisation", authority: 2, campus: "all", category: "sset", lastVerified: "2026-11-05", content: SSET_URLS.showcase }));
+  for (const program of SSET_PROGRAMS) {
+    add(makeSource({ id: sourceIdFor("sset-program", program.id), title: program.title.en, url: program.programUrl, type: "official_page", authority: 1, campus: program.campuses.length === 1 && program.campuses[0] === "Saigon South" ? "saigon_south" : "all", category: "sset", lastVerified: program.lastVerified, content: JSON.stringify(program) }));
+    for (const guide of program.guideUrls) add(makeSource({ id: sourceIdFor("sset-guide", guide.planCode ?? guide.url), title: `${program.title.en} — ${guide.label.en}`, url: guide.url, type: "official_page", authority: 1, campus: guide.campus.en === "Hanoi" ? "hanoi" : "saigon_south", category: "sset-program-guides", lastVerified: program.lastVerified, content: JSON.stringify(guide) }));
+  }
+  for (const school of SCHOOL_DIRECTORIES) {
+    const overviewUrl = school.links.find((link) => link.id === "overview")?.url ?? school.contact.url;
+    add(makeSource({ id: sourceIdFor("school", school.id), title: school.name.en, url: overviewUrl, type: "official_page", authority: 1, campus: "all", category: school.id, lastVerified: school.lastVerified, content: JSON.stringify(school) }));
+    add(makeSource({ id: sourceIdFor("school-contact", school.id), title: `${school.name.en} contact`, url: school.contact.url, type: "official_page", authority: 1, campus: school.id === "scd" ? "saigon_south" : "all", category: `${school.id}-contact`, lastVerified: school.lastVerified, content: JSON.stringify(school.contact) }));
+    for (const program of school.programs) add(makeSource({ id: sourceIdFor("school-program", `${school.id}-${program.id}`), title: program.title.en, url: program.programUrl, type: "official_page", authority: 1, campus: "all", category: `${school.id}-programs`, lastVerified: school.lastVerified, content: JSON.stringify(program) }));
   }
   return [...sources.values()];
 }
@@ -231,6 +253,62 @@ function scholarshipChunks(): KnowledgeChunk[] {
     return chunkFromSource({ id: `chunk:scholarship:${scholarship.id}`, documentId: scholarship.id, sourceId, text, title: scholarship.name.en, campus: scholarship.campuses.length === 1 && scholarship.campuses[0] === "Hanoi" ? "hanoi" : scholarship.campuses.length === 1 && scholarship.campuses[0] === "Saigon South" ? "saigon_south" : "all", category: "scholarships", sourceUrl: scholarship.sources[0]?.url ?? "https://www.rmit.edu.vn/study-at-rmit/scholarships", sourceType: "curated_static_dataset", verificationStatus: scholarship.cycles.some((cycle) => cycle.dateStatus === "conflicting") ? "conflicting" : "verified", metadata: { recordId: scholarship.id, institution: scholarship.institution } });
   });
 }
+function academicRecognitionChunks(): KnowledgeChunk[] {
+  return ACADEMIC_RECOGNITION.map((record) => {
+    const sourceId = sourceIdFor("recognition", record.id);
+    const text = [
+      record.name.en, record.name.vi, record.institution.en, record.institution.vi,
+      record.school.en, record.school.vi, record.description.en, record.description.vi,
+      record.purpose.en, record.purpose.vi, record.eligibility.en, record.eligibility.vi,
+      record.gpa.en, record.gpa.vi, record.ranking.en, record.ranking.vi,
+      record.credits.en, record.credits.vi, record.integrity.en, record.integrity.vi,
+      record.selection.en, record.selection.vi, record.nomination.en, record.nomination.vi,
+      record.schedule.en, record.schedule.vi, record.benefits.en, record.benefits.vi,
+      record.certificate.en, record.certificate.vi, record.financialSupport.en, record.financialSupport.vi,
+      record.enquiry.en, record.enquiry.vi,
+    ].join("\n");
+    return chunkFromSource({ id: `chunk:recognition:${record.id}`, documentId: record.id, sourceId, text, title: record.name.en, campus: "all", category: "academic-recognition", sourceUrl: record.sourceUrl, sourceType: "curated_static_dataset", verificationStatus: record.verificationStatus === "unavailable" ? "unavailable" : "verified", metadata: { recordId: record.id, institution: record.institution.en } });
+  });
+}
+
+function ssetChunks(): KnowledgeChunk[] {
+  const overview = chunkFromSource({ id: "chunk:sset:overview", documentId: "sset-overview", sourceId: "sset:overview", text: [SSET_OVERVIEW.en, SSET_OVERVIEW.vi, SSET_RESEARCH.en, SSET_RESEARCH.vi, SSET_INFRASTRUCTURE.en, SSET_INFRASTRUCTURE.vi, SSET_INDUSTRY.en, SSET_INDUSTRY.vi].join("\n"), title: "SSET: Science, Engineering & Technology", campus: "all", category: "sset", sourceUrl: SSET_URLS.overview, sourceType: "official_page", metadata: { recordId: "sset-overview" } });
+  const programs = SSET_PROGRAMS.map((program) => chunkFromSource({ id: `chunk:sset:program:${program.id}`, documentId: `sset-program-${program.id}`, sourceId: sourceIdFor("sset-program", program.id), text: [program.title.en, program.title.vi, program.code, program.summary.en, program.summary.vi, program.structure.en, program.structure.vi, ...program.specialisations.flatMap((item) => [item.en, item.vi]), ...program.learningOutcomes.flatMap((item) => [item.en, item.vi]), ...program.careers.flatMap((item) => [item.en, item.vi]), program.industryExperience.en, program.industryExperience.vi, program.accessNote.en, program.accessNote.vi].join("\n"), title: program.title.en, campus: program.campuses.length === 1 && program.campuses[0] === "Saigon South" ? "saigon_south" : "all", category: "sset", sourceUrl: program.programUrl, sourceType: "official_page", metadata: { recordId: program.id, programCode: program.code } }));
+  const projects = SSET_PROJECTS.map((project) => chunkFromSource({ id: `chunk:sset:project:${project.id}`, documentId: project.id, sourceId: "sset:projects", text: [project.title.en, project.title.vi, project.discipline.en, project.discipline.vi, project.summary.en, project.summary.vi, project.focus.en, project.focus.vi, project.year].join("\n"), title: project.title.en, campus: "all", category: "sset-projects", sourceUrl: project.url, sourceType: "official_page", metadata: { recordId: project.id, projectYear: project.year } }));
+  return [overview, ...programs, ...projects];
+}
+
+
+function schoolDirectoryChunks(): KnowledgeChunk[] {
+  return SCHOOL_DIRECTORIES.flatMap((school) => {
+    const overviewUrl = school.links.find((link) => link.id === "overview")?.url ?? school.contact.url;
+    const overview = chunkFromSource({
+      id: `chunk:${school.id}:overview`,
+      documentId: `${school.id}-overview`,
+      sourceId: sourceIdFor("school", school.id),
+      text: [school.name.en, school.name.vi, school.overview.en, school.overview.vi, school.programsIntro.en, school.programsIntro.vi, school.research.en, school.research.vi, school.industry.en, school.industry.vi, school.facilities.en, school.facilities.vi, school.contact.location.en, school.contact.location.vi, school.contact.email, school.contact.phone].join("\n"),
+      title: school.name.en,
+      campus: "all",
+      category: school.id,
+      sourceUrl: overviewUrl,
+      sourceType: "official_page",
+      metadata: { recordId: `${school.id}-overview`, school: school.abbreviation },
+    });
+    const programs = school.programs.map((program) => chunkFromSource({
+      id: `chunk:${school.id}:program:${program.id}`,
+      documentId: `${school.id}-program-${program.id}`,
+      sourceId: sourceIdFor("school-program", `${school.id}-${program.id}`),
+      text: [program.title.en, program.title.vi, program.code, program.campuses.join(", "), program.duration.en, program.duration.vi, program.summary.en, program.summary.vi, ...program.focus.flatMap((item) => [item.en, item.vi]), program.industry.en, program.industry.vi, ...program.careers.flatMap((item) => [item.en, item.vi]), program.accessNote.en, program.accessNote.vi].join("\n"),
+      title: program.title.en,
+      campus: "all",
+      category: `${school.id}-programs`,
+      sourceUrl: program.programUrl,
+      sourceType: "official_page",
+      metadata: { recordId: program.id, school: school.abbreviation, programCode: program.code },
+    }));
+    return [overview, ...programs];
+  });
+}
 
 function contactChunks(): KnowledgeChunk[] {
   return DEPARTMENT_CONTACTS.map((department) => {
@@ -301,7 +379,10 @@ export const KNOWLEDGE_CHUNKS: readonly KnowledgeChunk[] = Object.freeze([
   ...clubChunks(),
   ...eventChunks(),
   ...scholarshipChunks(),
+  ...academicRecognitionChunks(),
+  ...ssetChunks(),
   ...contactChunks(),
+  ...schoolDirectoryChunks(),
   ...globalExperienceChunks(),
 ]);
 

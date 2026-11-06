@@ -9,6 +9,7 @@ import {
   type ScholarshipCycle,
   type ScholarshipRecord,
 } from "@/data/scholarships";
+import { AcademicRecognitionSection } from "./AcademicRecognitionSection";
 
 const CATEGORY_ORDER: ScholarshipCategory[] = [
   "future_undergraduate",
@@ -200,6 +201,7 @@ export function ScholarshipDirectory() {
       <h1 className="mt-4 max-w-5xl text-4xl font-bold tracking-[-0.04em] text-[var(--main-text)] sm:text-6xl">{language === "vi" ? "Tìm học bổng phù hợp với bạn." : "Find the scholarship that fits."}</h1>
       <p className="mt-4 max-w-3xl text-base leading-7 text-[var(--secondary-text)]">{labels.subtitle}</p>
     </header>
+    <AcademicRecognitionSection />
     <section className="space-y-4" aria-label={labels.filters}>
       <label className="flex min-h-11 items-center gap-2 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--secondary-text)]">
         <Search className="h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />

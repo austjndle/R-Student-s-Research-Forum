@@ -56,6 +56,7 @@ export type QueryIntent =
   | "dining"
   | "club"
   | "recruitment"
+  | "lost_property"
   | "scholarship"
   | "academic_calendar"
   | "procedure"

@@ -15,6 +15,9 @@ import {
   type GlobalExperienceProgramId,
 } from "@/data/guides/globalExperience";
 import { SCHOLARSHIPS, type ScholarshipRecord } from "@/data/scholarships";
+import { ACADEMIC_RECOGNITION, type AcademicRecognitionRecord } from "@/data/academicRecognition";
+import { SSET_PROJECTS, SSET_PROGRAMS, SSET_URLS } from "@/data/sset";
+import { LOST_AND_FOUND_SERVICE } from "@/data/studentServices";
 import { isClassroomPermissionQuery } from "@/lib/ai/query-router";
 
 export interface ChatMessage {
@@ -38,6 +41,8 @@ const RMIT_TOPIC_PATTERNS = [
   /counseling/i, /bac si/i, /health/i, /contact/i, /lien he/i, /email/i, /hotline/i,
   /connect/i, /census/i, /deadlines/i, /han chot/i, /bai tap/i, /assignment/i, /special consideration/i,
   /tot nghiep/i, /graduation/i, /career/i, /thuc tap/i, /internship/i, /sset/i, /sbm/i, /scd/i,
+  /dean'?s list/i, /academic recognition/i, /academic award/i, /business medal/i, /student leadership recognition/i,
+  /robotics/i, /mechatronics/i, /electronic and computer systems/i, /program map/i, /program guide/i, /student project showcase/i, /project showcase/i,
   /friend/i, /make friends/i, /meet people/i, /meet students/i, /new people/i, /teammate/i, /team mate/i, /groupmate/i, /group mate/i, /groupmates/i, /study partner/i,
   /club/i, /society/i, /workshop/i, /event/i, /network/i, /community/i, /campus life/i,
   /new student/i, /first year/i, /lonely/i, /homesick/i, /shy/i, /social anxiety/i,
@@ -72,6 +77,7 @@ const OBVIOUS_OUT_OF_SCOPE_PATTERNS = [
   /who won the world cup/i, /ai thang world cup/i, /tell me a (funny )?joke/i, /joke/i, /ke chuyen cuoi/i,
   /quantum mechanics/i, /vat ly luong tu/i, /solve this math/i, /giai toan/i,
   /recipe/i, /cong thuc nau an/i, /crypto/i, /bitcoin/i, /ignore previous instructions/i,
+  /write (a|an)? fantasy novel/i, /fantasy novel/i, /repair my car/i, /fix my car at home/i,
   /jailbreak/i, /act as DAN/i
 ];
 const VIETNAMESE_LANGUAGE_MARKERS =
@@ -115,51 +121,142 @@ export function resolveConversationQuery(
   const resolved = `${previousUser.content} — ${targetCampus}`;
   return resolved.length <= 2000 ? resolved : message;
 }
+export type QueryScopeState = "IN_SCOPE" | "POTENTIALLY_IN_SCOPE" | "CLEARLY_OUT_OF_SCOPE";
 
-export function isQueryInScope(query: string, contextClubId?: unknown): { inScope: boolean; reason?: string } {
+export interface QueryScopeResult {
+  inScope: boolean;
+  scope: QueryScopeState;
+  reason?: string;
+}
+
+export type QueryScopeOutcome = "OUT_OF_SCOPE" | "IN_SCOPE_GROUNDED" | "IN_SCOPE_INSUFFICIENT_EVIDENCE" | "NEEDS_CLARIFICATION";
+
+export function classifyQueryOutcome(scope: QueryScopeState, groundingStatus: string, needsClarification = false): QueryScopeOutcome {
+  if (scope === "CLEARLY_OUT_OF_SCOPE") return "OUT_OF_SCOPE";
+  if (needsClarification) return "NEEDS_CLARIFICATION";
+  return groundingStatus === "grounded" ? "IN_SCOPE_GROUNDED" : "IN_SCOPE_INSUFFICIENT_EVIDENCE";
+}
+
+export interface LostPropertyContext {
+  contextText: string;
+  sources: { title: string; url: string }[];
+}
+
+export function isLostPropertyQuery(query: string): boolean {
+  const normalized = normalizeEventText(query);
+  return /\b(?:lost and found|lost property|lost belongings|misplaced|missing item|missing belongings|lost wallet|lost phone|lost airpods|lost bank card|payment card|debit card|credit card|atm|found property|found item|security enquiries|lost ticket|found ticket|stolen bag|someone took|theft|stole)\b/i.test(normalized)
+    || /\b(?:lost|lose|losing|left|found|took|stole|stolen)\b.*\b(?:stuff|item|belongings|wallet|phone|airpods|bag|keys|property|things|bank card|payment card)\b/i.test(normalized)
+    || /(?:mat do|lam mat do|de quen do|do that lac|nhat duoc do|mat the sinh vien|mat the ngan hang)/i.test(normalized);
+}
+
+function isImplicitStudentServiceQuery(query: string): boolean {
+  const normalized = normalizeEventText(query);
+  return isLostPropertyQuery(normalized)
+    || isPracticalStudentLifeQuery(normalized)
+    || isFoodFacilityQuery(normalized)
+    || isClassroomPermissionQuery(normalized)
+    || /\b(?:where|nearest|find|can i|is there|how do i)\b.*\b(?:toilet|bathroom|print|printer|charge|charger|rest|eat|food|campus|study|team|friends?)\b/i.test(normalized)
+    || /(?:o dau|tim o dau|lam sao|co cho|nha ve sinh|in tai lieu|sac laptop|cho nghi|tim ban|tim dong doi)/i.test(normalized);
+}
+
+export function buildLostPropertyContext(query: string, language: "en" | "vi" = "en"): LostPropertyContext {
+  if (!isLostPropertyQuery(query)) return { contextText: "", sources: [] };
+  const service = LOST_AND_FOUND_SERVICE;
+  const sources = service.sourceUrls.map((url, index) => ({ title: language === "vi" ? ["Dịch vụ Đồ thất lạc RMIT", "An ninh cơ sở RMIT", "Thẻ sinh viên RMIT", "Student Connect RMIT"][index] : ["RMIT Lost and Found services", "RMIT campus security", "RMIT student cards", "RMIT Student Connect"][index], url }));
+  const locations = service.locations.map((location) => `${location.campusLabel[language]}: ${location.location[language]}; ${location.hours[language]}; ${location.phone}`).join("\n");
+  const text = [service.overview[language], locations, service.lostProcedure.map((item) => item[language]).join(" "), service.foundProcedure.map((item) => item[language]).join(" "), service.resultTimeline[language], service.collectionRule[language], `${service.securityEmail}; ${service.securityHotline}`].join("\n");
+  return { contextText: text, sources };
+}
+
+export function formatLostPropertyFallback(query: string, language: "en" | "vi", context: LostPropertyContext): string {
+  const normalized = normalizeEventText(query);
+  const service = LOST_AND_FOUND_SERVICE;
+  const hanoi = service.locations.find((location) => location.campus === "hanoi")!;
+  const saigon = service.locations.find((location) => location.campus === "saigon_south")!;
+  const danang = service.locations.find((location) => location.campus === "da_nang")!;
+  const isHanoi = /\b(?:hanoi|ha noi|hn)\b/i.test(normalized);
+  const isSaigon = /\b(?:saigon south|sgs|nam sai gon|ho chi minh|hcmc)\b/i.test(normalized);
+  const isFound = !/lost and found|lost property/i.test(normalized) && /\b(?:found|picked up|nhat duoc|nhặt được)\b/i.test(normalized);
+  const isStudentId = /student id|student card|id card|the sinh vien|thẻ sinh viên/i.test(normalized);
+  const isBankCard = /bank card|payment card|debit card|credit card|atm|the ngan hang|thẻ ngân hàng|the thanh toan|thẻ thanh toán/i.test(normalized);
+  const isTheft = /stole|stolen|took|theft|robbed|someone took|bi lay cap|bi trom|mất cắp|bị lấy cắp|bị trộm/i.test(normalized);
+  if (isStudentId) {
+    return language === "vi"
+      ? `Mất thẻ sinh viên: dùng trang RMIT Student Cards và kênh thay thẻ của Student Connect; không chỉ báo như đồ thất lạc thông thường. Nếu cần báo mất tại cơ sở, liên hệ Security RUVN: ${service.securityEmail}. Nguồn: ${context.sources.map((source) => source.url).join(" | ")}`
+      : `For a lost student ID, use the official RMIT Student Cards page and Student Connect replacement route; do not treat it only as a general Lost and Found report. For campus reporting, contact Security RUVN at ${service.securityEmail}. Sources: ${context.sources.map((source) => source.url).join(" | ")}`;
+  }
+  if (isBankCard) {
+    return language === "vi"
+      ? `Nếu mất thẻ ngân hàng/thẻ thanh toán, hãy khóa thẻ với ngân hàng ngay lập tức. Nếu có thể bị mất trong cơ sở RMIT, báo thêm cho Lost and Found tại quầy an ninh. Hotline an ninh RMIT 24/7: ${service.securityHotline}. Nguồn: ${context.sources[0]?.url}`
+      : `If you lost a bank or payment card, freeze it with the bank immediately. If it may have been lost on an RMIT campus, also report it to Lost and Found at the security counter. RMIT 24/7 Security Hotline: ${service.securityHotline}. Source: ${context.sources[0]?.url}`;
+  }
+  if (isTheft) {
+    return language === "vi"
+      ? `Nếu bạn nghi bị lấy cắp hoặc cảm thấy không an toàn, liên hệ Security RMIT ngay qua hotline 24/7 ${service.securityHotline}. Bạn cũng có thể báo tài sản thất lạc tại quầy an ninh của cơ sở; không có cam kết thu hồi đồ. Nguồn: ${context.sources[1]?.url}`
+      : `If you suspect theft or feel unsafe, contact RMIT Security immediately on the 24/7 hotline ${service.securityHotline}. You can also report the missing property at your campus security counter; recovery is not guaranteed. Source: ${context.sources[1]?.url}`;
+  }
+  if (isFound) {
+    return language === "vi"
+      ? `Nhặt được đồ: mang đến quầy Lost and Found của cơ sở, điền phiếu Found và chờ email xác nhận từ Security RUVN (${service.securityEmail}). Nam Sài Gòn: ${saigon.location.vi}. Hà Nội: ${hanoi.location.vi}. Đà Nẵng: ${danang.location.vi}. Nguồn: ${context.sources[0]?.url}`
+      : `Found something? Take it to your campus Lost and Found counter, fill in a paper Found ticket, and wait for the Security RUVN acknowledgement email (${service.securityEmail}). Saigon South: ${saigon.location.en}. Hanoi: ${hanoi.location.en}. Da Nang: ${danang.location.en}. Source: ${context.sources[0]?.url}`;
+  }
+  const selected = isHanoi ? hanoi : isSaigon ? saigon : null;
+  const locationText = selected
+    ? `${selected.campusLabel[language]}: ${selected.location[language]}; ${selected.hours[language]}; ${selected.phone}`
+    : language === "vi"
+      ? `Nam Sài Gòn: ${saigon.location.vi}; Hà Nội: ${hanoi.location.vi}; Đà Nẵng: ${danang.location.vi}. Tất cả: 09:00–17:00.`
+      : `Saigon South: ${saigon.location.en}; Hanoi: ${hanoi.location.en}; Da Nang: ${danang.location.en}. All listed hours: 9:00 am–5:00 pm.`;
+  return language === "vi"
+    ? `Báo mất đồ tại quầy Lost and Found của cơ sở: ${locationText} Điền phiếu Lost; email xác nhận sẽ đến trong vòng một giờ; kết quả được gửi qua điện thoại hoặc email trong vòng ba ngày làm việc. Nếu tìm thấy đồ, bạn có thể nhận lại tại quầy trong vòng 60 ngày từ ngày được thông báo. Security RUVN: ${service.securityEmail}. Nguồn: ${context.sources[0]?.url}`
+    : `Report the lost item at your campus Lost and Found counter: ${locationText} Fill in the Lost ticket; a confirmation email should arrive within one hour; the service provides a result by phone or email within three working days. If found, collect it at the counter within 60 days of notification. Security RUVN: ${service.securityEmail}. Source: ${context.sources[0]?.url}`;
+}
+export function formatInsufficientEvidenceFallback(language: "en" | "vi"): string {
+  return language === "vi"
+    ? "Mình chưa tìm thấy nguồn RMIT công khai đủ cụ thể để trả lời chắc chắn. Bạn cho biết cơ sở hoặc tên dịch vụ/phòng cụ thể, mình sẽ kiểm tra lại theo nguồn chính thức."
+    : "I couldn't verify a specific official RMIT record for that question yet. Tell me the campus or the exact service/room, and I’ll narrow it down using official sources.";
+}
+export function isQueryInScope(query: string, contextClubId?: unknown): QueryScopeResult {
   const trimmed = query.trim();
   if (trimmed.length < 2) {
-    return { inScope: false, reason: "Query too short." };
+    return { inScope: false, scope: "CLEARLY_OUT_OF_SCOPE", reason: "Query too short." };
   }
 
-  // 1. Explicit out-of-scope patterns check
   for (const pattern of OBVIOUS_OUT_OF_SCOPE_PATTERNS) {
     if (pattern.test(trimmed)) {
       return {
         inScope: false,
-        reason: "Out of scope: R Research Assistant only answers questions related to RMIT University Vietnam.",
+        scope: "CLEARLY_OUT_OF_SCOPE",
+        reason: "Out of scope: the request is clearly unrelated to RMIT University Vietnam.",
       };
     }
   }
 
   if (isCurrentClubQuestion(normalizeEventText(trimmed)) && resolveContextClubId(contextClubId)) {
-    return { inScope: true };
+    return { inScope: true, scope: "IN_SCOPE" };
   }
 
-  // 2. Strong match in verified RMIT knowledge base
-  const searchMatches = searchKnowledgeBase(trimmed, { limit: 1, includeAuxiliary: false });
+  const searchMatches = searchKnowledgeBase(trimmed, { limit: 1, includeAuxiliary: true });
   if (searchMatches.length > 0 && searchMatches[0].score >= 35) {
-    return { inScope: true };
+    return { inScope: true, scope: "IN_SCOPE" };
   }
 
-  // 3. Recognize verified club names even when the user omits "RMIT" or "club".
   if (clubNameMentions(normalizeEventText(trimmed), getVerifiedClubs()).length > 0) {
-    return { inScope: true };
+    return { inScope: true, scope: "IN_SCOPE" };
   }
-  if (isClassroomPermissionQuery(trimmed) || isFoodFacilityQuery(trimmed) || /\b(?:building|facility|facilities|library|shuttle|parking|hanoi|saigon south|sgs|toa nha|co so|thu vien|xe buyt|bai xe)\b/i.test(removeVietnameseDiacritics(trimmed))) {
-    return { inScope: true };
+  if (isClassroomPermissionQuery(trimmed) || isFoodFacilityQuery(trimmed) || isImplicitStudentServiceQuery(trimmed) || /\b(?:building|facility|facilities|library|shuttle|parking|hanoi|saigon south|sgs|toa nha|co so|thu vien|xe buyt|bai xe)\b/i.test(removeVietnameseDiacritics(trimmed))) {
+    return { inScope: true, scope: "POTENTIALLY_IN_SCOPE", reason: "The question can reasonably refer to an RMIT student, campus, or service context." };
   }
-  // 4. Match explicit RMIT university topical keywords
+
   for (const pattern of RMIT_TOPIC_PATTERNS) {
     if (pattern.test(removeVietnameseDiacritics(trimmed)) || /\bclb\b/i.test(trimmed)) {
-      return { inScope: true };
+      return { inScope: true, scope: "IN_SCOPE" };
     }
   }
 
-  // 5. Default: Reject any question not related to RMIT
   return {
     inScope: false,
-    reason: "Out of scope: Please ask a question related to RMIT University Vietnam (e.g., courses, enrolment, scholarships, tuition, or campus contacts).",
+    scope: "CLEARLY_OUT_OF_SCOPE",
+    reason: "Out of scope: the request is clearly unrelated to RMIT University Vietnam.",
   };
 }
 
@@ -431,6 +528,99 @@ function currentScholarshipCycle(record: ScholarshipRecord) {
     ?? ranked.find((cycle) => cycle.opensOn && cycle.closesOn && vietnamToday() < cycle.opensOn)
     ?? ranked.at(-1)
     ?? record.cycles[0];
+}
+
+export interface AcademicRecognitionContext {
+  contextText: string;
+  sources: { title: string; url: string }[];
+  records: AcademicRecognitionRecord[];
+}
+
+export function isAcademicRecognitionQuery(query: string): boolean {
+  return /dean'?s list|academic recognition|academic award|business medal|student leadership recognition|danh hiệu học thuật|ghi nhận học thuật/i.test(normalizeEventText(query));
+}
+
+export function buildAcademicRecognitionContext(query: string, language: "en" | "vi" = "en"): AcademicRecognitionContext {
+  const empty: AcademicRecognitionContext = { contextText: "", sources: [], records: [] };
+  if (!isAcademicRecognitionQuery(query)) return empty;
+  const normalized = normalizeEventText(query);
+  const records = ACADEMIC_RECOGNITION.filter((record) => {
+    const haystack = normalizeEventText([record.name.en, record.name.vi, record.institution.en, record.institution.vi, record.school.en, record.school.vi].join(" "));
+    return normalized.includes("dean") ? haystack.includes("dean") : normalized.split(/\s+/).some((term) => term.length > 4 && haystack.includes(term));
+  });
+  const selected = records.length > 0 ? records : [...ACADEMIC_RECOGNITION];
+  const sources = selected.map((record) => ({ title: record.sourceTitle[language], url: record.sourceUrl }));
+  const contextText = selected.map((record, index) => [`[Academic recognition ${index + 1}]`, `Name: ${record.name[language]}`, `Institution: ${record.institution[language]}`, `School: ${record.school[language]}`, `Eligibility: ${record.eligibility[language]}`, `Financial support: ${record.financialSupport[language]}`, `Source: ${record.sourceUrl}`].join("\n")).join("\n\n");
+  return { contextText, sources, records: selected };
+}
+
+export function formatAcademicRecognitionFallback(query: string, language: "en" | "vi", context: AcademicRecognitionContext): string {
+  const deanQuestion = /dean'?s list|dean list/i.test(normalizeEventText(query));
+  const scholarshipQuestion = /scholarship|học bổng|hoc bong|tuition|học phí/i.test(normalizeEventText(query));
+  const ssetRecord = context.records.find((record) => record.id === "rmit-vietnam-sset-deans-list-status");
+  const ssetQuestion = /sset|science engineering technology/i.test(normalizeEventText(query));
+  if (deanQuestion && ssetQuestion) {
+    return language === "vi"
+      ? `Chưa xác nhận Dean's List riêng của SSET RMIT Việt Nam từ các nguồn chính thức công khai đã kiểm tra. ${ssetRecord?.eligibility.vi ?? "Eligibility criteria not publicly confirmed."} Tiêu chí Dean's List của RMIT Australia không được áp dụng mặc định cho Việt Nam. Liên hệ SSET: sset@rmit.edu.vn. Nguồn: ${ssetRecord?.sourceUrl ?? "https://www.rmit.edu.vn/about-us/schools-and-centres/school-of-science-engineering-and-technology/contact"}`
+      : `A Vietnam-specific SSET Dean's List was not confirmed in the checked official public sources. ${ssetRecord?.eligibility.en ?? "Eligibility criteria not publicly confirmed."} RMIT Australia's Dean's List criteria do not automatically apply to Vietnam. Contact SSET: sset@rmit.edu.vn. Source: ${ssetRecord?.sourceUrl ?? "https://www.rmit.edu.vn/about-us/schools-and-centres/school-of-science-engineering-and-technology/contact"}`;
+  }
+  if (deanQuestion && scholarshipQuestion) {
+    return language === "vi"
+      ? `Dean's List là danh hiệu học thuật, không phải học bổng. RMIT Australia công bố Dean's List như một hình thức ghi nhận thành tích; tiêu chí đó không được áp dụng mặc định cho RMIT Việt Nam. Với SSET Việt Nam: ${ssetRecord?.eligibility.vi ?? "Eligibility criteria not publicly confirmed."} Nguồn: ${context.sources.map((source) => source.url).join(" | ")}`
+      : `A Dean's List is academic recognition, not a scholarship. RMIT Australia publishes it as an academic honour; those criteria do not automatically apply to RMIT Vietnam. For SSET Vietnam: ${ssetRecord?.eligibility.en ?? "Eligibility criteria not publicly confirmed."} Sources: ${context.sources.map((source) => source.url).join(" | ")}`;
+  }
+  const lines = context.records.slice(0, 4).map((record) => language === "vi"
+    ? `• ${record.name.vi} (${record.institution.vi}): ${record.eligibility.vi} ${record.financialSupport.vi} Nguồn: ${record.sourceUrl}`
+    : `• ${record.name.en} (${record.institution.en}): ${record.eligibility.en} ${record.financialSupport.en} Source: ${record.sourceUrl}`).join("\n");
+  return language === "vi" ? `Các bản ghi ghi nhận đã xác minh hoặc được đánh dấu chưa xác nhận:\n\n${lines}` : `Recognition records that are verified or explicitly marked unconfirmed:\n\n${lines}`;
+}
+
+export interface SSETContext {
+  contextText: string;
+  sources: { title: string; url: string }[];
+  matchedTitles: string[];
+}
+
+export function isSSETQuery(query: string): boolean {
+  return /sset|science engineering technology|robotics|mechatronics|electronic and computer systems|bh123|bh073|student project|project showcase|program map|program guide|canvas shell/i.test(normalizeEventText(query));
+}
+
+export function buildSSETContext(query: string, language: "en" | "vi" = "en"): SSETContext {
+  const empty: SSETContext = { contextText: "", sources: [], matchedTitles: [] };
+  if (!isSSETQuery(query)) return empty;
+  const normalized = normalizeEventText(query);
+  const selectedPrograms = SSET_PROGRAMS.filter((program) => [program.code, program.title.en, program.title.vi, ...program.specialisations.map((item) => `${item.en} ${item.vi}`)].join(" ").toLowerCase().includes(normalized) || normalized.split(/\s+/).some((term) => term.length > 3 && normalizeEventText(`${program.title.en} ${program.title.vi} ${program.code} ${program.summary.en}`).includes(term)));
+  const selectedProjects = SSET_PROJECTS.filter((project) => normalized.split(/\s+/).some((term) => term.length > 4 && normalizeEventText(`${project.title.en} ${project.title.vi} ${project.summary.en}`).includes(term)));
+  const wantsProjects = /project|showcase|dự án/i.test(normalized);
+  const programs = selectedPrograms.length > 0 ? selectedPrograms : wantsProjects ? [] : SSET_PROGRAMS.slice(0, 2);
+  const projects = selectedProjects.length > 0 ? selectedProjects : wantsProjects ? SSET_PROJECTS.slice(0, 5) : [];
+  const sources = new Map<string, { title: string; url: string }>();
+  const add = (title: string, url: string) => sources.set(url, { title, url });
+  add("RMIT Vietnam SSET", SSET_URLS.overview);
+  if (wantsProjects) add("RMIT Vietnam SSET student projects", SSET_URLS.projects);
+  if (wantsProjects) add("RMIT Vietnam SSET project showcase", SSET_URLS.showcase);
+  if (/program map|program guide|bh123|bh073|robotics|mechatronics|electronic/i.test(normalized)) add("RMIT Vietnam program guides and maps", SSET_URLS.guides);
+  for (const program of programs) add(program.title[language], program.programUrl);
+  for (const project of projects) add(project.title[language], project.url);
+  const blocks = [
+    programs.map((program) => `${program.title[language]} (${program.code}) — ${program.summary[language]} Campus: ${program.campuses.join(", ")}. Guides: ${program.guideUrls.map((guide) => guide.url).join(", ")}. Map: ${program.mapUrl ?? "No separate public map URL confirmed."}`).join("\n"),
+    projects.map((project) => `${project.title[language]} — ${project.summary[language]} Source: ${project.url}`).join("\n"),
+    /canvas shell/i.test(normalized) ? (language === "vi" ? "SSET Canvas Shell: RMIT Student Login Required. Exact public shell URL was not confirmed; locate it in authenticated Canvas Courses or use official IT support." : "SSET Canvas Shell: RMIT Student Login Required. The exact public shell URL was not confirmed; locate it in authenticated Canvas Courses or use official IT support.") : "",
+    /contact|office|liên hệ|văn phòng/i.test(normalized) ? (language === "vi" ? "SSET contact: sset@rmit.edu.vn; the checked contact page lists +84 28 3776 1416. Another official SSET page displays +84 28 3776 1369, so confirm the current phone." : "SSET contact: sset@rmit.edu.vn; the checked contact page lists +84 28 3776 1416. Another official SSET page displays +84 28 3776 1369, so confirm the current phone.") : "",
+  ].filter(Boolean);
+  return { contextText: blocks.join("\n\n"), sources: [...sources.values()], matchedTitles: [...programs.map((program) => program.title[language]), ...projects.map((project) => project.title[language])] };
+}
+
+export function formatSSETFallback(query: string, language: "en" | "vi", context: SSETContext): string {
+  const normalized = normalizeEventText(query);
+  if (/canvas shell/i.test(normalized)) return language === "vi"
+    ? "SSET Canvas Shell yêu cầu đăng nhập RMIT. Chưa xác nhận URL shell công khai; hãy đăng nhập Canvas, tìm shell SSET trong Courses hoặc hỏi giảng viên/văn phòng SSET. Hướng dẫn IT: https://www.rmit.edu.vn/students/support/it-support"
+    : "The SSET Canvas Shell requires an RMIT login. The exact public shell URL was not confirmed; sign in to Canvas, find the SSET shell under Courses, or ask a lecturer/SSET office. IT guidance: https://www.rmit.edu.vn/students/support/it-support";
+  if (/contact|office|liên hệ|văn phòng/i.test(normalized)) return language === "vi"
+    ? "Liên hệ chung SSET: sset@rmit.edu.vn. Trang liên hệ đã kiểm tra ghi +84 28 3776 1416; một trang SSET khác ghi +84 28 3776 1369, nên hãy xác nhận số hiện hành trước khi gọi. Văn phòng: Nam Sài Gòn, Tòa nhà Học thuật 2 Tầng 4; Hà Nội, Handi Resco Tầng 5 Tháp A. Nguồn: https://www.rmit.edu.vn/about-us/schools-and-centres/school-of-science-engineering-and-technology/contact"
+    : "SSET general contact: sset@rmit.edu.vn. The checked contact page lists +84 28 3776 1416; another SSET page lists +84 28 3776 1369, so confirm the current number before calling. Offices: Saigon South, Academic Building 2 Level 4; Hanoi, Handi Resco Level 5 Tower A. Source: https://www.rmit.edu.vn/about-us/schools-and-centres/school-of-science-engineering-and-technology/contact";
+  const lines = context.contextText.split("\n\n").filter(Boolean).slice(0, 3).join("\n\n");
+  return language === "vi" ? `Thông tin SSET đã xác minh:\n\n${lines}\n\nNguồn: ${context.sources.slice(0, 4).map((source) => source.url).join(" | ")}` : `Verified SSET information:\n\n${lines}\n\nSources: ${context.sources.slice(0, 4).map((source) => source.url).join(" | ")}`;
 }
 
 export function isScholarshipQuery(query: string): boolean {

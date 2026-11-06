@@ -1,4 +1,5 @@
 import type { KnowledgeChunk, SourceRegistryEntry } from "./types";
+const ALLOWED_INGESTION_HOSTS = new Set(["rmit.edu.vn", "www.rmit.edu.vn", "rmit.edu.au", "www.rmit.edu.au", "handbook.rmit.edu.au", "rmitvn-showcase.com", "www.rmitvn-showcase.com"]);
 
 export interface IngestionSource {
   source: SourceRegistryEntry;
@@ -98,7 +99,7 @@ export async function prepareIndexUpdate(source: IngestionSource, existing: read
 export function validateIngestionUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === "https:" && (parsed.hostname === "rmit.edu.vn" || parsed.hostname.endsWith(".rmit.edu.vn"));
+    return parsed.protocol === "https:" && (ALLOWED_INGESTION_HOSTS.has(parsed.hostname) || parsed.hostname.endsWith(".rmit.edu.vn"));
   } catch {
     return false;
   }

@@ -16,12 +16,19 @@ import {
   isFoodFacilityQuery,
   isPracticalStudentLifeQuery,
   isScholarshipQuery,
+  isAcademicRecognitionQuery,
+  isSSETQuery,
+  classifyQueryOutcome,
+  isLostPropertyQuery,
   buildRAGContext,
   buildEventContext,
   buildClubContext,
   resolveContextClubId,
   buildGlobalExperienceContext,
   buildScholarshipContext,
+  buildAcademicRecognitionContext,
+  buildSSETContext,
+  buildLostPropertyContext,
   buildSystemInstruction,
   formatKnowledgeAnswer,
   formatFoodFacilityFallback,
@@ -29,6 +36,10 @@ import {
   formatStudentLifeFallback,
   formatGlobalExperienceFallback,
   formatScholarshipFallback,
+  formatAcademicRecognitionFallback,
+  formatSSETFallback,
+  formatLostPropertyFallback,
+  formatInsufficientEvidenceFallback,
 } from "@/lib/ai/gemini";
 import { GeminiProvider } from "@/lib/rag/providers";
 import { retrieveEvidence, toChatCitations } from "@/lib/rag/chat-service";
@@ -69,9 +80,15 @@ function buildDeterministicAnswer(
   clubs: ReturnType<typeof buildClubContext>,
   globalExperience: ReturnType<typeof buildGlobalExperienceContext>,
   scholarships: ReturnType<typeof buildScholarshipContext>,
+  recognition: ReturnType<typeof buildAcademicRecognitionContext>,
+  sset: ReturnType<typeof buildSSETContext>,
+  lostProperty: ReturnType<typeof buildLostPropertyContext>,
 ): string | null {
   if (isClassroomPermissionQuery(message)) return classroomPermissionFallback(language);
   if (isFoodFacilityQuery(message)) return formatFoodFacilityFallback(language, message);
+  if (isLostPropertyQuery(message)) return formatLostPropertyFallback(message, language, lostProperty);
+  if (isAcademicRecognitionQuery(message)) return formatAcademicRecognitionFallback(message, language, recognition);
+  if (isSSETQuery(message)) return formatSSETFallback(message, language, sset);
   if (isScholarshipQuery(message)) return formatScholarshipFallback(message, language, scholarships);
   if (isPracticalStudentLifeQuery(message)) return formatStudentLifeFallback(message, language, events);
   if (globalExperience.contextText) return formatGlobalExperienceFallback(message, language, globalExperience);
@@ -182,17 +199,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 3. Domain scope check (Reject off-topic questions BEFORE deducting quota)
+  // Reject only clearly unrelated requests. Potential student-service questions continue to retrieval.
   const scopeCheck = isQueryInScope(message, contextClubId);
-  if (!scopeCheck.inScope) {
+  if (scopeCheck.scope === "CLEARLY_OUT_OF_SCOPE") {
     const refusalText =
       language === "vi"
-        ? "Tôi được thiết kế chuyên biệt để giải đáp các câu hỏi liên quan đến Đại học RMIT Việt Nam (môn học, học bổng, học phí, đăng ký môn, dịch vụ sinh viên). Câu hỏi của bạn nằm ngoài phạm vi hỗ trợ."
-        : "I am designed specifically to assist with RMIT University Vietnam questions (courses, scholarships, tuition, enrolment, student services). Your question appears to be outside this scope.";
+        ? "Tôi được thiết kế chuyên biệt để giải đáp các câu hỏi liên quan đến Đại học RMIT Việt Nam. Câu hỏi này có vẻ nằm ngoài phạm vi hỗ trợ."
+        : "I’m designed to help with RMIT University Vietnam questions. This request appears to be clearly outside that scope.";
 
     return NextResponse.json({
       answer: refusalText,
       outOfScope: true,
+      scope: scopeCheck.scope,
+      outcome: "OUT_OF_SCOPE",
       remaining: checkMemoryQuota(visitorId).remaining,
       sources: [],
     });
@@ -226,11 +245,16 @@ export async function POST(request: NextRequest) {
       : buildEventContext(message, language);
     const globalExperienceContext = buildGlobalExperienceContext(message, language);
     const { evidence } = retrieveEvidence(message, language);
+    const scopeOutcome = classifyQueryOutcome(scopeCheck.scope, evidence.status, evidence.query.ambiguousCampus);
     const scholarshipContext = buildScholarshipContext(message, language);
-    const deterministicAnswer = buildDeterministicAnswer(message, language, rag, eventContext, clubContext, globalExperienceContext, scholarshipContext);
+    const recognitionContext = buildAcademicRecognitionContext(message, language);
+    const ssetContext = buildSSETContext(message, language);
+    const lostPropertyContext = buildLostPropertyContext(message, language);
+    const deterministicAnswer = buildDeterministicAnswer(message, language, rag, eventContext, clubContext, globalExperienceContext, scholarshipContext, recognitionContext, ssetContext, lostPropertyContext)
+      ?? (scopeCheck.scope === "POTENTIALLY_IN_SCOPE" && evidence.status === "insufficient_evidence" ? formatInsufficientEvidenceFallback(language) : null);
     const routingDecision: ChatRoute = classifyChatRoute(message, evidence.status, Boolean(deterministicAnswer));
-    const skipGeneration = routingDecision === "direct_retrieval" || routingDecision === "general_guidance" || isClassroomPermissionQuery(message);
-    const sources = [...rag.sources, ...eventContext.sources, ...clubContext.sources, ...globalExperienceContext.sources, ...scholarshipContext.sources, ...(specificClubQuestion ? [] : toChatCitations(evidence))]
+    const skipGeneration = routingDecision === "direct_retrieval" || routingDecision === "general_guidance" || isClassroomPermissionQuery(message) || isAcademicRecognitionQuery(message) || isSSETQuery(message) || isLostPropertyQuery(message) || (scopeCheck.scope === "POTENTIALLY_IN_SCOPE" && evidence.status === "insufficient_evidence");
+    const sources = [...rag.sources, ...eventContext.sources, ...clubContext.sources, ...globalExperienceContext.sources, ...scholarshipContext.sources, ...recognitionContext.sources, ...ssetContext.sources, ...lostPropertyContext.sources, ...(specificClubQuestion ? [] : toChatCitations(evidence))]
       .filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index);
     const matchedTopics = [
       ...rag.matchedDocTitles,
@@ -240,6 +264,9 @@ export async function POST(request: NextRequest) {
       ...globalExperienceContext.matchedProgramTitles,
       ...globalExperienceContext.matchedScholarshipTitles,
       ...scholarshipContext.matchedScholarshipTitles,
+      ...ssetContext.matchedTitles,
+      ...recognitionContext.records.map((record) => record.name[language]),
+      ...(lostPropertyContext.contextText ? ["Lost and Found services"] : []),
       ...evidence.chunks.map((candidate) => candidate.chunk.title),
     ];
     const canUsePublicCache = history.length === 0 && !contextClubId;
@@ -250,7 +277,7 @@ export async function POST(request: NextRequest) {
     const systemPrompt = buildSystemInstruction(language);
     let answerText = "";
     let answerMode: "gemini" | "cached" | "deterministic_fallback" = "deterministic_fallback";
-    const shouldCallProvider = !cachedAnswer && !skipGeneration && !isPracticalStudentLifeQuery(message) && !isScholarshipQuery(message) && Boolean(apiKey) && !circuitOpen;
+    const shouldCallProvider = !cachedAnswer && !skipGeneration && !isPracticalStudentLifeQuery(message) && !isScholarshipQuery(message) && !isAcademicRecognitionQuery(message) && !isSSETQuery(message) && !isLostPropertyQuery(message) && Boolean(apiKey) && !circuitOpen;
     const globalBudgetDecision = shouldCallProvider ? reserveGlobalLlmCall(Number(process.env.AI_GLOBAL_DAILY_LIMIT || "1000")) : null;
 
     if (cachedAnswer) {
@@ -258,7 +285,7 @@ export async function POST(request: NextRequest) {
       answerMode = "cached";
     } else if ((deterministicAnswer && isSimpleFactualQuery(message)) || isClassroomPermissionQuery(message)) {
       answerText = deterministicAnswer ?? classroomPermissionFallback(language);
-    } else if (skipGeneration || isPracticalStudentLifeQuery(message) || isScholarshipQuery(message)) {
+    } else if (skipGeneration || isPracticalStudentLifeQuery(message) || isScholarshipQuery(message) || isAcademicRecognitionQuery(message) || isSSETQuery(message) || isLostPropertyQuery(message)) {
       answerText = deterministicAnswer ?? "";
     } else if (apiKey && !circuitOpen && globalBudgetDecision?.allowed !== false) {
       providerStartedAt = Date.now();
@@ -271,6 +298,9 @@ export async function POST(request: NextRequest) {
           clubContext.contextText ? `VERIFIED RMIT CLUB CONTEXT:\n${clubContext.contextText}` : "",
           globalExperienceContext.contextText ? `VERIFIED RMIT GLOBAL EXPERIENCE CONTEXT:\n${globalExperienceContext.contextText}` : "",
           scholarshipContext.contextText ? `VERIFIED RMIT SCHOLARSHIP CONTEXT:\n${scholarshipContext.contextText}` : "",
+          recognitionContext.contextText ? `VERIFIED ACADEMIC RECOGNITION CONTEXT:\n${recognitionContext.contextText}` : "",
+          ssetContext.contextText ? `VERIFIED SSET CONTEXT:\n${ssetContext.contextText}` : "",
+          lostPropertyContext.contextText ? `VERIFIED LOST AND FOUND CONTEXT:\n${lostPropertyContext.contextText}` : "",
         ].filter(Boolean).join("\n\n");
         const response = await ai.generate({
           systemPrompt,
@@ -324,6 +354,8 @@ export async function POST(request: NextRequest) {
     const currentQuota = checkMemoryQuota(visitorId);
     const response = NextResponse.json({
       answer: answerText,
+      scope: scopeCheck.scope,
+      outcome: scopeOutcome,
       answerMode,
       groundingStatus: evidence.status,
       route: routingDecision,

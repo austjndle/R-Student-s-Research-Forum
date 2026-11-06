@@ -48,6 +48,34 @@ export const RMIT_OFFICIAL_ENDPOINTS: SyncTarget[] = [
     lastChecked: new Date().toISOString(),
     status: "active",
   },
+  {
+    name: "Lost and Found Services",
+    url: "https://www.rmit.edu.vn/students/support/lost-and-found-services",
+    expectedSelectorOrKeyword: "security.ruvn@rmit.edu.vn",
+    lastChecked: new Date().toISOString(),
+    status: "active",
+  },
+  {
+    name: "Campus Security",
+    url: "https://www.rmit.edu.vn/students/campus-life/campus-facilities/campus-security",
+    expectedSelectorOrKeyword: "1800 2233",
+    lastChecked: new Date().toISOString(),
+    status: "active",
+  },
+  {
+    name: "The Business School",
+    url: "https://www.rmit.edu.vn/about-us/schools-and-centres/the-business-school",
+    expectedSelectorOrKeyword: "The Business School",
+    lastChecked: new Date().toISOString(),
+    status: "active",
+  },
+  {
+    name: "School of Communication & Design",
+    url: "https://www.rmit.edu.vn/about-us/schools-and-centres/school-communication-design",
+    expectedSelectorOrKeyword: "School of Communication & Design",
+    lastChecked: new Date().toISOString(),
+    status: "active",
+  },
 ];
 
 /**

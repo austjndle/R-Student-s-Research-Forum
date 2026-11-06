@@ -11,6 +11,7 @@ const TOPIC_TERMS: Record<QueryIntent, string[]> = {
   dining: ["eat", "food", "dining", "restaurant", "cafe", "coffee", "canteen", "food court", "an", "ăn", "nha hang", "nhà hàng", "quan", "quán", "ca phe", "cà phê"],
   club: ["club", "society", "clb", "cau lac bo", "câu lạc bộ"],
   recruitment: ["join", "recruit", "recruitment", "interview", "application", "tham gia", "tuyen", "tuyển", "phong van", "phỏng vấn"],
+  lost_property: ["lost and found", "lost property", "lost belongings", "misplaced", "missing item", "lost wallet", "lost phone", "lost airpods", "found property", "found item", "security enquiries", "lost ticket", "found ticket", "stolen bag", "lost", "lose", "losing", "stuff", "belongings", "found", "mất đồ", "lam mat do", "làm mất đồ", "de quen do", "để quên đồ", "do that lac", "đồ thất lạc", "nhat duoc do", "nhặt được đồ", "mất thẻ sinh viên"],
   scholarship: ["scholarship", "financial aid", "tuition waiver", "hoc bong", "học bổng", "ho tro hoc phi", "hỗ trợ học phí"],
   academic_calendar: ["calendar", "semester", "census", "deadline", "important date", "lich hoc", "lịch học", "hoc ky", "học kỳ", "han chot", "hạn chót"],
   procedure: ["how do", "how can", "procedure", "process", "submit", "apply", "enrol", "enroll", "lam sao", "làm sao", "thu tuc", "thủ tục", "dang ky", "đăng ký"],
@@ -46,7 +47,7 @@ function detectCampus(normalized: string): Exclude<QueryAnalysis["campus"], unde
 }
 
 function detectIntent(normalized: string): QueryIntent {
-  const priority: QueryIntent[] = ["recruitment", "dining", "location", "scholarship", "academic_calendar", "contact", "event", "student_life", "procedure", "club", "general_rmit"];
+  const priority: QueryIntent[] = ["recruitment", "lost_property", "dining", "location", "scholarship", "academic_calendar", "contact", "event", "student_life", "procedure", "club", "general_rmit"];
   return priority.find((intent) => containsAny(normalized, TOPIC_TERMS[intent])) ?? "general_rmit";
 }
 
