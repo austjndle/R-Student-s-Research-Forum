@@ -5,6 +5,7 @@ import { searchKnowledgeBase } from "../lib/search/engine";
 import {
   detectChatLanguage,
   isQueryInScope,
+  isLostPropertyQuery,
   isFoodFacilityQuery,
   isSimpleFactualQuery,
   sanitizeChatHistory,
@@ -16,6 +17,7 @@ import {
   resolveContextClubId,
   buildGlobalExperienceContext,
   buildScholarshipContext,
+  buildLostPropertyContext,
   buildSystemInstruction,
   formatKnowledgeAnswer,
   formatFoodFacilityFallback,
@@ -23,7 +25,10 @@ import {
   formatClubFallback,
   formatGlobalExperienceFallback,
   formatScholarshipFallback,
+  formatLostPropertyFallback,
+  formatInsufficientEvidenceFallback,
   isPracticalStudentLifeQuery,
+  classifyQueryOutcome,
 } from "../lib/ai/gemini";
 import { GeminiProvider, WorkersAIProvider } from "../lib/rag/providers";
 import { retrieveEvidence, toChatCitations } from "../lib/rag/chat-service";
@@ -396,15 +401,17 @@ app.post("/api/chat", async (c) => {
   }
 
   const scopeCheck = isQueryInScope(message, contextClubId);
-  if (!scopeCheck.inScope) {
+  if (scopeCheck.scope === "CLEARLY_OUT_OF_SCOPE") {
     const refusal =
       language === "vi"
-        ? "Tôi là Trợ lý Nghiên cứu RMIT, chỉ hỗ trợ giải đáp các câu hỏi liên quan đến Đại học RMIT Việt Nam (như học bổng, đổi ngành, học phí, đăng ký môn, dịch vụ sinh viên). Câu hỏi này nằm ngoài phạm vi hỗ trợ."
-        : "I am the RMIT Research Assistant, designed specifically to assist with RMIT University Vietnam questions (courses, scholarships, tuition, enrolment, student services). Your question is outside this scope.";
+        ? "Tôi là Trợ lý Nghiên cứu RMIT, chỉ hỗ trợ các câu hỏi liên quan đến Đại học RMIT Việt Nam. Câu hỏi này có vẻ nằm ngoài phạm vi hỗ trợ."
+        : "I am the RMIT Research Assistant, designed to help with RMIT University Vietnam questions. This request appears to be clearly outside that scope.";
 
     return c.json({
       answer: refusal,
       outOfScope: true,
+      scope: scopeCheck.scope,
+      outcome: "OUT_OF_SCOPE",
       remaining: checkMemoryQuota(visitorId).remaining,
       sources: [],
     });
@@ -464,14 +471,17 @@ app.post("/api/chat", async (c) => {
     const globalExperienceContext = buildGlobalExperienceContext(message, language);
     const scholarshipContext = buildScholarshipContext(message, language);
     const { evidence } = retrieveEvidence(message, language);
-    const routingDecision: ChatRoute = classifyChatRoute(message, evidence.status, Boolean(rag.bestDoc || eventContext.contextText || clubContext.contextText));
-    const skipGeneration = routingDecision === "direct_retrieval" || routingDecision === "general_guidance" || isClassroomPermissionQuery(message);
+    const scopeOutcome = classifyQueryOutcome(scopeCheck.scope, evidence.status, evidence.query.ambiguousCampus);
+    const lostPropertyContext = buildLostPropertyContext(message, language);
+    const routingDecision: ChatRoute = classifyChatRoute(message, evidence.status, Boolean(rag.bestDoc || eventContext.contextText || clubContext.contextText || lostPropertyContext.contextText));
+    const skipGeneration = routingDecision === "direct_retrieval" || routingDecision === "general_guidance" || isClassroomPermissionQuery(message) || isLostPropertyQuery(message) || (scopeCheck.scope === "POTENTIALLY_IN_SCOPE" && evidence.status === "insufficient_evidence");
     const verifiedContext = [
       evidence.contextText ? `RAG EVIDENCE (retrieved facts only):\n${evidence.contextText}` : "",
       eventContext.contextText ? `VERIFIED CAMPUS EVENT / ACTIVITY CONTEXT:\n${eventContext.contextText}` : "",
       clubContext.contextText ? `VERIFIED RMIT CLUB CONTEXT:\n${clubContext.contextText}` : "",
       globalExperienceContext.contextText ? `VERIFIED RMIT GLOBAL EXPERIENCE CONTEXT:\n${globalExperienceContext.contextText}` : "",
       scholarshipContext.contextText ? `VERIFIED RMIT SCHOLARSHIP CONTEXT:\n${scholarshipContext.contextText}` : "",
+      lostPropertyContext.contextText ? `VERIFIED LOST AND FOUND CONTEXT:\n${lostPropertyContext.contextText}` : "",
     ].filter(Boolean).join("\n\n");
     const providerEvidence = { ...evidence, contextText: verifiedContext };
     const systemPrompt = buildSystemInstruction(language);
@@ -481,26 +491,30 @@ app.post("/api/chat", async (c) => {
     let answerText = "";
     let answerMode: "gemini" | "workers_ai" | "deterministic_fallback" = "deterministic_fallback";
     let providerFailed = false;
-    const usePracticalFallback = isPracticalStudentLifeQuery(message) || isScholarshipQuery(message);
-    const deterministicAnswer = isClassroomPermissionQuery(message)
-      ? classroomPermissionFallback(language)
-      : isFoodFacilityQuery(message)
-        ? formatFoodFacilityFallback(language, message)
-      : isScholarshipQuery(message)
-        ? formatScholarshipFallback(message, language, scholarshipContext)
-      : clubContext.specificClub || clubContext.needsClubClarification
-        ? formatClubFallback(language, clubContext)
-        : usePracticalFallback
-          ? formatStudentLifeFallback(message, language, eventContext)
-          : globalExperienceContext.contextText
-            ? formatGlobalExperienceFallback(message, language, globalExperienceContext)
-            : clubContext.matchedClubNames.length > 0
-              ? formatClubFallback(language, clubContext)
-              : (eventContext.matchedEventTitles.length > 0 || eventContext.matchedActivityTitles.length > 0)
-                ? formatStudentLifeFallback(message, language, eventContext)
-                : rag.bestDoc
-                  ? formatKnowledgeAnswer(rag.bestDoc, message, language)
-                  : "";
+    const usePracticalFallback = isPracticalStudentLifeQuery(message) || isScholarshipQuery(message) || isLostPropertyQuery(message);
+    const deterministicAnswer = isLostPropertyQuery(message)
+      ? formatLostPropertyFallback(message, language, lostPropertyContext)
+      : scopeCheck.scope === "POTENTIALLY_IN_SCOPE" && evidence.status === "insufficient_evidence"
+        ? formatInsufficientEvidenceFallback(language)
+        : isClassroomPermissionQuery(message)
+          ? classroomPermissionFallback(language)
+          : isFoodFacilityQuery(message)
+            ? formatFoodFacilityFallback(language, message)
+            : isScholarshipQuery(message)
+              ? formatScholarshipFallback(message, language, scholarshipContext)
+              : clubContext.specificClub || clubContext.needsClubClarification
+                ? formatClubFallback(language, clubContext)
+                : usePracticalFallback
+                  ? formatStudentLifeFallback(message, language, eventContext)
+                  : globalExperienceContext.contextText
+                    ? formatGlobalExperienceFallback(message, language, globalExperienceContext)
+                    : clubContext.matchedClubNames.length > 0
+                      ? formatClubFallback(language, clubContext)
+                      : (eventContext.matchedEventTitles.length > 0 || eventContext.matchedActivityTitles.length > 0)
+                        ? formatStudentLifeFallback(message, language, eventContext)
+                        : rag.bestDoc
+                          ? formatKnowledgeAnswer(rag.bestDoc, message, language)
+                          : "";
     const shouldCallProvider = Boolean(apiKey || c.env.AI) && !skipGeneration && !usePracticalFallback && !isClassroomPermissionQuery(message) && !deterministicAnswer;
     let globalBudgetDecision: { allowed: boolean } | null = null;
     let globalBudgetUnavailable = false;
@@ -523,7 +537,7 @@ app.post("/api/chat", async (c) => {
     }
     if ((deterministicAnswer && isSimpleFactualQuery(message)) || isClassroomPermissionQuery(message)) {
       answerText = deterministicAnswer ?? classroomPermissionFallback(language);
-    } else if (skipGeneration || isPracticalStudentLifeQuery(message) || isScholarshipQuery(message)) {
+    } else if (skipGeneration || isPracticalStudentLifeQuery(message) || isScholarshipQuery(message) || isLostPropertyQuery(message)) {
       answerText = deterministicAnswer ?? "";
     } else if (apiKey && !usePracticalFallback && globalBudgetDecision?.allowed !== false && !globalBudgetUnavailable) {
       const ai = new GeminiProvider(apiKey, model);
@@ -561,21 +575,23 @@ app.post("/api/chat", async (c) => {
     }
 
     if (!answerText) {
-      answerText = isScholarshipQuery(message)
-        ? formatScholarshipFallback(message, language, scholarshipContext)
-        : clubContext.specificClub || clubContext.needsClubClarification
-          ? formatClubFallback(language, clubContext)
-        : usePracticalFallback
-          ? formatStudentLifeFallback(message, language, eventContext)
-          : globalExperienceContext.contextText
-            ? formatGlobalExperienceFallback(message, language, globalExperienceContext)
-            : clubContext.matchedClubNames.length > 0
-              ? formatClubFallback(language, clubContext)
-              : (eventContext.matchedEventTitles.length > 0 || eventContext.matchedActivityTitles.length > 0)
-                ? formatStudentLifeFallback(message, language, eventContext)
-                : rag.bestDoc
-                  ? formatKnowledgeAnswer(rag.bestDoc, message, language)
-                  : "";
+      answerText = isLostPropertyQuery(message)
+        ? formatLostPropertyFallback(message, language, lostPropertyContext)
+        : isScholarshipQuery(message)
+          ? formatScholarshipFallback(message, language, scholarshipContext)
+          : clubContext.specificClub || clubContext.needsClubClarification
+            ? formatClubFallback(language, clubContext)
+            : usePracticalFallback
+              ? formatStudentLifeFallback(message, language, eventContext)
+              : globalExperienceContext.contextText
+                ? formatGlobalExperienceFallback(message, language, globalExperienceContext)
+                : clubContext.matchedClubNames.length > 0
+                  ? formatClubFallback(language, clubContext)
+                  : (eventContext.matchedEventTitles.length > 0 || eventContext.matchedActivityTitles.length > 0)
+                    ? formatStudentLifeFallback(message, language, eventContext)
+                    : rag.bestDoc
+                      ? formatKnowledgeAnswer(rag.bestDoc, message, language)
+                      : "";
       if (!answerText) {
         let remainingAfterRefund = remaining;
         if (stub) {
@@ -612,12 +628,14 @@ app.post("/api/chat", async (c) => {
     c.header("Set-Cookie", `r_forum_uid=${signed}; HttpOnly; Secure; SameSite=Lax; Max-Age=31536000; Path=/`);
     return c.json({
       answer: answerText,
+      scope: scopeCheck.scope,
+      outcome: scopeOutcome,
       answerMode,
       groundingStatus: evidence.status,
       remaining: currentRemaining,
       limit: parseInt(c.env.AI_DAILY_LIMIT || "10", 10),
-      sources: [...rag.sources, ...eventContext.sources, ...clubContext.sources, ...globalExperienceContext.sources, ...scholarshipContext.sources, ...(specificClubQuestion ? [] : toChatCitations(evidence))].filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index),
-      matchedTopics: [...rag.matchedDocTitles, ...eventContext.matchedEventTitles, ...eventContext.matchedActivityTitles, ...clubContext.matchedClubNames, ...globalExperienceContext.matchedProgramTitles, ...globalExperienceContext.matchedScholarshipTitles, ...scholarshipContext.matchedScholarshipTitles, ...evidence.chunks.map((candidate) => candidate.chunk.title)],
+      sources: [...rag.sources, ...eventContext.sources, ...clubContext.sources, ...globalExperienceContext.sources, ...scholarshipContext.sources, ...lostPropertyContext.sources, ...(specificClubQuestion ? [] : toChatCitations(evidence))].filter((source, index, all) => all.findIndex((candidate) => candidate.url === source.url) === index),
+      matchedTopics: [...rag.matchedDocTitles, ...eventContext.matchedEventTitles, ...eventContext.matchedActivityTitles, ...clubContext.matchedClubNames, ...globalExperienceContext.matchedProgramTitles, ...globalExperienceContext.matchedScholarshipTitles, ...scholarshipContext.matchedScholarshipTitles, ...(lostPropertyContext.contextText ? ["Lost and Found services"] : []), ...evidence.chunks.map((candidate) => candidate.chunk.title)],
       retrievalDiagnostics: evidence.diagnostics,
     });
   } catch (err: unknown) {
