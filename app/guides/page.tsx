@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/context";
 import { ALL_RESEARCH_GUIDES } from "@/data/guides/guides";
-import { ChevronRight, Clock, ShieldCheck, Mail, Sparkles } from "lucide-react";
+import { ChevronRight, Clock, ShieldCheck } from "lucide-react";
 
 export default function GuidesPage() {
   const { language, t } = useLanguage();
@@ -20,27 +20,6 @@ export default function GuidesPage() {
         </p>
       </div>
 
-      {/* Featured Banner: Email Templates */}
-      <div className="editorial-card flex flex-col gap-4 bg-[var(--surface-elevated)] p-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--accent)] uppercase tracking-wider">
-            <Mail className="w-3.5 h-3.5" />
-            <span>{language === "vi" ? "Văn mẫu mới cập nhật" : "New Email Blueprints"}</span>
-          </div>
-          <h2 className="text-lg font-bold text-[var(--main-text)]">
-            {language === "vi" ? "Bộ văn mẫu email gửi giảng viên (Consultation, Gia hạn, Điểm số, Nhóm)" : "Lecturer Email Blueprints (Consultation, Extension, Grade Clarification, Group Work)"}
-          </h2>
-          <p className="text-xs text-[var(--secondary-text)]">
-            {language === "vi" ? "Các mẫu email chuẩn mực song ngữ kèm khung điền sẵn, giúp bạn tự tin liên hệ và trao đổi với giảng viên." : "Pre-filled academic email templates with professional etiquette to contact lecturers with confidence."}
-          </p>
-        </div>
-        <Link
-          href="/guides/van-mau-email-cho-giang-vien"
-          className="inline-flex min-h-11 shrink-0 items-center justify-center bg-[var(--accent)] px-4 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-        >
-          <span>{language === "vi" ? "Xem mẫu" : "View Template"}</span>
-        </Link>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {ALL_RESEARCH_GUIDES.map((guide) => (

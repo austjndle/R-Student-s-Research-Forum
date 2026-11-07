@@ -115,7 +115,7 @@ export function validateEventReviewCandidate(input: unknown): ReviewValidationRe
       sourceId: source.id,
       sourceType: source.sourceType,
       sourceLastVerified: source.lastSuccessfulCheck,
-      verification: source.verificationStatus === "verified" ? "verified" : "manual_review_required",
+      verification: source.verificationStatus === "verified" ? "verified" : "review_required",
       academicYear: readOptionalText(input, "academicYear"),
       semester: readOptionalText(input, "semester"),
       cancellationNoticeEn: readOptionalText(input, "cancellationNoticeEn"),

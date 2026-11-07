@@ -5,7 +5,6 @@ import { Providers } from "@/components/Providers";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ChatWidget } from "@/components/chat/ChatWidget";
-import { SupportModal } from "@/components/support/SupportModal";
 import { WhatsNewModal } from "@/components/changelog/WhatsNewModal";
 
 const plexSans = IBM_Plex_Sans({
@@ -68,7 +67,7 @@ export default function RootLayout({
           <main id="main-content" className="flex-1">{children}</main>
           <Footer />
           <ChatWidget />
-          <SupportModal />
+          <WhatsNewModal />
         </Providers>
       </body>
     </html>

@@ -57,4 +57,11 @@ describe("verified campus hours records", () => {
     expect(activeHub).toBeDefined();
     expect(getLocalizedScheduleLabel(activeHub!, "weekdayHours", "en")).toBe("07:00 - 19:00");
   });
+  it("leaves unpublished opening-hour cells blank", () => {
+    const hanoi = building("hn-main");
+    const floor = hanoi.floors.find((item) => item.floorEn === "Level 5C");
+    expect(floor).toBeDefined();
+    expect(getLocalizedScheduleLabel(floor!, "weekdayHours", "en")).toBe("");
+    expect(getLocalizedScheduleLabel(floor!, "weekdayHours", "vi")).toBe("");
+  });
 });

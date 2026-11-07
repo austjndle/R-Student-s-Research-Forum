@@ -1,6 +1,37 @@
 import { stableHash } from "@/lib/rag/corpus";
-import { absoluteApprovedUrl, stripHtmlToMeaningfulText } from "./normalize";
 import type { MonitoredSource, ParsedEventCandidate } from "./types";
+import { absoluteApprovedUrl, stripHtmlToMeaningfulText } from "./normalize";
+const GENERIC_EXPERIENCE_DAY_PATTERN = /\bexperience\s+day\s+2026\b/i;
+
+export function isForbiddenGenericCampusEvent(event: { titleEn: string; campus: string }): boolean {
+  return event.campus === "all" && GENERIC_EXPERIENCE_DAY_PATTERN.test(event.titleEn)
+    && !/\b(?:hanoi|saigon south|saigon|nam sai gon|nam sài gòn)\b/i.test(event.titleEn);
+}
+
+function hasPublishedTime(block: string): boolean {
+  return /\b20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}/.test(block)
+    || /\b(?:at|lúc)\s+\d{1,2}(?::\d{2})?\s*(?:a\.m\.|p\.m\.|am|pm)\b/i.test(block);
+}
+
+function timePrecision(block: string): "exact" | "date_only" {
+  return hasPublishedTime(block) ? "exact" : "date_only";
+}
+
+function normalizedEventTitle(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function canonicalEventTitle(title: string): string {
+  return normalizedEventTitle(title).replace(/\b(?:hanoi|saigon south|saigon|nam sai gon|nam sài gòn|all campuses?)\b/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function candidateIdentity(candidate: ParsedEventCandidate): string {
+  return `${canonicalEventTitle(candidate.event.titleEn)}|${candidate.event.startAt}|${candidate.event.campus}`;
+}
+export function legacyEventIdentityKey(candidate: { titleEn: string; campus: string }): string {
+  return `${canonicalEventTitle(candidate.titleEn)}|${candidate.campus}`;
+}
+
 
 function clean(value: string): string {
   return stripHtmlToMeaningfulText(value).replace(/\s+/g, " ").trim();
@@ -138,6 +169,7 @@ export function extractEventCandidates(html: string, source: MonitoredSource, fe
       venueVi: extractVenue(block),
       startAt,
       endAt: parseDate(firstMatch(block, /data-end-date=["']([^"']+)["']/i)),
+      timePrecision: timePrecision(block),
       registrationUrl,
       registrationStatus: registrationStatus as "open" | "closed" | "unverified",
       originalUrl,
@@ -151,7 +183,7 @@ export function extractEventCandidates(html: string, source: MonitoredSource, fe
         const scheduledStart = parseDate(schedule[2]);
         if (!scheduledStart) continue;
         const scheduledCampus = schedule[1].toLowerCase().startsWith("hanoi") ? "hanoi" : "saigon_south";
-        candidates.push({ event: { ...event, campus: scheduledCampus, startAt: scheduledStart, lifecycle: lifecycle(sourceText, scheduledStart) }, confidence: "high", reviewReasons: [] });
+        candidates.push({ event: { ...event, campus: scheduledCampus, startAt: scheduledStart, timePrecision: "date_only", lifecycle: lifecycle(sourceText, scheduledStart) }, confidence: "high", reviewReasons: [] });
       }
     } else {
       candidates.push({ event, confidence: reviewReasons.length === 0 ? "high" : "partial", reviewReasons });
@@ -163,8 +195,8 @@ export function extractEventCandidates(html: string, source: MonitoredSource, fe
 export function deduplicateEventCandidates(candidates: ParsedEventCandidate[]): ParsedEventCandidate[] {
   const byIdentity = new Map<string, ParsedEventCandidate>();
   for (const candidate of candidates) {
-    const normalizedTitle = candidate.event.titleEn.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-    const key = `${normalizedTitle}|${candidate.event.startAt.slice(0, 10)}|${candidate.event.campus}`;
+    if (isForbiddenGenericCampusEvent(candidate.event)) continue;
+    const key = candidateIdentity(candidate);
     const existing = byIdentity.get(key);
     if (!existing || candidate.event.originalUrl.length < existing.event.originalUrl.length) byIdentity.set(key, { ...candidate, event: { ...candidate.event } });
   }
@@ -172,7 +204,7 @@ export function deduplicateEventCandidates(candidates: ParsedEventCandidate[]): 
 }
 
 export function eventIdentityKey(candidate: ParsedEventCandidate["event"]): string {
-  return `${candidate.titleEn.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()}|${candidate.campus}`;
+  return `${canonicalEventTitle(candidate.titleEn)}|${candidate.startAt}|${candidate.campus}`;
 }
 
 export function eventContentHash(candidate: ParsedEventCandidate["event"]): string {

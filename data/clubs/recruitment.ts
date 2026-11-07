@@ -1,5 +1,25 @@
 export type RecruitmentStatus = "recruiting" | "closed" | "upcoming" | "not_announced" | "unverified";
 export type RequirementState = "yes" | "no" | "not_confirmed";
+export type RecruitmentAnnouncementCategory = "opening" | "deadline" | "membership" | "committee" | "application" | "interview" | "tryout" | "results" | "closure";
+
+export interface ClubRecruitmentAnnouncement {
+  id: string;
+  clubId: string;
+  campus: "saigon_south" | "hanoi";
+  titleEn: string;
+  titleVi: string;
+  publishedAt: string;
+  category: RecruitmentAnnouncementCategory;
+  status: RecruitmentStatus;
+  applicationDeadline?: string;
+  applicationUrl?: string;
+  interviewRequired: RequirementState;
+  cvPortfolioRequired: RequirementState;
+  tryoutRequired: RequirementState;
+  originalPostUrl: string;
+  lastVerifiedDate: string;
+  sourceChannelUrl: string;
+}
 
 export interface ClubRecruitment {
   generalMembershipEn: string;
@@ -17,6 +37,7 @@ export interface ClubRecruitment {
   applicationDeadline?: string;
   applicationUrl?: string;
   recruitmentAnnouncementUrl?: string;
+  announcements: ClubRecruitmentAnnouncement[];
   sourceUrl: string;
   lastVerifiedDate: string;
 }
@@ -74,6 +95,7 @@ export function getClubRecruitment(
     applicationDeadline: override.applicationDeadline,
     applicationUrl: override.applicationUrl,
     recruitmentAnnouncementUrl: override.recruitmentAnnouncementUrl,
+    announcements: override.announcements ?? [],
     sourceUrl: override.sourceUrl ?? sourceUrl,
     lastVerifiedDate: override.lastVerifiedDate ?? lastVerifiedDate,
   };

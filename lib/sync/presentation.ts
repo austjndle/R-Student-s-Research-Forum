@@ -4,6 +4,13 @@ import { getEffectiveRegistrationStatus } from "@/data/events/calendar";
 import type { CalendarEntry } from "@/data/events/calendar";
 import { analyzeQuery } from "@/lib/rag/query";
 import type { MonitoredEvent } from "./types";
+function verificationForEvent(event: MonitoredEvent): CalendarEntry["verification"] {
+  if (event.conflictStatus === "conflict_detected" || event.freshnessStatus === "conflicted") return "conflicting";
+  if (event.freshnessStatus === "source_unavailable") return "source_unavailable";
+  if (event.freshnessStatus === "stale" || event.freshnessStatus === "review_due") return "review_required";
+  return "verified";
+}
+
 
 export function toCalendarEntry(event: MonitoredEvent): CalendarEntry {
   return {
@@ -21,6 +28,8 @@ export function toCalendarEntry(event: MonitoredEvent): CalendarEntry {
     venueVi: event.venueVi,
     startAt: event.startAt,
     endAt: event.endAt,
+    timePrecision: event.timePrecision,
+    timeZone: "Asia/Ho_Chi_Minh",
     registrationUrl: event.registrationUrl,
     registrationStatus: getEffectiveRegistrationStatus({ registrationStatus: event.registrationStatus, registrationDeadline: event.registrationDeadline }),
     registrationDeadline: event.registrationDeadline,
@@ -31,7 +40,7 @@ export function toCalendarEntry(event: MonitoredEvent): CalendarEntry {
     sourceLastChecked: event.sourceLastChecked,
     sourceLastChanged: event.contentLastChangedAt,
     publicationStatus: event.publicationStatus === "published" ? "published" : "draft",
-    verification: "verified",
+    verification: verificationForEvent(event),
   };
 }
 

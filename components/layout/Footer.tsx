@@ -3,8 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/context";
-import { requestOpenSupport } from "@/components/support/supportEvents";
-import { Coffee, ExternalLink, ShieldCheck, Sparkles } from "lucide-react";
+import { ExternalLink, ShieldCheck, Sparkles } from "lucide-react";
 import { requestOpenWhatsNew } from "@/components/changelog/changelogEvents";
 
 export function Footer() {
@@ -37,9 +36,9 @@ export function Footer() {
 
           {/* Col 2: Navigation */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--main-text)]">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--main-text)]">
               {t.footer.quickLinks}
-            </h4>
+            </p>
             <ul className="space-y-2 text-sm text-[var(--secondary-text)]">
               <li>
                 <Link href="/guides" className="hover:text-[var(--accent)] transition-colors">
@@ -71,9 +70,9 @@ export function Footer() {
 
           {/* Col 3: Legal & Official RMIT */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--main-text)]">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--main-text)]">
               {t.footer.officialResources}
-            </h4>
+            </p>
             <ul className="space-y-2 text-sm text-[var(--secondary-text)]">
               <li>
                 <a
@@ -134,10 +133,6 @@ export function Footer() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 md:flex-nowrap">
-            <button type="button" onClick={requestOpenSupport} className="inline-flex min-h-11 shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap font-medium text-[var(--accent)] transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]" aria-label={t.support.tooltip} title={t.support.tooltip}>
-              <Coffee className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="whitespace-nowrap">{t.support.shortLink}</span>
-            </button>
             <a
               href="https://github.com/austjndle"
               target="_blank"

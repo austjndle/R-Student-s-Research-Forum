@@ -74,12 +74,13 @@ export default function CampusHoursPage() {
       {/* Campus Selector & Search */}
       <div className="editorial-panel flex flex-col gap-4 p-2 sm:flex-row sm:items-center sm:justify-between">
         {/* Tabs */}
-        <div className="flex items-center gap-1 border border-[var(--border)] bg-[var(--surface)] p-1">
+        <div className="flex items-center gap-1 border border-[var(--border)] bg-[var(--surface)] p-1" role="group" aria-label={language === "vi" ? "Chọn cơ sở" : "Choose campus"}>
           <button
             onClick={() => {
               setActiveCampus("saigon_south");
               setActiveBuildingId("sgs-b1");
             }}
+            aria-pressed={activeCampus === "saigon_south"}
             className={`min-h-11 px-4 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
               activeCampus === "saigon_south"
                 ? "bg-[var(--accent)] text-white shadow-xs"
@@ -93,6 +94,7 @@ export default function CampusHoursPage() {
               setActiveCampus("hanoi");
               setActiveBuildingId("hn-main");
             }}
+            aria-pressed={activeCampus === "hanoi"}
             className={`min-h-11 px-4 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
               activeCampus === "hanoi"
                 ? "bg-[var(--accent)] text-white shadow-xs"
@@ -105,8 +107,10 @@ export default function CampusHoursPage() {
 
         {/* Filter Input */}
         <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 text-[var(--secondary-text)] absolute left-3 top-1/2 -translate-y-1/2" />
+          <label htmlFor="facility-filter" className="sr-only">{language === "vi" ? "Lọc cơ sở vật chất" : "Filter facilities"}</label>
+          <Search className="w-4 h-4 text-[var(--secondary-text)] absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
           <input
+            id="facility-filter"
             type="text"
             value={searchFilter}
             onChange={(e) => setSearchFilter(e.target.value)}
@@ -142,6 +146,15 @@ export default function CampusHoursPage() {
               ? "Công cụ do sinh viên giới thiệu; hãy xác nhận tình trạng phòng với RMIT trước khi sử dụng."
               : "Student-introduced tool; confirm room availability with RMIT before use."}
           </p>
+          <p className="pt-0.5 text-[11px] text-[var(--secondary-text)]">
+            Credit:{" "}
+            <a
+              href="mailto:s3998345@rmit.edu.vn"
+              className="font-medium underline decoration-[var(--border)] underline-offset-2 transition-colors hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            >
+              s3998345@rmit.edu.vn
+            </a>
+          </p>
         </div>
 
         <a
@@ -160,7 +173,7 @@ export default function CampusHoursPage() {
         <span className="text-[var(--secondary-text)] font-semibold">
           {language === "vi" ? "Chuyển nhanh tới tòa nhà:" : "Jump to building:"}
         </span>
-        {buildings.map((b) => (
+        {filteredBuildings.map((b) => (
           <a
             key={b.id}
             href={`#${b.id}`}
@@ -244,7 +257,7 @@ export default function CampusHoursPage() {
               className="editorial-scroll p-5 pt-0 sm:p-6 sm:pt-0"
               role="region"
               dir="ltr"
-              aria-label={language === "vi" ? "Bảng giờ mở cửa, vuốt ngang để xem đầy đủ" : "Opening-hours table, scroll horizontally to view all columns"}
+              aria-label={`${language === "vi" ? "Bảng giờ mở cửa" : "Opening-hours table"} — ${language === "vi" ? building.nameVi : building.nameEn}`}
               tabIndex={0}
             >
               <div className="mb-3 flex items-center justify-between gap-3 text-[11px] text-[var(--secondary-text)] sm:hidden">
@@ -313,6 +326,11 @@ export default function CampusHoursPage() {
           </div>
         ))}
       </div>
+      {filteredBuildings.length === 0 && (
+        <p role="status" className="border border-dashed border-[var(--border)] px-5 py-8 text-sm text-[var(--secondary-text)]">
+          {language === "vi" ? "Không tìm thấy cơ sở vật chất phù hợp." : "No facilities match this filter."}
+        </p>
+      )}
     </div>
   );
 }

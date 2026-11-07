@@ -316,6 +316,7 @@ function toCalendarEntry(milestone: AcademicMilestone): CalendarEntry {
     campus: milestone.campus ?? "all",
     startAt: milestone.startAt,
     endAt: milestone.endAt,
+    timePrecision: "date_only",
     originalUrl: ACADEMIC_CALENDAR_2027_SOURCE_URL,
     sourceId: "rmit-academic-calendar-2027",
     sourceType: "official_website",

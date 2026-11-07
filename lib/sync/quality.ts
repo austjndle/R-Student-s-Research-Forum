@@ -51,7 +51,7 @@ export function detectEventConflicts(candidates: readonly ParsedEventCandidate[]
   }
   const conflicts: FieldConflict[] = [];
   for (const [entityKey, group] of byIdentity) {
-    const distinctDates = [...new Set(group.map((candidate) => candidate.event.startAt))];
+    const distinctDates = [...new Set(group.map((candidate) => candidate.event.startAt.slice(0, 10)))];
     if (distinctDates.length < 2) continue;
     conflicts.push({
       id: `conflict:${entityKey}:${detectedAt}`,

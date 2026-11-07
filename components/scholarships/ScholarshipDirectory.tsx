@@ -201,7 +201,6 @@ export function ScholarshipDirectory() {
       <h1 className="mt-4 max-w-5xl text-4xl font-bold tracking-[-0.04em] text-[var(--main-text)] sm:text-6xl">{language === "vi" ? "Tìm học bổng phù hợp với bạn." : "Find the scholarship that fits."}</h1>
       <p className="mt-4 max-w-3xl text-base leading-7 text-[var(--secondary-text)]">{labels.subtitle}</p>
     </header>
-    <AcademicRecognitionSection />
     <section className="space-y-4" aria-label={labels.filters}>
       <label className="flex min-h-11 items-center gap-2 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--secondary-text)]">
         <Search className="h-4 w-4 shrink-0 text-[var(--accent)]" aria-hidden="true" />
@@ -217,6 +216,7 @@ export function ScholarshipDirectory() {
     </section>
     {comparison.length > 0 && <section className="editorial-panel space-y-4 p-5" aria-labelledby="scholarship-comparison-title"><div className="flex flex-wrap items-center justify-between gap-3"><h2 id="scholarship-comparison-title" className="text-lg font-bold text-[var(--main-text)]">{labels.comparison.title}</h2><span className="text-xs text-[var(--secondary-text)]">{labels.comparison.instructions}</span></div><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">{comparison.map((record) => <div key={record.id} className="border border-[var(--border)] p-4"><h3 className="font-semibold text-[var(--main-text)]">{record.name[language]}</h3><dl className="mt-3 space-y-2 text-xs text-[var(--secondary-text)]"><div><dt className="font-semibold">{labels.comparison.value}</dt><dd>{record.award.display[language]}</dd></div><div><dt className="font-semibold">{labels.comparison.gpa}</dt><dd>{record.eligibility.gpa[language]}</dd></div><div><dt className="font-semibold">{labels.comparison.deadline}</dt><dd>{getCurrentCycle(record).cycle?.closesOn ?? labels.states.noCycles}</dd></div></dl></div>)}</div></section>}
     <div className="grid gap-5 lg:grid-cols-2" aria-live="polite">{filtered.map((record) => <ScholarshipCard key={record.id} record={record} language={language} labels={labels} selected={selected.includes(record.id)} onCompare={() => toggleSelected(record.id)} />)}{filtered.length === 0 && <p className="border border-dashed border-[var(--border)] px-5 py-10 text-sm text-[var(--secondary-text)]">{labels.states.noMatches}</p>}</div>
+    <AcademicRecognitionSection />
   </div>;
 }
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ClubDetail } from "@/components/clubs/ClubDetail";
-import { getRelatedClubs, VERIFIED_CLUBS } from "@/data/clubs/clubs";
+import { VERIFIED_CLUBS } from "@/data/clubs/clubs";
 import { parseClubDirectoryContext } from "@/lib/clubs/navigation";
 
 export const metadata: Metadata = {
@@ -23,8 +23,5 @@ export default async function ClubDetailPage({ params, searchParams }: {
   }
   if (!query.has("category")) query.set("category", club.category);
   const directoryContext = parseClubDirectoryContext(query, club.campus);
-  const relatedClubs = getRelatedClubs(club).map(({ id, nameEn, nameVi, campus, category, descriptionEn, descriptionVi }) => ({
-    id, nameEn, nameVi, campus, category, descriptionEn, descriptionVi,
-  }));
-  return <ClubDetail key={club.id} club={club} relatedClubs={relatedClubs} directoryContext={directoryContext} />;
+  return <ClubDetail key={club.id} club={club} directoryContext={directoryContext} />;
 }

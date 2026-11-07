@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CALENDAR_ENTRIES, CAMPUS_ACTIVITY_HIGHLIGHTS, getEventTemporalStatus, getPublishedCalendarEntries } from "../data/events/calendar";
 import { EVENT_SOURCES } from "../data/events/sources";
 import { validateEventReviewCandidate } from "../lib/events/review";
+import { deduplicateEventCandidates, isForbiddenGenericCampusEvent } from "../lib/sync/extract-events";
 
 describe("Verified calendar data", () => {
   it("contains only published entries with registered HTTPS sources", () => {
@@ -80,6 +81,24 @@ describe("Campus-specific event dates", () => {
     const carnivalHanoi = events.find((event) => event.id === "rmit-carnival-2026-hanoi");
     expect(carnivalHanoi?.registrationLinks?.some((link) => link.url.includes("26Carnival-StudentHN"))).toBe(true);
     expect(carnivalHanoi?.registrationLinks?.some((link) => link.url.includes("26Carnival-StaffHN")) ?? false).toBe(false);
+  });
+});
+
+describe("Experience Day duplicate protection", () => {
+  it("keeps only the two campus-specific public records", () => {
+    const experienceDay = getPublishedCalendarEntries().filter((entry) => /experience day 2026/i.test(entry.titleEn));
+    expect(experienceDay.map((entry) => entry.campus).sort()).toEqual(["hanoi", "saigon_south"]);
+    expect(experienceDay.every((entry) => entry.campus !== "all")).toBe(true);
+  });
+
+  it("rejects a generic all-campus sync candidate while preserving split instances", () => {
+    expect(isForbiddenGenericCampusEvent({ titleEn: "Experience Day 2026 — All Campuses", campus: "all" })).toBe(true);
+    const candidates = [
+      { event: { titleEn: "Experience Day 2026", campus: "all", startAt: "2026-11-15T05:00:00.000Z", originalUrl: "https://www.rmit.edu.vn/events/experience-day" } },
+      { event: { titleEn: "Experience Day 2026 — Hanoi", campus: "hanoi", startAt: "2026-11-15T05:00:00.000Z", originalUrl: "https://www.rmit.edu.vn/events/experience-day" } },
+      { event: { titleEn: "Experience Day 2026 — Saigon South", campus: "saigon_south", startAt: "2026-11-29T05:00:00.000Z", originalUrl: "https://www.rmit.edu.vn/events/experience-day" } },
+    ] as never;
+    expect(deduplicateEventCandidates(candidates).map((candidate) => candidate.event.campus).sort()).toEqual(["hanoi", "saigon_south"]);
   });
 });
 

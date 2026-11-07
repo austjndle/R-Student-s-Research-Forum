@@ -12,12 +12,11 @@ import { SchoolDirectory } from "@/components/schools/SchoolDirectory";
 import { KNOWLEDGE_DOCUMENTS } from "@/data/knowledge/documents";
 import {
   ArrowLeft,
-  ShieldCheck,
-  ExternalLink,
-  Building2,
   ChevronRight,
   BookOpen,
 } from "lucide-react";
+import { getVerificationLabel, isPubliclyVerified } from "@/lib/verification/status";
+import { formatLocalizedDate } from "@/lib/i18n/date";
 
 export default function TopicDetailPage({
   params,
@@ -71,77 +70,38 @@ export default function TopicDetailPage({
       {/* Documents List */}
       <div className="space-y-6">
         {documents.map((doc) => (
-          <article
+          <Link
             key={doc.id}
-            className="editorial-card flex flex-col transition-colors hover:border-[var(--accent)] md:flex-row group"
+            href={doc.resultHref ?? `/guides/${doc.slug}`}
+            className="editorial-card group flex min-w-0 flex-col transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] md:flex-row"
           >
-            {/* Card Image Thumbnail */}
             {doc.imageUrl && (
-              <div className="md:w-56 lg:w-64 h-48 md:h-auto shrink-0 relative overflow-hidden bg-[var(--surface-elevated)]">
+              <div className="relative h-48 shrink-0 overflow-hidden bg-[var(--surface-elevated)] md:h-auto md:w-56 lg:w-64">
                 <img
                   src={doc.imageUrl}
                   alt={language === "vi" ? doc.titleVi : doc.titleEn}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
                 />
               </div>
             )}
 
-            {/* Card Content */}
-            <div className="p-5 sm:p-6 flex-1 space-y-4 flex flex-col justify-between">
+            <div className="flex min-w-0 flex-1 flex-col justify-between p-5 sm:p-6">
               <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1 border border-emerald-300/60 bg-emerald-50 px-2.5 py-1 font-medium text-[11px] text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-400">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>{t.common.verified} ({doc.lastVerifiedDate})</span>
-                  </span>
-                  <span className="border border-[var(--border)] bg-[var(--surface-elevated)] px-2 py-1 text-[11px] uppercase text-[var(--secondary-text)] font-mono">
-                    {doc.campus === "all" ? t.common.allCampuses : doc.campus === "hanoi" ? t.common.hanoi : t.common.saigonSouth}
-                  </span>
-                </div>
-
-                <h2 className="text-lg sm:text-xl font-bold text-[var(--main-text)] group-hover:text-[var(--accent)] transition-colors leading-snug">
+                <h2 className="text-lg font-bold leading-snug text-[var(--main-text)] transition-colors group-hover:text-[var(--accent)] sm:text-xl">
                   {language === "vi" ? doc.titleVi : doc.titleEn}
                 </h2>
-
-                <p className="text-xs sm:text-sm text-[var(--secondary-text)] leading-relaxed">
+                <p className="line-clamp-3 text-xs leading-relaxed text-[var(--secondary-text)] sm:text-sm">
                   {language === "vi" ? doc.summaryVi : doc.summaryEn}
                 </p>
               </div>
 
-            {/* Key Details */}
-            <div className="editorial-info space-y-2 p-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--accent)]">
-                {t.search.keyDetails}
-              </h4>
-              <ul className="space-y-1.5 text-xs text-[var(--main-text)] list-disc pl-5">
-                {(language === "vi" ? doc.keyDetailsVi : doc.keyDetailsEn).map(
-                  (detail, idx) => (
-                    <li key={idx} className="leading-relaxed">
-                      {detail}
-                    </li>
-                  )
-                )}
-              </ul>
+              <div className="mt-5 flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs font-semibold text-[var(--accent)]">
+                <span>{language === "vi" ? "Giới thiệu" : "About"}</span>
+                <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              </div>
             </div>
-
-            {/* Footer with official source */}
-            <div className="pt-3 border-t border-[var(--border)] flex items-center justify-between text-xs">
-              <span className="text-[var(--secondary-text)]">
-                {t.search.officialSources}:
-              </span>
-              <a
-                href={doc.officialSourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-semibold text-[var(--accent)] hover:underline"
-              >
-                <span>{doc.sourceTitle}</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            </div>
-            </div>
-          </article>
+          </Link>
         ))}
 
         {documents.length === 0 && (

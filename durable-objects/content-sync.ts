@@ -1,5 +1,6 @@
 import type { ContentSnapshot, FeedbackReport, MonitoredEvent, PendingReview, SourceState, SyncRevision, SyncRunReport } from "../lib/sync/types";
-
+import type { RecruitmentReviewCandidate } from "../lib/clubs/recruitment-review";
+import { isForbiddenGenericCampusEvent } from "../lib/sync/extract-events";
 const STATE_KEY = "content-sync-source-state";
 const EVENTS_KEY = "content-sync-events";
 const SNAPSHOTS_KEY = "content-sync-snapshots";
@@ -9,6 +10,7 @@ const RUNS_KEY = "content-sync-runs";
 const HISTORY_KEY = "content-sync-event-history";
 const FEEDBACK_KEY = "content-sync-feedback";
 const CAMPUS_BUZZ_KEY = "content-sync-campus-buzz";
+const CLUB_RECRUITMENT_KEY = "content-sync-club-recruitment";
 const MAX_HISTORY = 500;
 
 interface EventHistoryRecord {
@@ -26,6 +28,12 @@ interface CommitPayload {
   reviews: PendingReview[];
   run: SyncRunReport;
 }
+interface RecruitmentReviewRecord extends RecruitmentReviewCandidate {
+  reviewStatus: "pending" | "approved" | "rejected";
+  submittedAt: string;
+  reviewedAt?: string;
+}
+
 
 export class ContentSyncDurableObject {
   constructor(private readonly state: DurableObjectState) {}
@@ -33,27 +41,32 @@ export class ContentSyncDurableObject {
   private async read<T>(key: string, fallback: T): Promise<T> {
     return (await this.state.storage.get<T>(key)) ?? fallback;
   }
+  private publishableEvents(events: MonitoredEvent[]): MonitoredEvent[] {
+    return events.filter((event) => !isForbiddenGenericCampusEvent(event));
+  }
+
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname === "/sync/state" && request.method === "GET") {
+      const events = this.publishableEvents(await this.read<MonitoredEvent[]>(EVENTS_KEY, []));
       return Response.json({
         states: await this.read<SourceState[]>(STATE_KEY, []),
         snapshots: await this.read<ContentSnapshot[]>(SNAPSHOTS_KEY, []),
-        events: await this.read<MonitoredEvent[]>(EVENTS_KEY, []),
+        events,
       }, { headers: { "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/sync/commit" && request.method === "POST") {
       const payload = await request.json<CommitPayload>();
       const states = await this.read<SourceState[]>(STATE_KEY, []);
       const snapshots = await this.read<ContentSnapshot[]>(SNAPSHOTS_KEY, []);
-      const events = await this.read<MonitoredEvent[]>(EVENTS_KEY, []);
+      const events = this.publishableEvents(await this.read<MonitoredEvent[]>(EVENTS_KEY, []));
       const revisions = await this.read<SyncRevision[]>(REVISIONS_KEY, []);
       const reviews = await this.read<PendingReview[]>(REVIEWS_KEY, []);
       const history = await this.read<EventHistoryRecord[]>(HISTORY_KEY, []);
       const nextStates = [payload.sourceState, ...states.filter((item) => item.sourceId !== payload.sourceState.sourceId)];
       const nextSnapshots = payload.snapshot ? [payload.snapshot, ...snapshots.filter((item) => item.sourceId !== payload.snapshot!.sourceId)].slice(0, 100) : snapshots;
-      const incomingEvents = payload.events ?? [];
+      const incomingEvents = this.publishableEvents(payload.events ?? []);
       const nextHistory = payload.replaceEvents
         ? [...events.filter((event) => event.sourceId === payload.sourceState.sourceId).map((event) => ({ eventId: event.id, recordedAt: payload.run.finishedAt, event })), ...history].slice(0, MAX_HISTORY)
         : history;
@@ -100,6 +113,27 @@ export class ContentSyncDurableObject {
       await this.state.storage.put(EVENTS_KEY, [...events.filter((event) => event.id !== body.eventId), { ...previous.event, publicationStatus: "published" as const, freshnessStatus: "review_due" as const }]);
       return Response.json({ rolledBack: true, eventId: body.eventId, restoredAt: previous.recordedAt }, { headers: { "Cache-Control": "no-store" } });
     }
+    if (url.pathname === "/club-recruitment/reviews" && request.method === "GET") {
+      const records = await this.read<RecruitmentReviewRecord[]>(CLUB_RECRUITMENT_KEY, []);
+      const clubId = url.searchParams.get("clubId");
+      const filtered = clubId ? records.filter((record) => record.clubId === clubId && record.reviewStatus === "approved") : records;
+      return Response.json({ reviews: filtered }, { headers: { "Cache-Control": "no-store" } });
+    }
+    if (url.pathname === "/club-recruitment/review" && request.method === "POST") {
+      const candidate = await request.json<RecruitmentReviewCandidate>();
+      const record: RecruitmentReviewRecord = { ...candidate, reviewStatus: "pending", submittedAt: new Date().toISOString() };
+      const records = await this.read<RecruitmentReviewRecord[]>(CLUB_RECRUITMENT_KEY, []);
+      await this.state.storage.put(CLUB_RECRUITMENT_KEY, [record, ...records.filter((item) => item.id !== record.id)].slice(0, MAX_HISTORY));
+      return Response.json({ saved: true, id: record.id }, { status: 201, headers: { "Cache-Control": "no-store" } });
+    }
+    if (url.pathname === "/club-recruitment/review" && request.method === "PATCH") {
+      const body = await request.json<{ id?: string; reviewStatus?: RecruitmentReviewRecord["reviewStatus"] }>();
+      if (!body.id || !body.reviewStatus || !["approved", "rejected", "pending"].includes(body.reviewStatus)) return Response.json({ error: "Invalid recruitment review action." }, { status: 400 });
+      const records = await this.read<RecruitmentReviewRecord[]>(CLUB_RECRUITMENT_KEY, []);
+      if (!records.some((record) => record.id === body.id)) return Response.json({ error: "Recruitment review not found." }, { status: 404 });
+      await this.state.storage.put(CLUB_RECRUITMENT_KEY, records.map((record) => record.id === body.id ? { ...record, reviewStatus: body.reviewStatus!, reviewedAt: new Date().toISOString() } : record));
+      return Response.json({ updated: true, id: body.id, reviewStatus: body.reviewStatus }, { headers: { "Cache-Control": "no-store" } });
+    }
     if (url.pathname === "/campus-buzz" && request.method === "POST") {
       const report = await request.json<import("../lib/sync/campus-buzz").CampusBuzzReport>();
       const reports = await this.read<import("../lib/sync/campus-buzz").CampusBuzzReport[]>(CAMPUS_BUZZ_KEY, []);
@@ -127,7 +161,8 @@ export class ContentSyncDurableObject {
       return Response.json({ updated: true, id: body.id, status: body.status }, { headers: { "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/events" && request.method === "GET") {
-      return Response.json({ events: await this.read<MonitoredEvent[]>(EVENTS_KEY, []) }, { headers: { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" } });
+      const events = this.publishableEvents(await this.read<MonitoredEvent[]>(EVENTS_KEY, []));
+      return Response.json({ events }, { headers: { "Cache-Control": "public, max-age=0, s-maxage=0, must-revalidate" } });
     }
     if (url.pathname === "/updates" && request.method === "GET") {
       const revisions = await this.read<SyncRevision[]>(REVISIONS_KEY, []);

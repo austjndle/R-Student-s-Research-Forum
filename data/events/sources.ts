@@ -1,5 +1,5 @@
 export type EventSourceType = "official_website" | "official_facebook";
-export type SourceVerificationStatus = "verified" | "manual_review_required";
+export type SourceVerificationStatus = "verified" | "partially_verified" | "unverified" | "source_unavailable" | "conflicting" | "review_required";
 
 export interface EventSource {
   id: string;
@@ -118,7 +118,7 @@ export const EVENT_SOURCES: EventSource[] = [
     organisation: "RMIT University Vietnam",
     sourceType: "official_facebook",
     url: "https://www.facebook.com/RMITUniversityVietnam",
-    verificationStatus: "manual_review_required",
+    verificationStatus: "review_required",
     lastSuccessfulCheck: "2026-10-31",
     notesEn: "Public discovery source. Facebook announcements are not imported automatically; each event requires manual review and original-post verification.",
     notesVi: "Nguồn khám phá công khai. Không tự động nhập thông báo Facebook; từng sự kiện cần được kiểm tra thủ công và xác minh bài đăng gốc.",

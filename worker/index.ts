@@ -33,11 +33,12 @@ import {
 import { GeminiProvider, WorkersAIProvider } from "../lib/rag/providers";
 import { retrieveEvidence, toChatCitations } from "../lib/rag/chat-service";
 import { reserveGlobalLlmCall } from "../lib/ai/budget";
+import { clearPublicAnswerCache } from "../lib/ai/public-answer-cache";
 import { classifyChatRoute, classroomPermissionFallback, isClassroomPermissionQuery, type ChatRoute } from "../lib/ai/query-router";
 import { WorkerContentSyncStore } from "../lib/sync/worker-store";
 import { buildDynamicEventContext, toCalendarEntry, searchDynamicEvents } from "../lib/sync/presentation";
 import { runContentSync } from "../lib/sync/monitor";
-import { calendarEntryToIcs } from "../lib/events/ics";
+import { calendarEntryToIcs, calendarEntriesToIcs } from "../lib/events/ics";
 import { getPublishedCalendarEntries } from "../data/events/calendar";
 import { normalizeCampusBuzzInput } from "../lib/sync/campus-buzz";
 import type { CampusBuzzInput, CampusBuzzReport } from "../lib/sync/campus-buzz";
@@ -45,6 +46,8 @@ import type { FeedbackReport, MonitoredEvent } from "../lib/sync/types";
 import { KNOWLEDGE_CATEGORIES } from "../data/knowledge/schema";
 import { verifyOfficialEndpoints } from "../lib/knowledge/sync";
 import { isAuthorizedEventAdmin } from "../lib/events/admin-auth";
+import { getVerifiedClubs } from "../data/clubs/clubs";
+import { validateRecruitmentReviewCandidate } from "../lib/clubs/recruitment-review";
 import { validateEventReviewCandidate, type EventReviewDraft } from "../lib/events/review";
 import {
   generateVisitorId,
@@ -130,8 +133,27 @@ app.get("/api/search", async (c) => {
   );
 });
 app.get("/api/events", async (c) => {
-  const dynamicEvents = (await getDynamicEvents(c)).map(toCalendarEntry);
-  return c.json({ events: dynamicEvents }, 200, { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" });
+  const byId = new Map(getPublishedCalendarEntries().map((entry) => [entry.id, entry]));
+  for (const entry of (await getDynamicEvents(c)).map(toCalendarEntry)) byId.set(entry.id, entry);
+  return c.json({ events: [...byId.values()].filter((entry) => entry.publicationStatus === "published") }, 200, { "Cache-Control": "public, max-age=0, s-maxage=0, must-revalidate" });
+});
+app.get("/api/events/ics", async (c) => {
+  try {
+    const dynamic = (await getDynamicEvents(c)).map(toCalendarEntry);
+    const byId = new Map(getPublishedCalendarEntries().map((entry) => [entry.id, entry]));
+    for (const entry of dynamic) byId.set(entry.id, entry);
+    const entries = [...byId.values()].filter((entry) => entry.publicationStatus === "published" && entry.timePrecision !== "tba");
+    return new Response(calendarEntriesToIcs(entries), {
+      status: 200,
+      headers: {
+        "Content-Type": "text/calendar; charset=utf-8",
+        "Content-Disposition": "attachment; filename=\"r-students-rmit-calendar.ics\"",
+        "Cache-Control": "public, max-age=0, s-maxage=0, must-revalidate",
+      },
+    });
+  } catch {
+    return c.text("Calendar export is unavailable.", 503, { "Cache-Control": "no-store" });
+  }
 });
 app.get("/api/events/:id/ics", async (c) => {
   const id = c.req.param("id");
@@ -145,6 +167,13 @@ app.get("/api/events/:id/ics", async (c) => {
   } catch {
     return c.text("Event date is not confirmed.", 409);
   }
+});
+app.get("/api/clubs/:id/recruitment", async (c) => {
+  const clubId = c.req.param("id");
+  const club = getVerifiedClubs().find((item) => item.id === clubId);
+  if (!club || !c.env.CONTENT_SYNC_DO) return c.json({ announcements: [] }, 200, { "Cache-Control": "public, max-age=0, s-maxage=0, must-revalidate" });
+  const announcements = await new WorkerContentSyncStore(c.env.CONTENT_SYNC_DO).recruitmentReviews(club.id);
+  return c.json({ announcements }, 200, { "Cache-Control": "public, max-age=0, s-maxage=0, must-revalidate" });
 });
 app.get("/api/updates", async (c) => {
   if (!c.env.CONTENT_SYNC_DO) return c.json({ updates: [] }, 200, { "Cache-Control": "public, max-age=60" });
@@ -253,6 +282,27 @@ app.get("/api/sync", async (c) => {
     ...status,
   }, 200, { "Cache-Control": "no-store" });
 });
+app.all("/api/admin/clubs/recruitment", async (c) => {
+  if (!["GET", "POST", "PATCH"].includes(c.req.method)) return c.json({ error: "Method not allowed." }, 405, { Allow: "GET, POST, PATCH" });
+  if (!(await isAuthorizedEventAdmin(c.req.raw, c.env.EVENT_ADMIN_TOKEN))) return c.json({ error: "Unauthorized." }, 401, { "Cache-Control": "no-store" });
+  if (!c.env.CONTENT_SYNC_DO) return c.json({ error: "Content sync storage is not configured." }, 503, { "Cache-Control": "no-store" });
+  const store = new WorkerContentSyncStore(c.env.CONTENT_SYNC_DO);
+  if (c.req.method === "GET") return c.json({ reviews: await store.recruitmentReviews() }, 200, { "Cache-Control": "no-store" });
+  const body = await c.req.json<Record<string, unknown>>().catch(() => null);
+  if (!body) return c.json({ error: "Request body must be valid JSON." }, 400);
+  if (c.req.method === "PATCH") {
+    if (typeof body.id !== "string" || !["approved", "rejected", "pending"].includes(String(body.reviewStatus))) return c.json({ error: "Invalid recruitment review action." }, 400);
+    await store.reviewRecruitment(body.id, String(body.reviewStatus) as "approved" | "rejected" | "pending");
+    return c.json({ updated: true }, 200, { "Cache-Control": "no-store" });
+  }
+  if (typeof body.clubId !== "string") return c.json({ error: "clubId is required." }, 400);
+  const club = getVerifiedClubs().find((item) => item.id === body.clubId);
+  if (!club) return c.json({ error: "Unknown club." }, 400);
+  const validation = validateRecruitmentReviewCandidate(body, club, new Date().toISOString());
+  if (!validation.valid || !validation.candidate) return c.json({ error: "Recruitment candidate failed validation.", details: validation.errors }, 400);
+  await store.submitRecruitmentReview(validation.candidate);
+  return c.json({ saved: true, id: validation.candidate.id }, 201, { "Cache-Control": "no-store" });
+});
 app.all("/api/admin/sync", async (c) => {
   if (!["GET", "POST"].includes(c.req.method)) return c.json({ error: "Method not allowed." }, 405, { Allow: "GET, POST" });
   if (!(await isAuthorizedEventAdmin(c.req.raw, c.env.EVENT_ADMIN_TOKEN))) return c.json({ error: "Unauthorized." }, 401, { "Cache-Control": "no-store" });
@@ -273,6 +323,7 @@ app.all("/api/admin/sync", async (c) => {
     return c.json({ updated: true }, 200, { "Cache-Control": "no-store" });
   }
   const report = await runContentSync(store, { force: true });
+  clearPublicAnswerCache();
   return c.json({ report }, 200, { "Cache-Control": "no-store" });
 });
 // Private API: authenticated event review workflow

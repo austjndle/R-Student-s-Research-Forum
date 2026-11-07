@@ -1059,7 +1059,7 @@ export function formatClubFallback(language: "en" | "vi", clubContext: ClubConte
       const description = clubAboutSummary(club, language);
       const recruitment = club.recruitment;
       const status = {
-        recruiting: language === "vi" ? "Đang tuyển" : "Recruiting",
+        recruiting: language === "vi" ? "Đang mở" : "Open",
         closed: language === "vi" ? "Đã đóng" : "Closed",
         upcoming: language === "vi" ? "Sắp mở" : "Upcoming",
         not_announced: language === "vi" ? "Chưa có thông báo" : "Not announced",
@@ -1277,16 +1277,18 @@ export function buildClubContext(query: string, language: "en" | "vi" = "en", co
       `Application deadline: ${club.recruitment.applicationDeadline ?? "Not published"}`,
       `Application link: ${club.recruitment.applicationUrl ?? "Not published"}`,
       `Recruitment announcement: ${club.recruitment.recruitmentAnnouncementUrl ?? "Not published"}`,
-      ...(recruitmentIntent ? [
-        `General membership: ${language === "vi" ? club.recruitment.generalMembershipVi : club.recruitment.generalMembershipEn}`,
-        `Committee recruitment: ${language === "vi" ? club.recruitment.committeeRecruitmentVi : club.recruitment.committeeRecruitmentEn}`,
-        `Eligibility: ${language === "vi" ? club.recruitment.eligibilityVi : club.recruitment.eligibilityEn}`,
-        `Application process: ${(language === "vi" ? club.recruitment.applicationProcessVi : club.recruitment.applicationProcessEn).slice(0, 5).join("; ")}`,
-      ] : []),
-      `Details status: ${club.detailsStatus}`,
+      ...club.recruitment.announcements.slice(0, 3).flatMap((announcement) => [
+        `Recruitment announcement title: ${language === "vi" ? announcement.titleVi : announcement.titleEn}`,
+        `Recruitment announcement status: ${announcement.status}`,
+        `Recruitment announcement date: ${announcement.publishedAt}`,
+        `Recruitment announcement deadline: ${announcement.applicationDeadline ?? "Not published"}`,
+        `Recruitment announcement interview required: ${announcement.interviewRequired}`,
+        `Recruitment announcement CV or portfolio required: ${announcement.cvPortfolioRequired}`,
+        `Recruitment announcement tryout required: ${announcement.tryoutRequired}`,
+        `Recruitment announcement source: ${announcement.originalPostUrl}`,
+      ]),
     ].join("\n");
   }).join("\n\n");
-
   return { contextText, sources, matchedClubNames, matchedClubs: selected.map(({ club }) => club), specificClub, recruitmentIntent, contactIntent };
 }
 export function isSimpleFactualQuery(query: string): boolean {

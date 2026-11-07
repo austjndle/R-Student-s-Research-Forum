@@ -101,6 +101,23 @@ describe("automated event content synchronization", () => {
     await runContentSync(store, { now: new Date("2026-12-01T00:00:00Z"), sources: [source], fetcher: async () => new Response(html) });
     expect(store.events.map((event) => [event.campus, event.startAt.slice(0, 10)])).toEqual([["hanoi", "2026-11-15"], ["saigon_south", "2026-11-29"]]);
   });
+  it("does not publish the generic all-campus Experience Day record", async () => {
+    const store = new MemorySyncStore();
+    const html = `<article><h2>Experience Day 2026 — All Campuses</h2><time datetime="2026-11-15T09:00:00+07:00">2026-11-15</time><p>All campuses event details.</p><a href="/events/experience-day-all">Details</a></article>`;
+    await runContentSync(store, { now: new Date("2026-12-01T00:00:00Z"), sources: [source], fetcher: async () => new Response(html) });
+    expect(store.events.some((event) => event.campus === "all" && /experience day 2026/i.test(event.titleEn))).toBe(false);
+    expect(store.reviews.length).toBeGreaterThan(0);
+  });
+  it("preserves separate sessions with the same title and campus", async () => {
+    const store = new MemorySyncStore();
+    const html = page([
+      { title: "Orientation", date: "2027-02-01T09:00:00+07:00", campus: "Hanoi", href: "/events/orientation-morning" },
+      { title: "Orientation", date: "2027-02-01T14:00:00+07:00", campus: "Hanoi", href: "/events/orientation-afternoon" },
+    ]);
+    await runContentSync(store, { now: new Date("2026-12-01T00:00:00Z"), sources: [source], fetcher: async () => new Response(html) });
+    expect(store.events).toHaveLength(2);
+    expect(new Set(store.events.map((event) => event.startAt)).size).toBe(2);
+  });
   it("monitors non-event sources without auto-publishing changed content", async () => {
     const reviewSource: MonitoredSource = { ...source, id: "fixture-scholarships", category: "scholarships", parser: "review-only" };
     const store = new MemorySyncStore();

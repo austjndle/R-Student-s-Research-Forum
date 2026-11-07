@@ -26,6 +26,8 @@ import {
   Dumbbell,
   Sparkles,
 } from "lucide-react";
+import { getVerificationLabel, isPubliclyVerified } from "@/lib/verification/status";
+import { formatLocalizedDate } from "@/lib/i18n/date";
 
 function isPracticalStudentLifeSearch(value: string): boolean {
   const normalized = value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -71,11 +73,22 @@ function SearchContent() {
   useEffect(() => {
     executeSearch(query, selectedCategory);
   }, [query, selectedCategory, language]);
+  useEffect(() => {
+    const nextQuery = query.trim();
+    const currentQuery = searchParams.get("q") ?? "";
+    if (nextQuery === currentQuery) return;
+    const target = nextQuery ? `/search?q=${encodeURIComponent(nextQuery)}` : "/search";
+    router.replace(target, { scroll: false });
+  }, [query, router, searchParams]);
 
-  const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+  const handleCopy = async (text: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      setCopiedId(null);
+    }
   };
 
   return (
@@ -92,8 +105,10 @@ function SearchContent() {
         {/* Input & Filter Bar */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="w-5 h-5 text-[var(--secondary-text)] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <label htmlFor="search-query" className="sr-only">{t.search.title}</label>
+            <Search className="w-5 h-5 text-[var(--secondary-text)] absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden="true" />
             <input
+              id="search-query"
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -106,6 +121,7 @@ function SearchContent() {
             <div className="relative flex items-center">
               <Filter className="w-3.5 h-3.5 text-[var(--accent)] absolute left-3.5 pointer-events-none" />
               <select
+                aria-label={t.search.categoryFilter}
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="editorial-control w-full appearance-none px-9 py-3 text-xs font-medium focus:outline-none sm:w-auto sm:min-w-40"
@@ -126,13 +142,13 @@ function SearchContent() {
       </div>
       {/* Results Header Count */}
       {query.trim() && (
-        <div className="flex items-center justify-between text-xs text-[var(--secondary-text)] border-b border-[var(--border)] pb-2">
+        <div role="status" aria-live="polite" className="flex items-center justify-between text-xs text-[var(--secondary-text)] border-b border-[var(--border)] pb-2">
           <span>
-            {results.length} {t.search.resultsFound} for &quot;{query}&quot;
+            {results.length} {t.search.resultsFound} {language === "vi" ? "cho" : "for"} &quot;{query}&quot;
           </span>
           <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-600 dark:text-emerald-400">
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-            100% Free Smart Search (Zero AI Quota Used)
+            {language === "vi" ? "Tìm kiếm miễn phí, không dùng hạn mức AI" : "Free smart search · no AI quota used"}
           </span>
         </div>
       )}
@@ -141,7 +157,7 @@ function SearchContent() {
       <div className="space-y-6">
         {results.map((res, resultIndex) => {
           const doc = res.document;
-          const isVerified = doc.verificationStatus === "verified";
+          const isVerified = isPubliclyVerified(doc.verificationStatus);
           const detailUrl = getSearchResultHref(doc);
           const isCardExpanded = expandedCardId === doc.id;
 
@@ -177,12 +193,10 @@ function SearchContent() {
                   </span>
 
                   <div className="flex items-center gap-1.5 text-xs">
-                    {isVerified && (
-                      <span className="inline-flex items-center gap-1 border border-emerald-300/60 bg-emerald-50 px-2.5 py-1 font-medium text-[11px] text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-400">
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        <span>{t.common.verified} ({doc.lastVerifiedDate})</span>
-                      </span>
-                    )}
+                    <span className={`inline-flex items-center gap-1 border px-2.5 py-1 font-medium text-[11px] ${isVerified ? "border-emerald-300/60 bg-emerald-50 text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-400" : "border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200"}`}>
+                      {isVerified && <ShieldCheck className="w-3.5 h-3.5" />}
+                      <span>{getVerificationLabel(doc.verificationStatus, language)} ({formatLocalizedDate(doc.lastVerifiedDate, language)})</span>
+                    </span>
                   </div>
                 </div>
 
@@ -240,6 +254,9 @@ function SearchContent() {
                 {/* Inline Quick Toggle to preview detailed steps on the same page */}
                 <div className="pt-1">
                   <button
+                    type="button"
+                    aria-expanded={isCardExpanded}
+                    aria-controls={`quick-preview-${doc.id}`}
                     onClick={() => setExpandedCardId(isCardExpanded ? null : doc.id)}
                     className="text-xs font-semibold text-[var(--accent)] hover:underline flex items-center gap-1"
                   >
@@ -252,7 +269,7 @@ function SearchContent() {
                   </button>
 
                   {isCardExpanded && (
-                    <div className="editorial-info mt-3 space-y-3 p-4 text-xs text-[var(--main-text)] sm:text-sm">
+                    <div id={`quick-preview-${doc.id}`} className="editorial-info mt-3 space-y-3 p-4 text-xs text-[var(--main-text)] sm:text-sm">
                       <div className="whitespace-pre-line leading-relaxed">
                         {language === "vi" ? doc.detailedGuidanceVi : doc.detailedGuidanceEn}
                       </div>
@@ -293,7 +310,7 @@ function SearchContent() {
                     </Link>
 
                     <button
-                      onClick={() => handleCopy(res.bestAnswer, doc.id)}
+                      onClick={() => void handleCopy(res.bestAnswer, doc.id)}
                       className="inline-flex items-center gap-1 text-[var(--secondary-text)] hover:text-[var(--main-text)] transition-colors"
                     >
                       {copiedId === doc.id ? (
@@ -354,7 +371,7 @@ function SearchContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {[
                 {
-                  titleVi: "Lịch học vụ & Census Date",
+                  titleVi: "Lịch học vụ & ngày chốt rút môn",
                   titleEn: "Academic Calendar & Census Date",
                   descVi: "Mốc thời gian kỳ 3, hạn nộp học phí và ngày chốt rút môn không phạt phí.",
                   descEn: "Key semester dates, tuition payment due dates, and cut-off deadlines.",
@@ -364,15 +381,15 @@ function SearchContent() {
                 {
                   titleVi: "Văn mẫu Email gửi Giảng viên",
                   titleEn: "Lecturer Email Blueprints",
-                  descVi: "Xin hẹn consult 1-1, gia hạn deadline, hỏi điểm và báo cáo bạn nhóm free-rider.",
+                  descVi: "Xin hẹn tư vấn 1-1, gia hạn hạn nộp, hỏi điểm và báo cáo thành viên không đóng góp.",
                   descEn: "Templates for consultations, extensions, grade feedback, and group conflicts.",
-                  query: "Mail consult giảng viên",
+                  query: "Email tư vấn giảng viên",
                   Icon: Mail,
                 },
                 {
                   titleVi: "Thủ tục Đổi ngành học",
                   titleEn: "How to Change Major / Program",
-                  descVi: "Điều kiện GPA tối thiểu, thủ tục nộp đơn Internal Program Transfer qua Student Connect.",
+                  descVi: "Điều kiện GPA tối thiểu, thủ tục nộp đơn chuyển chương trình nội bộ qua Student Connect.",
                   descEn: "Minimum GPA criteria, application forms, and credit transfer mapping.",
                   query: "Đổi ngành RMIT",
                   Icon: RefreshCw,
@@ -388,7 +405,7 @@ function SearchContent() {
                 {
                   titleVi: "Học bổng & Dean's List",
                   titleEn: "Scholarships & Dean's List",
-                  descVi: "Học bổng Hiệu trưởng 100%, học bổng Merit 25-50% và tiêu chuẩn vinh danh Dean's List.",
+                  descVi: "Học bổng Hiệu trưởng, học bổng thành tích học tập và tiêu chuẩn danh sách khen thưởng theo học kỳ.",
                   descEn: "VC scholarships, Academic merit awards, and semester Dean's List honors.",
                   query: "Học bổng Dean list",
                   Icon: Trophy,
@@ -396,7 +413,7 @@ function SearchContent() {
                 {
                   titleVi: "Đăng ký Câu lạc bộ & Thể thao",
                   titleEn: "Student Clubs & Sports Teams",
-                  descVi: "Đội tuyển RMIT Redbacks (Bóng rổ, Bóng đá) và ngày hội Club Day của Student Life.",
+                  descVi: "Đội tuyển RMIT Redbacks và ngày hội CLB của Student Life.",
                   descEn: "RMIT Redbacks varsity teams, academic societies, and Club Day registrations.",
                   query: "Câu lạc bộ bóng rổ",
                   Icon: Dumbbell,

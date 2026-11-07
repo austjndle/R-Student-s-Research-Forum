@@ -100,10 +100,14 @@ export default function ContactsPage() {
     return matchesSearch && matchesCampus && matchesType;
   });
 
-  const handleCopyEmail = (email: string) => {
-    navigator.clipboard.writeText(email);
-    setCopiedEmail(email);
-    setTimeout(() => setCopiedEmail(null), 2000);
+  const handleCopyEmail = async (email: string) => {
+    try {
+      await navigator.clipboard.writeText(email);
+      setCopiedEmail(email);
+      setTimeout(() => setCopiedEmail(null), 2000);
+    } catch {
+      setCopiedEmail(null);
+    }
   };
 
   const toggleExpand = (id: string) => {
@@ -126,6 +130,7 @@ export default function ContactsPage() {
         {/* Filter controls */}
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
           <div className="relative flex-1">
+            <label htmlFor="contacts-search" className="sr-only">{t.contacts.searchPlaceholder}</label>
             <Search className="w-4 h-4 text-[var(--secondary-text)] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -136,7 +141,9 @@ export default function ContactsPage() {
             />
           </div>
 
+          <label htmlFor="contacts-campus" className="sr-only">{t.common.campus}</label>
           <select
+            id="contacts-campus"
             value={selectedCampus}
             onChange={(e) => setSelectedCampus(e.target.value)}
             className="editorial-control px-3 text-sm focus:outline-none"
@@ -153,6 +160,11 @@ export default function ContactsPage() {
           </select>
         </div>
       </div>
+      {filteredDepartments.length === 0 && (
+        <p role="status" className="border border-dashed border-[var(--border)] px-5 py-8 text-sm text-[var(--secondary-text)]">
+          {language === "vi" ? "Không tìm thấy liên hệ phù hợp." : "No contacts match this filter."}
+        </p>
+      )}
 
       {/* Directory Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -296,7 +308,7 @@ export default function ContactsPage() {
       {contactType !== "departments" && (
         <section aria-labelledby="academic-schools-title" className="space-y-5">
           <div className="border-b border-[var(--border)] pb-3">
-            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">Academic Schools / Khoa học thuật</p>
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">{language === "vi" ? "KHOA HỌC THUẬT" : "ACADEMIC SCHOOLS"}</p>
             <h2 id="academic-schools-title" className="mt-2 text-2xl font-bold text-[var(--main-text)]">{t.contacts.academicSchools}</h2>
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

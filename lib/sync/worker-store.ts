@@ -1,4 +1,5 @@
 import type { ContentSnapshot, FeedbackReport, MonitoredEvent, PendingReview, SourceState, SyncRevision, SyncRunReport } from "./types";
+import type { RecruitmentReviewCandidate } from "@/lib/clubs/recruitment-review";
 import type { CampusBuzzReport } from "./campus-buzz";
 import type { SyncStore } from "./monitor";
 export interface ContentSyncNamespace {
@@ -69,6 +70,23 @@ export class WorkerContentSyncStore implements SyncStore {
   async submitCampusBuzz(report: CampusBuzzReport): Promise<void> {
     const response = await this.stub().fetch("https://content-sync/campus-buzz", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(report) });
     if (!response.ok) throw new Error("Campus Buzz ingestion failed.");
+  }
+  async recruitmentReviews(clubId?: string): Promise<RecruitmentReviewCandidate[]> {
+    const path = clubId ? `https://content-sync/club-recruitment/reviews?clubId=${encodeURIComponent(clubId)}` : "https://content-sync/club-recruitment/reviews";
+    const response = await this.stub().fetch(path);
+    if (!response.ok) throw new Error("Club recruitment reviews unavailable.");
+    const data = await response.json<{ reviews?: RecruitmentReviewCandidate[] }>();
+    return Array.isArray(data.reviews) ? data.reviews : [];
+  }
+
+  async submitRecruitmentReview(candidate: RecruitmentReviewCandidate): Promise<void> {
+    const response = await this.stub().fetch("https://content-sync/club-recruitment/review", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(candidate) });
+    if (!response.ok) throw new Error("Club recruitment review submission failed.");
+  }
+
+  async reviewRecruitment(id: string, reviewStatus: "approved" | "rejected" | "pending"): Promise<void> {
+    const response = await this.stub().fetch("https://content-sync/club-recruitment/review", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, reviewStatus }) });
+    if (!response.ok) throw new Error("Club recruitment review action failed.");
   }
   async updates(): Promise<SyncRevision[]> {
     const response = await this.stub().fetch("https://content-sync/updates");

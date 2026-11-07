@@ -2,41 +2,36 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight, ExternalLink, Mail, MessageSquare } from "lucide-react";
+import { ArrowLeft, ChevronRight, ExternalLink, Mail } from "lucide-react";
 import type { ClubRecord } from "@/data/clubs/clubs";
 import type { ClubProfileImage } from "@/data/clubs/profile-types";
 import { useLanguage } from "@/lib/i18n/context";
-import { clubDirectoryHref, type ClubDirectoryContext } from "@/lib/clubs/navigation";
-import { requestOpenMrHachiware } from "@/components/chat/chatEvents";
-import { ClubRecruitment } from "./ClubRecruitment";
+import { clubDirectoryHref, clubDirectoryQuery, type ClubDirectoryContext } from "@/lib/clubs/navigation";
 
-type RelatedClub = Pick<ClubRecord, "id" | "nameEn" | "nameVi" | "campus" | "category" | "descriptionEn" | "descriptionVi">;
+export type ClubSidebarItem = Pick<ClubRecord, "id" | "nameEn" | "nameVi">;
 const focus = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2";
 const externalLink = `inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--accent)] hover:underline ${focus}`;
 
-function ClubImage({ image, eager = false }: { image: ClubProfileImage; eager?: boolean }) {
+function ClubThumbnail({ image }: { image: ClubProfileImage }) {
   const { language, t } = useLanguage();
   const [failed, setFailed] = useState(false);
   return (
     <figure className="min-w-0">
-      <div className="flex aspect-[4/3] w-full items-center justify-center border border-[var(--border)] bg-[var(--surface-elevated)]">
-        {failed ? <p role="status" className="p-6 text-center text-sm text-[var(--secondary-text)]">{t.clubs.imageUnavailable}</p> : (
-          <img src={image.url} alt={image.alt[language]} width={800} height={600} loading={eager ? "eager" : "lazy"} decoding="async" onError={() => setFailed(true)} className={`h-full w-full object-contain ${image.kind === "logo" ? "p-6" : ""}`} />
-        )}
+      <div className="flex aspect-square w-full items-center justify-center overflow-hidden border border-[var(--border)] bg-[var(--surface-elevated)]">
+        {!failed ? (
+          <img src={image.url} alt={image.alt[language]} className="h-full w-full object-cover" loading="eager" decoding="async" onError={() => setFailed(true)} />
+        ) : <span className="px-4 text-center text-xs text-[var(--secondary-text)]">{t.clubs.imageUnavailable}</span>}
       </div>
-      <figcaption className="mt-2 text-xs text-[var(--secondary-text)]">
-        <a href={image.sourceUrl} target="_blank" rel="noopener noreferrer" className={`inline-flex min-h-6 items-center gap-1 hover:text-[var(--accent)] hover:underline ${focus}`}>
-          {t.clubs.photoCredit}<ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
-        </a>
-      </figcaption>
+      <figcaption className="mt-2 text-[11px] text-[var(--secondary-text)]">{t.clubs.photoCredit}</figcaption>
     </figure>
   );
 }
 
-export function ClubDetail({ club, relatedClubs = [], directoryContext }: { club: ClubRecord; relatedClubs?: RelatedClub[]; directoryContext?: ClubDirectoryContext }) {
+export function ClubDetail({ club, sidebarClubs = [], directoryContext }: { club: ClubRecord; sidebarClubs?: ClubSidebarItem[]; directoryContext?: ClubDirectoryContext }) {
   const { language, t } = useLanguage();
   const profile = club.profile;
   const clubName = language === "vi" ? club.nameVi : club.nameEn;
+  const campus = club.campus === "saigon_south" ? t.common.saigonSouth : t.common.hanoi;
   const categoryLabels = {
     academic: t.clubs.categoryAcademic,
     active: t.clubs.categoryActive,
@@ -44,92 +39,81 @@ export function ClubDetail({ club, relatedClubs = [], directoryContext }: { club
     social_special_interest: t.clubs.categorySocial,
   };
   const category = profile?.officialCategory[language] ?? categoryLabels[club.category];
-  const campus = club.campus === "saigon_south" ? t.common.saigonSouth : t.common.hanoi;
   const directory = clubDirectoryHref(directoryContext ?? { campus: club.campus, category: club.category, query: "" });
   const categoryHref = clubDirectoryHref({ campus: club.campus, category: club.category, query: "" });
   const introduction = profile?.summary[language] ?? (language === "vi" ? club.descriptionVi : club.descriptionEn) ?? t.clubs.directoryOnly;
-  const primaryImage: ClubProfileImage | undefined = profile?.images[0] ?? (club.imageUrl ? {
+  const email = profile ? profile.contactEmail : club.contactEmail;
+  const facebook = profile ? profile.facebookUrl : club.facebookUrl;
+  const image = profile?.images[0] ?? (club.imageUrl ? {
     url: club.imageUrl,
     alt: { en: `${club.nameEn} — ${t.clubs.imageAlt}`, vi: `${club.nameVi} — ${t.clubs.imageAlt}` },
     sourceUrl: club.officialClubUrl ?? club.sourceUrl,
-    kind: "logo",
+    kind: "logo" as const,
   } : undefined);
-  const additionalImages = profile?.images.slice(1) ?? [];
-  const sourceLinks = [
-    club.officialClubUrl ? { label: t.clubs.officialPage, url: club.officialClubUrl } : null,
-    { label: t.clubs.campusList, url: club.campusListPdfUrl },
-  ].filter((source): source is { label: string; url: string } => Boolean(source));
+  const contextQuery = clubDirectoryQuery(directoryContext ?? { campus: club.campus, category: club.category, query: "" });
 
   return (
-    <div className="editorial-shell space-y-7 sm:space-y-9">
-      <nav aria-label={t.clubs.directoryTitle} className="text-sm text-[var(--secondary-text)]">
-        <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <li><Link href={directory} className={`inline-flex min-h-8 items-center gap-1 hover:text-[var(--accent)] ${focus}`}><ArrowLeft className="h-4 w-4" aria-hidden="true" />{t.clubs.directoryTitle}</Link></li>
-          <li aria-hidden="true"><ChevronRight className="h-3.5 w-3.5" /></li>
-          <li><Link href={categoryHref} className={`inline-flex min-h-8 items-center hover:text-[var(--accent)] ${focus}`}>{categoryLabels[club.category]}</Link></li>
-          <li aria-hidden="true"><ChevronRight className="h-3.5 w-3.5" /></li>
-          <li aria-current="page" className="min-w-0 break-words font-medium text-[var(--main-text)]">{clubName}</li>
-        </ol>
-      </nav>
-
-      <header className={`grid min-w-0 items-center gap-6 border-b border-[var(--border)] pb-7 ${primaryImage ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10" : ""}`}>
-        <div className="min-w-0 space-y-4">
-          <p className="font-mono text-xs uppercase tracking-[0.12em] text-[var(--accent)]">{campus} / {category}</p>
-          <h1 className="break-words text-3xl font-bold leading-tight tracking-tight text-[var(--main-text)] sm:text-4xl">{clubName}</h1>
-          <p className="max-w-2xl text-base leading-7 text-[var(--secondary-text)]">{introduction}</p>
-          <a href="#club-join" className={`inline-flex min-h-11 items-center justify-center border border-[var(--accent)] bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-hover)] ${focus}`}>{t.clubs.howToJoin}</a>
+    <div className="min-w-0">
+      <header className="bg-[var(--primary-navy)] text-white">
+        <div className="mx-auto w-[min(100%-2rem,1200px)] px-0 py-14 sm:py-20">
+          <span className="mb-5 block h-1 w-8 bg-[var(--accent)]" aria-hidden="true" />
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-white/70">{campus}</p>
+          <h1 className="mt-3 break-words text-4xl font-bold tracking-[-0.04em] sm:text-6xl">{clubName}</h1>
         </div>
-        {primaryImage && <ClubImage key={primaryImage.url} image={primaryImage} eager />}
       </header>
 
-      <nav aria-label={t.clubs.onThisPage} className="flex flex-wrap gap-x-5 gap-y-1 border-b border-[var(--border)] pb-3 text-sm font-medium text-[var(--secondary-text)]">
-        {[
-          ["#club-overview", t.clubs.overview],
-          ["#club-about", t.clubs.about],
-          ...(profile?.activities.length ? [["#club-activities", t.clubs.activities]] : []),
-          ...(additionalImages.length ? [["#club-gallery", t.clubs.gallery]] : []),
-          ["#club-join", t.clubs.howToJoin],
-          ["#club-sources", t.clubs.source],
-        ].map(([href, label]) => <a key={href} href={href} className={`inline-flex min-h-11 items-center hover:text-[var(--accent)] ${focus}`}>{label}</a>)}
-      </nav>
+      <div className="editorial-shell !py-0">
+        <nav aria-label={t.clubs.directoryTitle} className="border-b border-[var(--border)] py-5 text-sm text-[var(--secondary-text)]">
+          <ol className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <li><Link href={directory} className={`inline-flex min-h-10 items-center gap-1 hover:text-[var(--accent)] ${focus}`}><ArrowLeft className="h-4 w-4" aria-hidden="true" />{t.clubs.directoryTitle}</Link></li>
+            <li aria-hidden="true"><ChevronRight className="h-3.5 w-3.5" /></li>
+            <li><Link href={categoryHref} className={`inline-flex min-h-10 items-center hover:text-[var(--accent)] ${focus}`}>{category}</Link></li>
+            <li aria-hidden="true"><ChevronRight className="h-3.5 w-3.5" /></li>
+            <li aria-current="page" className="min-w-0 break-words font-medium text-[var(--main-text)]">{clubName}</li>
+          </ol>
+        </nav>
 
-      <section id="club-overview" aria-labelledby="club-overview-title" className="scroll-mt-24 space-y-4">
-        <h2 id="club-overview-title" className="text-xl font-semibold text-[var(--main-text)]">{t.clubs.overview}</h2>
-        <dl className="grid gap-x-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="min-w-0 border-b border-[var(--border)] py-3"><dt className="text-xs font-semibold text-[var(--secondary-text)]">{t.clubs.category}</dt><dd className="mt-2 text-sm text-[var(--main-text)]">{category}</dd></div>
-          <div className="min-w-0 border-b border-[var(--border)] py-3"><dt className="text-xs font-semibold text-[var(--secondary-text)]">{t.common.campus}</dt><dd className="mt-2 text-sm text-[var(--main-text)]">RMIT {campus}</dd></div>
-          <div className="min-w-0 border-b border-[var(--border)] py-3"><dt className="text-xs font-semibold text-[var(--secondary-text)]">{t.contacts.email}</dt><dd className="mt-1 text-sm text-[var(--secondary-text)]">{club.contactEmail ? <a href={`mailto:${club.contactEmail}`} className={`inline-flex min-h-11 max-w-full items-center gap-2 text-[var(--accent)] hover:underline ${focus}`}><Mail className="h-4 w-4 shrink-0" aria-hidden="true" /><span className="min-w-0 [overflow-wrap:anywhere]">{club.contactEmail}</span></a> : t.clubs.notPublished}</dd></div>
-          <div className="min-w-0 border-b border-[var(--border)] py-3"><dt className="text-xs font-semibold text-[var(--secondary-text)]">{t.clubs.officialChannels}</dt><dd className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--secondary-text)]">
-            {club.facebookUrl && <a href={club.facebookUrl} target="_blank" rel="noopener noreferrer" className={externalLink}>Facebook<ExternalLink className="h-4 w-4" aria-hidden="true" /></a>}
-            {club.instagramUrl && <a href={club.instagramUrl} target="_blank" rel="noopener noreferrer" className={externalLink}>Instagram<ExternalLink className="h-4 w-4" aria-hidden="true" /></a>}
-            {profile?.otherLinks.map((link) => <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className={`${externalLink} [overflow-wrap:anywhere]`}>{link.label}<ExternalLink className="h-4 w-4 shrink-0" aria-hidden="true" /></a>)}
-            {!club.facebookUrl && !club.instagramUrl && !profile?.otherLinks.length && t.clubs.notPublished}
-          </dd></div>
-        </dl>
-      </section>
+        <div className="grid min-w-0 gap-8 py-8 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-10 lg:py-10">
+          <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start" aria-label={language === "vi" ? "Danh sách câu lạc bộ" : "Club list"}>
+            <div className="border border-[var(--border)] bg-[var(--surface)]">
+              <Link href={directory} className={`flex min-h-12 items-center gap-2 border-b border-[var(--border)] px-4 text-sm font-semibold text-[var(--accent)] ${focus}`}><ArrowLeft className="h-4 w-4" aria-hidden="true" />{language === "vi" ? "Quay lại danh sách" : "Back to clubs"}</Link>
+              <nav className="max-h-72 overflow-y-auto lg:max-h-[calc(100vh-10rem)]" aria-label={language === "vi" ? "Các câu lạc bộ cùng nhóm" : "Clubs in this group"}>
+                {sidebarClubs.map((item) => {
+                  const itemName = language === "vi" ? item.nameVi : item.nameEn;
+                  const active = item.id === club.id;
+                  return <Link key={item.id} href={`/clubs/${item.id}?${contextQuery}`} aria-current={active ? "page" : undefined} className={`block min-h-12 border-b border-[var(--border)] px-4 py-3 text-sm ${active ? "bg-[var(--primary-navy)] text-white" : "text-[var(--main-text)] hover:bg-[var(--surface-elevated)] hover:text-[var(--accent)]"} ${focus}`}>{itemName}</Link>;
+                })}
+              </nav>
+            </div>
+          </aside>
 
-      <div className={`grid min-w-0 gap-7 ${profile?.activities.length ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,0.7fr)] lg:gap-10" : "max-w-3xl"}`}>
-        <section id="club-about" className="min-w-0 scroll-mt-24 space-y-4" aria-labelledby="club-about-title">
-          <h2 id="club-about-title" className="text-xl font-semibold text-[var(--main-text)]">{t.clubs.about}</h2>
-          {(profile?.about.length ? profile.about.map((paragraph) => paragraph[language]) : [t.clubs.directoryOnly]).map((paragraph, index) => <p key={index} className="text-base leading-7 text-[var(--secondary-text)] [overflow-wrap:anywhere]">{paragraph}</p>)}
-          {profile?.sourceNotes && <p className="border-l-2 border-[var(--accent)] pl-4 text-sm leading-6 text-[var(--secondary-text)]">{profile.sourceNotes[language]}</p>}
-        </section>
-        {profile?.activities.length ? <section id="club-activities" className="min-w-0 scroll-mt-24 space-y-4" aria-labelledby="club-activities-title"><h2 id="club-activities-title" className="text-xl font-semibold text-[var(--main-text)]">{t.clubs.activities}</h2><ul className="list-disc space-y-3 pl-5 text-sm leading-6 text-[var(--secondary-text)]">{profile.activities.map((activity, index) => <li key={index}>{activity[language]}</li>)}</ul></section> : null}
+          <main className="min-w-0 space-y-10">
+            <section aria-labelledby="club-overview-title">
+              <h2 id="club-overview-title" className="text-3xl font-semibold tracking-[-0.03em] text-[var(--main-text)]">{t.clubs.overview}</h2>
+              <dl className="mt-6 grid gap-x-8 sm:grid-cols-2">
+                <div className="border-b border-[var(--border)] py-4"><dt className="text-xs font-semibold text-[var(--secondary-text)]">{t.clubs.category}</dt><dd className="mt-1 text-base text-[var(--main-text)]">{category}</dd></div>
+                <div className="border-b border-[var(--border)] py-4"><dt className="text-xs font-semibold text-[var(--secondary-text)]">{t.common.campus}</dt><dd className="mt-1 text-base text-[var(--main-text)]">RMIT {campus}</dd></div>
+                <div className="border-b border-[var(--border)] py-4"><dt className="text-xs font-semibold text-[var(--secondary-text)]">{t.contacts.email}</dt><dd className="mt-1 text-base">{email ? <a href={`mailto:${email}`} className={`break-words text-[var(--accent)] hover:underline ${focus}`}>{email}</a> : <span className="text-[var(--secondary-text)]">{t.clubs.notPublished}</span>}</dd></div>
+                <div className="border-b border-[var(--border)] py-4"><dt className="text-xs font-semibold text-[var(--secondary-text)]">Facebook</dt><dd className="mt-1 text-base">{facebook ? <a href={facebook} target="_blank" rel="noopener noreferrer" className={externalLink}>Facebook <ExternalLink className="h-4 w-4" aria-hidden="true" /></a> : <span className="text-[var(--secondary-text)]">{t.clubs.notPublished}</span>}</dd></div>
+              </dl>
+            </section>
+
+            <section className="grid min-w-0 gap-8 sm:grid-cols-[minmax(0,1fr)_12rem]" aria-labelledby="club-about-title">
+              <div className="min-w-0">
+                <h2 id="club-about-title" className="text-3xl font-semibold tracking-[-0.03em] text-[var(--main-text)]">{t.clubs.about} {clubName}</h2>
+                <p className="mt-5 max-w-3xl text-base leading-7 text-[var(--secondary-text)]">{introduction}</p>
+              </div>
+              {image && <ClubThumbnail image={image} />}
+            </section>
+
+            <footer className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[var(--border)] pt-5 text-xs text-[var(--secondary-text)]">
+              {club.officialClubUrl && <a href={club.officialClubUrl} target="_blank" rel="noopener noreferrer" className={externalLink}>{t.clubs.officialPage}<ExternalLink className="h-4 w-4" aria-hidden="true" /></a>}
+              <a href={club.campusListPdfUrl} target="_blank" rel="noopener noreferrer" className={externalLink}>{t.clubs.campusList}<ExternalLink className="h-4 w-4" aria-hidden="true" /></a>
+              <span>{t.common.lastVerified}: <time dateTime={club.lastVerifiedDate}>{club.lastVerifiedDate}</time></span>
+            </footer>
+          </main>
+        </div>
       </div>
-
-      {additionalImages.length > 0 && <section id="club-gallery" className="scroll-mt-24 space-y-4" aria-labelledby="club-gallery-title"><h2 id="club-gallery-title" className="text-xl font-semibold text-[var(--main-text)]">{t.clubs.gallery}</h2><div className="grid gap-5 sm:grid-cols-2">{additionalImages.map((image) => <ClubImage key={image.url} image={image} />)}</div></section>}
-      <ClubRecruitment recruitment={club.recruitment} />
-
-      <section id="club-sources" className="scroll-mt-24 space-y-3 border-y border-[var(--border)] py-5" aria-labelledby="club-sources-title">
-        <h2 id="club-sources-title" className="text-xl font-semibold text-[var(--main-text)]">{t.guides.officialReferences}</h2>
-        <ul className="flex flex-wrap items-center gap-x-6 gap-y-1">
-          {sourceLinks.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer" className={externalLink}>{source.label}<ExternalLink className="h-4 w-4" aria-hidden="true" /></a></li>)}
-          <li><button type="button" onClick={requestOpenMrHachiware} className={externalLink}><MessageSquare className="h-4 w-4" aria-hidden="true" />{t.clubs.askAboutClub}</button></li>
-        </ul>
-        <p className="text-xs leading-5 text-[var(--secondary-text)]">{t.common.lastVerified}: <time dateTime={club.lastVerifiedDate}>{club.lastVerifiedDate}</time>. {t.clubs.snapshotNotice}</p>
-      </section>
-
-      {relatedClubs.length > 0 && <section className="space-y-4" aria-labelledby="club-related-title"><div><h2 id="club-related-title" className="text-xl font-semibold text-[var(--main-text)]">{t.clubs.related}</h2><p className="mt-2 text-sm text-[var(--secondary-text)]">{t.clubs.relatedReason}</p></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{relatedClubs.map((related) => <Link key={related.id} href={`/clubs/${related.id}`} className={`editorial-card flex min-w-0 flex-col gap-3 p-4 transition-colors hover:border-[var(--accent)] ${focus}`}><h3 className="text-base font-semibold text-[var(--main-text)]">{language === "vi" ? related.nameVi : related.nameEn}</h3><p className="text-sm leading-6 text-[var(--secondary-text)]">{(language === "vi" ? related.descriptionVi : related.descriptionEn) ?? t.clubs.descriptionUnavailable}</p><span className="mt-auto inline-flex min-h-8 items-center gap-1 text-sm font-semibold text-[var(--accent)]">{t.clubs.viewClub}<ChevronRight className="h-4 w-4" aria-hidden="true" /></span></Link>)}</div></section>}
     </div>
   );
 }

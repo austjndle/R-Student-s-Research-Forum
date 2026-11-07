@@ -85,7 +85,9 @@ export default function GuideDetailPage({
             url: doc.officialSourceUrl,
           },
         ],
-        relatedGuideSlugs: ["how-to-write-an-effective-university-enquiry", "how-to-contact-student-connect"],
+        relatedGuideSlugs: (doc.relatedDocIds ?? [])
+          .map((relatedId) => KNOWLEDGE_DOCUMENTS.find((relatedDoc) => relatedDoc.id === relatedId)?.slug)
+          .filter((relatedSlug): relatedSlug is string => Boolean(relatedSlug)),
       };
     }
   }
@@ -94,9 +96,10 @@ export default function GuideDetailPage({
     notFound();
   }
 
-  const relatedGuides = ALL_RESEARCH_GUIDES.filter((g) =>
-    guide.relatedGuideSlugs.includes(g.slug)
-  );
+  const relatedGuides = [
+    ...ALL_RESEARCH_GUIDES.filter((candidate) => guide.relatedGuideSlugs.includes(candidate.slug)),
+    ...KNOWLEDGE_DOCUMENTS.filter((candidate) => guide.relatedGuideSlugs.includes(candidate.slug)),
+  ];
 
   const isEmailTemplateGuide = slug === "van-mau-email-cho-giang-vien";
   const isGlobalExperienceGuide = slug === "exchange-study-abroad-rmit-melbourne";
@@ -114,11 +117,16 @@ export default function GuideDetailPage({
     assignment_prep: t.guides.promptCategoryAssignmentPrep,
     consult_prep: t.guides.promptCategoryConsultPrep,
   };
+  const quickNavLinkClass = "inline-flex h-9 min-h-0 items-center gap-1.5 whitespace-nowrap border border-[var(--border)] bg-[var(--surface-elevated)] px-3 py-0 text-[11px] font-semibold leading-none text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]";
 
-  const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2500);
+  const handleCopy = async (text: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2500);
+    } catch {
+      setCopiedId(null);
+    }
   };
 
   return (
@@ -172,31 +180,31 @@ export default function GuideDetailPage({
         </p>
 
         {/* Quick Jump Section Bar */}
-        <div className="pt-3 border-t border-[var(--border)]">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--secondary-text)] mb-2">
+        <div className="border-t border-[var(--border)] pt-3">
+          <p className="mb-2 text-[11px] font-semibold uppercase leading-4 tracking-[0.12em] text-[var(--secondary-text)]">
             {language === "vi" ? "Mục lục nhanh (Bấm để nhảy tới nội dung cần xem):" : "Quick Section Navigation (Click to Jump):"}
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isEmailTemplateGuide && (
               <>
                 <a
                   href="#email-templates"
-                  className="min-h-11 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  className={quickNavLinkClass}
                 >
-                  <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{language === "vi" ? "Văn mẫu Email Giảng viên" : "Email Templates"}</span>
+                  <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{language === "vi" ? "Văn mẫu email giảng viên" : "Email Templates"}</span>
                 </a>
                 <a
                   href="#ai-prompts"
-                  className="min-h-11 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  className={quickNavLinkClass}
                 >
-                  <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{language === "vi" ? "Mẫu AI Prompts học vụ" : "AI Prompts"}</span>
+                  <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{language === "vi" ? "Mẫu câu lệnh AI học vụ" : "AI Prompts"}</span>
                 </a>
               </>
             )}
             {!isGlobalExperienceGuide && (
               <a
                 href="#guide-steps"
-                className="min-h-11 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                className={quickNavLinkClass}
               >
                 <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{
                   guide.slug.includes("calendar")
@@ -210,7 +218,7 @@ export default function GuideDetailPage({
             {guide.officialReferences.length > 0 && (
               <a
                 href="#official-references"
-                className="min-h-11 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                className={quickNavLinkClass}
               >
                 <span className="inline-flex items-center gap-1.5"><ExternalLink className="h-3.5 w-3.5 text-[var(--accent)]" aria-hidden="true" />{t.guides.officialReferences}</span>
               </a>
@@ -253,7 +261,7 @@ export default function GuideDetailPage({
                       </div>
 
                       <button
-                        onClick={() => handleCopy(`${t.guides.emailSubject}: ${subject}\n\n${body}`, tpl.id)}
+                        onClick={() => void handleCopy(`${t.guides.emailSubject}: ${subject}\n\n${body}`, tpl.id)}
                         className="min-h-11 shrink-0 border border-[var(--border)] bg-[var(--surface-elevated)] px-3 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         {copiedId === tpl.id ? (
@@ -281,7 +289,7 @@ export default function GuideDetailPage({
                         <span className="min-w-0 break-words font-mono text-[var(--main-text)]">{subject}</span>
                       </div>
                       <button
-                        onClick={() => handleCopy(subject, `sub-${tpl.id}`)}
+                        onClick={() => void handleCopy(subject, `sub-${tpl.id}`)}
                         className="text-[11px] text-[var(--accent)] hover:underline shrink-0"
                       >
                         {copiedId === `sub-${tpl.id}` ? t.common.copied : t.guides.copySubject}
@@ -318,12 +326,12 @@ export default function GuideDetailPage({
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-[var(--accent)]" />
               <h2 className="text-xl font-bold text-[var(--main-text)]">
-                {language === "vi" ? "Mẫu AI Prompt hỗ trợ sinh viên trao đổi học vụ & Viết mail" : "AI Prompt Templates for Academic Email & Consult Prep"}
+                {language === "vi" ? "Mẫu câu lệnh AI hỗ trợ sinh viên trao đổi học vụ và viết email" : "AI Prompt Templates for Academic Email & Consult Prep"}
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-[var(--secondary-text)]">
               {language === "vi" 
-                ? "Sao chép các mẫu prompt này vào ChatGPT hoặc Trợ lý AI ở góc màn hình để nhận câu trả lời cá nhân hóa theo đúng đề bài của bạn." 
+                ? "Sao chép các mẫu câu lệnh này vào ChatGPT hoặc Trợ lý AI ở góc màn hình để nhận câu trả lời cá nhân hóa theo đúng đề bài của bạn."
                 : "Copy these prompt blueprints into ChatGPT or the R Research Assistant to generate tailored emails and discussion questions."}
             </p>
           </div>
@@ -346,7 +354,7 @@ export default function GuideDetailPage({
                       </span>
 
                       <button
-                        onClick={() => handleCopy(promptText, p.id)}
+                        onClick={() => void handleCopy(promptText, p.id)}
                         className="min-h-11 shrink-0 border border-[var(--border)] bg-[var(--surface-elevated)] px-2.5 text-xs font-semibold text-[var(--main-text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       >
                         {copiedId === p.id ? (
@@ -386,47 +394,60 @@ export default function GuideDetailPage({
       {isGlobalExperienceGuide ? (
         <GlobalExperienceGuideContent />
       ) : (
-        <section id="guide-steps" className="space-y-6 scroll-mt-24">
-          <h2 className="text-xl font-bold text-[var(--main-text)] flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-[var(--accent)]" />
+        <section id="guide-steps" className="space-y-5 scroll-mt-24">
+          <h2 className="flex items-center gap-2 text-xl font-bold text-[var(--main-text)]">
+            <CheckCircle2 className="h-5 w-5 text-[var(--accent)]" aria-hidden="true" />
             <span>
               {guide.slug.includes("calendar") || guide.id.includes("calendar")
                 ? (language === "vi" ? "Các mốc thời gian quan trọng" : "Key Semester Milestones")
                 : guide.slug.startsWith("how-to") || guide.slug.startsWith("huong-dan")
                   ? (language === "vi" ? "Các bước thực hiện" : "Action Steps")
-                  : (language === "vi" ? "Nội dung" : "Key Information")}
+                  : (language === "vi" ? "Nội dung chính" : "Key Information")}
             </span>
           </h2>
 
-          <div className="space-y-4">
-            {guide.steps.map((step) => (
-              <div key={step.number} className="editorial-card space-y-3 p-5 sm:p-6">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--accent)] bg-[var(--accent)] font-bold text-xs text-white">
-                    {step.number}
-                  </span>
-                  <h3 className="font-bold text-sm sm:text-base text-[var(--main-text)]">
-                    {language === "vi" ? step.titleVi : step.titleEn}
-                  </h3>
-                </div>
-                <p className="text-xs sm:text-sm text-[var(--secondary-text)] pl-10 leading-relaxed">
-                  {language === "vi" ? step.contentVi : step.contentEn}
-                </p>
-                {step.actionLink && (
-                  <div className="pl-10 pt-1">
-                    <a
-                      href={step.actionLink.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="min-h-11 inline-flex items-center gap-1.5 bg-[var(--accent)] px-3.5 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                    >
-                      <span>{language === "vi" ? step.actionLink.labelVi : step.actionLink.labelEn}</span>
-                      <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-                    </a>
-                  </div>
-                )}
-              </div>
-            ))}
+          <div className="overflow-x-auto border-y border-[var(--border)]" tabIndex={0} aria-label={language === "vi" ? "Bảng thông tin chính" : "Key information table"}>
+            <table className="w-full min-w-[38rem] border-collapse text-left">
+              <thead className="bg-[var(--surface-elevated)]">
+                <tr className="border-b border-[var(--border)]">
+                  <th scope="col" className="w-20 px-4 py-3 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--accent)] sm:px-5">
+                    {language === "vi" ? "STT" : "No."}
+                  </th>
+                  <th scope="col" className="w-[34%] px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--main-text)] sm:px-5">
+                    {language === "vi" ? "Mục" : "Item"}
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--main-text)] sm:px-5">
+                    {language === "vi" ? "Thông tin" : "Details"}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {guide.steps.map((step) => (
+                  <tr key={step.number} className="align-top transition-colors hover:bg-[var(--surface-elevated)]">
+                    <td className="px-4 py-4 font-mono text-xs font-semibold tracking-[0.12em] text-[var(--accent)] sm:px-5 sm:py-5">
+                      {String(step.number).padStart(2, "0")}
+                    </td>
+                    <th scope="row" className="px-4 py-4 text-sm font-bold leading-snug text-[var(--main-text)] sm:px-5 sm:py-5 sm:text-base">
+                      {language === "vi" ? step.titleVi : step.titleEn}
+                    </th>
+                    <td className="px-4 py-4 text-xs leading-6 text-[var(--secondary-text)] sm:px-5 sm:py-5 sm:text-sm">
+                      <p>{language === "vi" ? step.contentVi : step.contentEn}</p>
+                      {step.actionLink && (
+                        <a
+                          href={step.actionLink.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex min-h-10 items-center gap-1.5 text-xs font-semibold text-[var(--accent)] transition-colors hover:text-[var(--accent-hover)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                        >
+                          <span>{language === "vi" ? step.actionLink.labelVi : step.actionLink.labelEn}</span>
+                          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
       )}

@@ -7,9 +7,16 @@ export interface Translations {
     disclaimer: string;
     independentNotice: string;
     verified: string;
+    partiallyVerified: string;
+    unverified: string;
+    sourceUnavailable: string;
+    conflicting: string;
+    reviewRequired: string;
     needsReview: string;
     unavailable: string;
     lastVerified: string;
+    lastChecked: string;
+    lastChanged: string;
     officialSource: string;
     campus: string;
     saigonSouth: string;
@@ -148,16 +155,6 @@ export interface Translations {
     history: string;
     release: string;
     newLabel: string;
-  };
-  support: {
-    label: string;
-    title: string;
-    description: string;
-    voluntary: string;
-    vietqr: string;
-    shortLink: string;
-    tooltip: string;
-    notConfigured: string;
   };
   contacts: {
     title: string;
@@ -364,6 +361,16 @@ export interface Translations {
       application: string;
     };
   };
+  calendar: {
+    week: string;
+    month: string;
+    previous: string;
+    next: string;
+    timeTba: string;
+    details: string;
+    noEvents: string;
+    downloadCalendar: string;
+  };
   footer: {
     aboutText: string;
     quickLinks: string;
@@ -417,9 +424,16 @@ export const translations: Record<Language, Translations> = {
       disclaimer: "Independent student-created research platform. Not an official RMIT University service.",
       independentNotice: "This platform is an independent student initiative created to help peers quickly locate accurate official university information. All official administrative procedures must be conducted directly via official RMIT channels.",
       verified: "Verified",
+      partiallyVerified: "Partially verified",
+      unverified: "Unverified",
+      sourceUnavailable: "Source unavailable",
+      conflicting: "Conflicting information",
+      reviewRequired: "Review required",
       needsReview: "Needs Review",
       unavailable: "Unavailable",
       lastVerified: "Last verified",
+      lastChecked: "Last checked",
+      lastChanged: "Last content change",
       officialSource: "Official Source",
       campus: "Campus",
       saigonSouth: "Saigon South",
@@ -559,16 +573,6 @@ export const translations: Record<Language, Translations> = {
       release: "Release",
       newLabel: "New",
     },
-    support: {
-      label: "Independent project support",
-      title: "Support R-Students ☕",
-      description: "Enjoying R-Students' Research Hub? You can buy me a coffee to help maintain and improve this independent student project. Every contribution is completely voluntary.",
-      voluntary: "No payment information is collected by this website.",
-      vietqr: "VietQR bank transfer",
-      shortLink: "Support",
-      tooltip: "Support this project",
-      notConfigured: "Support methods are not configured yet.",
-    },
     contacts: {
       title: "University Contact Directory",
       subtitle: "Official, verified contact channels for RMIT University Vietnam departments.",
@@ -634,7 +638,7 @@ export const translations: Record<Language, Translations> = {
       officialChannels: "Official channels",
       notConfirmed: "Not confirmed",
       notAnnounced: "Not announced",
-      recruiting: "Recruiting",
+      recruiting: "Open",
       closed: "Closed",
       upcoming: "Upcoming",
       unverified: "Unverified",
@@ -774,6 +778,16 @@ export const translations: Record<Language, Translations> = {
         application: "Application",
       },
     },
+    calendar: {
+      week: "Week",
+      month: "Month",
+      previous: "Previous",
+      next: "Next",
+      timeTba: "Time TBA",
+      details: "Event details",
+      noEvents: "No events in this period.",
+      downloadCalendar: "Download calendar",
+    },
     footer: {
       aboutText: "An independent, bilingual research and information discovery platform created by students for students at RMIT University Vietnam.",
       quickLinks: "Quick Navigation",
@@ -834,9 +848,16 @@ export const translations: Record<Language, Translations> = {
       disclaimer: "Nền tảng tra cứu độc lập do sinh viên xây dựng. Không phải dịch vụ chính thức của Đại học RMIT.",
       independentNotice: "Đây là dự án độc lập do sinh viên khởi xướng nhằm hỗ trợ sinh viên nhanh chóng tiếp cận thông tin chính thức của nhà trường. Mọi thủ tục hành chính phải được thực hiện qua các kênh chính thức của RMIT.",
       verified: "Đã xác minh",
+      partiallyVerified: "Xác minh một phần",
+      unverified: "Chưa xác minh",
+      sourceUnavailable: "Nguồn không khả dụng",
+      conflicting: "Thông tin mâu thuẫn",
+      reviewRequired: "Cần xem xét",
       needsReview: "Cần cập nhật",
       unavailable: "Chưa có sẵn",
       lastVerified: "Xác minh lần cuối",
+      lastChecked: "Kiểm tra lần cuối",
+      lastChanged: "Nội dung đổi lần cuối",
       officialSource: "Nguồn chính thức",
       campus: "Cơ sở",
       saigonSouth: "Nam Sài Gòn",
@@ -976,16 +997,6 @@ export const translations: Record<Language, Translations> = {
       release: "Phiên bản",
       newLabel: "Mới",
     },
-    support: {
-      label: "Ủng hộ dự án độc lập",
-      title: "Ủng hộ R-Students ☕",
-      description: "Nếu R-Students' Research Hub hữu ích với bạn, bạn có thể ủng hộ mình một ly cà phê để giúp duy trì và phát triển dự án. Mọi đóng góp đều hoàn toàn tự nguyện.",
-      voluntary: "Website không thu thập thông tin thanh toán.",
-      vietqr: "Chuyển khoản VietQR",
-      shortLink: "Ủng hộ",
-      tooltip: "Ủng hộ dự án này",
-      notConfigured: "Các phương thức ủng hộ chưa được cấu hình.",
-    },
     contacts: {
       title: "Danh bạ liên hệ phòng ban",
       subtitle: "Kênh liên lạc chính thức đã được xác minh của các phòng ban tại RMIT Việt Nam.",
@@ -1051,7 +1062,7 @@ export const translations: Record<Language, Translations> = {
       officialChannels: "Kênh chính thức",
       notConfirmed: "Chưa xác minh",
       notAnnounced: "Chưa có thông báo",
-      recruiting: "Đang tuyển",
+      recruiting: "Đang mở",
       closed: "Đã đóng",
       upcoming: "Sắp mở",
       unverified: "Chưa xác minh",
@@ -1191,6 +1202,16 @@ export const translations: Record<Language, Translations> = {
         application: "Cách nộp",
       },
     },
+    calendar: {
+      week: "Tuần",
+      month: "Tháng",
+      previous: "Trước",
+      next: "Sau",
+      timeTba: "Chưa công bố giờ",
+      details: "Chi tiết sự kiện",
+      noEvents: "Không có sự kiện trong khoảng thời gian này.",
+      downloadCalendar: "Tải lịch",
+    },
     footer: {
       aboutText: "Nền tảng tra cứu và khám phá thông tin song ngữ độc lập do sinh viên RMIT phát triển nhằm hỗ trợ cộng đồng sinh viên.",
       quickLinks: "Điều hướng nhanh",
@@ -1200,7 +1221,7 @@ export const translations: Record<Language, Translations> = {
       copyright: "© 2026 R-Students' Research Forum. Dự án sinh viên độc lập.",
       privacy: "Chính sách bảo mật",
       about: "Về chúng tôi",
-      creatorSlogan: "💔 Built by students, powered by stress.",
+      creatorSlogan: "💔 Sinh viên xây dựng, áp lực thúc đẩy.",
     },
     aboutPage: {
       eyebrow: "Dự án độc lập do sinh viên xây dựng",

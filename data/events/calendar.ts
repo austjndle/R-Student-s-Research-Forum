@@ -13,7 +13,7 @@ export type PublicationStatus = "published" | "draft" | "archived";
 export type RegistrationStatus = "open" | "closed" | "unverified";
 
 export type EventTemporalStatus = "upcoming" | "ongoing" | "ended";
-export type EventVerification = "verified" | "manual_review_required";
+export type EventVerification = "verified" | "partially_verified" | "unverified" | "source_unavailable" | "conflicting" | "review_required";
 
 export interface RegistrationLink {
   labelEn: string;
@@ -51,6 +51,8 @@ export interface CalendarEntry {
   venueVi?: string;
   startAt: string;
   endAt?: string;
+  timePrecision?: "exact" | "date_only" | "tba";
+  timeZone?: string;
   registrationUrl?: string;
   registrationLinks?: RegistrationLink[];
   registrationStatus?: RegistrationStatus;
@@ -217,6 +219,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     organiserVi: "RMIT Việt Nam",
     campus: "all",
     startAt: "2026-10-26T00:00:00+07:00",
+    timePrecision: "date_only",
     originalUrl: "https://www.rmit.edu.vn/content/dam/rmit/vn/en/assets-for-production/documents/pdfs/academic-calendar/academic-calendar-detailed-2026.pdf",
     sourceId: "rmit-academic-calendar-2026",
     sourceType: "official_website",
@@ -239,6 +242,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     organiserVi: "RMIT Việt Nam",
     campus: "all",
     startAt: "2026-11-06T00:00:00+07:00",
+    timePrecision: "date_only",
     originalUrl: "https://www.rmit.edu.vn/content/dam/rmit/vn/en/assets-for-production/documents/pdfs/academic-calendar/academic-calendar-detailed-2026.pdf",
     sourceId: "rmit-academic-calendar-2026",
     sourceType: "official_website",
@@ -261,6 +265,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     organiserVi: "RMIT Việt Nam",
     campus: "all",
     startAt: "2026-11-13T00:00:00+07:00",
+    timePrecision: "date_only",
     originalUrl: "https://www.rmit.edu.vn/content/dam/rmit/vn/en/assets-for-production/documents/pdfs/academic-calendar/academic-calendar-detailed-2026.pdf",
     sourceId: "rmit-academic-calendar-2026",
     sourceType: "official_website",
@@ -285,6 +290,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     venueEn: "RMIT Active Hub and Sports field, HCMC",
     venueVi: "RMIT Active Hub và sân thể thao, TP.HCM",
     startAt: "2026-10-31T15:00:00+07:00",
+    timePrecision: "exact",
     endAt: "2026-10-31T20:30:00+07:00",
     registrationLinks: [
       { labelEn: "Register students", labelVi: "Đăng ký sinh viên", url: "https://apps.rmit.edu.vn/r/26Carnival-studentSGS" },
@@ -320,6 +326,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     venueEn: "Nang Song Hong Village, Bo De Ward, Hanoi",
     venueVi: "Làng Nắng Sông Hồng, phường Bồ Đề, Hà Nội",
     startAt: "2026-11-07T15:00:00+07:00",
+    timePrecision: "exact",
     endAt: "2026-11-07T20:30:00+07:00",
     registrationLinks: [
       { labelEn: "Register students", labelVi: "Đăng ký sinh viên", url: "https://apps.rmit.edu.vn/r/26Carnival-StudentHN" },
@@ -355,6 +362,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     venueVi: "Cơ sở RMIT Nam Sài Gòn",
     startAt: "2026-11-02T00:00:00+07:00",
     endAt: "2026-11-05T23:59:59+07:00",
+    timePrecision: "date_only",
     registrationUrl: "https://apps.rmit.edu.vn/r/SUSWeek2026Registration",
     registrationStatus: "unverified",
     eligibilityEn: "RMIT community; confirm activity-specific requirements on the official event page.",
@@ -389,6 +397,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     venueVi: "Cơ sở RMIT Hà Nội",
     startAt: "2026-11-09T00:00:00+07:00",
     endAt: "2026-11-10T23:59:59+07:00",
+    timePrecision: "date_only",
     registrationUrl: "https://apps.rmit.edu.vn/r/SUSWeek2026Registration",
     registrationStatus: "unverified",
     eligibilityEn: "RMIT community; confirm activity-specific requirements on the official event page.",
@@ -422,6 +431,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     venueEn: "Nikko Hotel Saigon — 235 Nguyen Van Cu, Ho Chi Minh City",
     venueVi: "Nikko Hotel Saigon — 235 Nguyễn Văn Cừ, TP.HCM",
     startAt: "2026-11-05T09:30:00+07:00",
+    timePrecision: "exact",
     endAt: "2026-11-05T11:30:00+07:00",
     registrationUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/rmit-deloitte-hr-roundtable-2026#register",
     registrationStatus: "unverified",
@@ -453,6 +463,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
 
     venueVi: "Cơ sở RMIT Hà Nội",
     startAt: "2026-11-15T08:00:00+07:00",
+    timePrecision: "exact",
     endAt: "2026-11-15T16:00:00+07:00",
     registrationUrl: "https://experienceday.rmit.edu.vn/en/?utm_source=Website&utm_medium=Eventpage&utm_content=Event_ENG&utm_campaign=SGS_ExperienceDay_291126",
     registrationStatus: "unverified",
@@ -483,6 +494,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     venueEn: "RMIT Saigon South campus",
     venueVi: "Cơ sở RMIT Nam Sài Gòn",
     startAt: "2026-11-29T08:00:00+07:00",
+    timePrecision: "exact",
     endAt: "2026-11-29T16:00:00+07:00",
     registrationUrl: "https://experienceday.rmit.edu.vn/en/?utm_source=Website&utm_medium=Eventpage&utm_content=Event_ENG&utm_campaign=SGS_ExperienceDay_291126",
     registrationStatus: "unverified",
@@ -512,6 +524,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     campus: "all",
     startAt: "2026-09-20T00:00:00+07:00",
     endAt: "2026-12-06T23:59:59+07:00",
+    timePrecision: "date_only",
     registrationUrl: "https://www.rmit.edu.vn/events/all-events/2026/september-2026/rmit-business-plan-competition-2026#register",
     registrationStatus: "unverified",
     eligibilityEn: "Current high school students; confirm the official competition terms.",

@@ -1,7 +1,9 @@
+import { notFound } from "next/navigation";
 import { WhatsNewModal } from "@/components/changelog/WhatsNewModal";
 import type { ChangelogEntry } from "@/data/changelog";
 
 export default async function AnnouncementFixture({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  if (process.env.NODE_ENV === "production") notFound();
   const params = await searchParams;
   const version = params.version ?? "qa-release-1";
   const current: ChangelogEntry = {

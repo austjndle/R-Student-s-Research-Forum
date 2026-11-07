@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/context";
 import { ShieldCheck, Heart, Sparkles, BookOpen, Search, ArrowRight, ExternalLink } from "lucide-react";
 import { EVENT_SOURCES } from "@/data/events/sources";
+import { getVerificationLabel } from "@/lib/verification/status";
 
 export default function AboutPage() {
   const { language, t } = useLanguage();
@@ -71,7 +72,7 @@ export default function AboutPage() {
                 </div>
                 <a href={source.url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
                   <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                  {source.verificationStatus === "verified" ? copy.verifiedSource : copy.manualReview}
+                  {getVerificationLabel(source.verificationStatus, language)}
                 </a>
               </div>
             ))}

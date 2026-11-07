@@ -6,27 +6,17 @@ import { EMAIL_TEMPLATES } from "../data/templates/emailTemplates";
 import { GLOBAL_EXPERIENCE_OFFICIAL_REFERENCES, GLOBAL_EXPERIENCE_PROGRAMS, getApplicationCycleStatus } from "../data/guides/globalExperience";
 import { getPublishedCalendarEntries } from "../data/events/calendar";
 describe("English/Vietnamese interface copy", () => {
-  it("provides localized shared navigation, loading, support, and page-copy labels", () => {
+  it("provides localized shared navigation, loading, and page-copy labels", () => {
     expect(translations.en.common.skipToContent).toBe("Skip to main content");
     expect(translations.vi.common.skipToContent).toBe("Bỏ qua để đến nội dung chính");
     expect(translations.en.search.loading).toBe("Loading search...");
     expect(translations.vi.search.loading).toBe("Đang tải kết quả tìm kiếm...");
-    expect(translations.en.support.tooltip).toBe("Support this project");
-    expect(translations.vi.support.tooltip).toBe("Ủng hộ dự án này");
     expect(translations.en.aboutPage.title).toBe("About R-Students' Research Forum");
     expect(translations.vi.privacyPage.title).toBe("Chính sách quyền riêng tư");
   });
-  it("uses compact support labels without changing modal copy", () => {
-    expect(translations.en.support.shortLink).toBe("Support");
-    expect(translations.vi.support.shortLink).toBe("Ủng hộ");
-    expect(translations.en.support.title).toBe("Support R-Students ☕");
-    expect(translations.vi.support.title).toBe("Ủng hộ R-Students ☕");
-    expect(translations.en.support.description).toBe("Enjoying R-Students' Research Hub? You can buy me a coffee to help maintain and improve this independent student project. Every contribution is completely voluntary.");
-    expect(translations.vi.support.description).toBe("Nếu R-Students' Research Hub hữu ích với bạn, bạn có thể ủng hộ mình một ly cà phê để giúp duy trì và phát triển dự án. Mọi đóng góp đều hoàn toàn tự nguyện.");
-  });
-  it("uses the requested footer slogan in both locales", () => {
+  it("uses localized footer slogans", () => {
     expect(translations.en.footer.creatorSlogan).toBe("💔 Built by students, powered by stress.");
-    expect(translations.vi.footer.creatorSlogan).toBe("💔 Built by students, powered by stress.");
+    expect(translations.vi.footer.creatorSlogan).toBe("💔 Sinh viên xây dựng, áp lực thúc đẩy.");
   });
   it("uses one-word English navbar labels and concise Vietnamese labels", () => {
     expect([

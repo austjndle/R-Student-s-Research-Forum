@@ -124,6 +124,7 @@ export function ChatWidget() {
   }, [isOpen]);
 
   useEffect(() => {
+    if (!isOpen) return;
     try {
       const cachedQuota = localStorage.getItem("r_forum_cached_quota");
       if (cachedQuota !== null) {
@@ -275,7 +276,7 @@ export function ChatWidget() {
       ? [
           "Làm sao để kết bạn ở RMIT?",
           "Tuần này có sự kiện nào để gặp bạn mới không?",
-          "Mình tìm teammate đáng tin cho bài tập như thế nào?",
+          "Mình tìm bạn cùng nhóm đáng tin cho bài tập như thế nào?",
         ]
       : [
           "How can I make friends at RMIT?",

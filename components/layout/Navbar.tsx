@@ -5,8 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/lib/i18n/context";
-import { requestOpenSupport } from "@/components/support/supportEvents";
-import { Coffee, Globe, Menu, Moon, Sparkles, Sun, X } from "lucide-react";
+import { Globe, Menu, Moon, Sparkles, Sun, X } from "lucide-react";
 import { requestOpenWhatsNew } from "@/components/changelog/changelogEvents";
 
 export function Navbar() {
@@ -175,15 +174,6 @@ export function Navbar() {
             <Sun className="w-4 h-4 hidden dark:block text-amber-400" />
             <Moon className="w-4 h-4 block dark:hidden text-slate-700" />
           </button>
-          <button
-            type="button"
-            onClick={requestOpenSupport}
-            className="hidden min-h-11 min-w-11 items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--main-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 lg:flex"
-            aria-label={t.support.tooltip}
-            title={t.support.tooltip}
-          >
-            <Coffee className="h-4 w-4" aria-hidden="true" />
-          </button>
           {/* Mobile drawer trigger */}
           <button
             ref={menuButtonRef}
@@ -268,17 +258,6 @@ export function Navbar() {
               <button type="button" tabIndex={isMobileMenuOpen ? 0 : -1} onClick={() => closeMobileMenu(requestOpenWhatsNew)} className="flex min-h-11 w-full items-center gap-2 border border-[var(--border)] px-3 py-2 text-left text-sm font-semibold text-[var(--secondary-text)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
                 <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />
                 {t.whatsNew.title}
-              </button>
-              <button
-                type="button"
-                tabIndex={isMobileMenuOpen ? 0 : -1}
-                onClick={() => closeMobileMenu(requestOpenSupport)}
-                className="flex min-h-11 w-full flex-nowrap items-center gap-2 whitespace-nowrap border border-[var(--border)] px-3 py-2 text-left text-sm font-semibold text-[var(--accent)] transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                aria-label={t.support.tooltip}
-                title={t.support.tooltip}
-              >
-                <Coffee className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span className="whitespace-nowrap">{t.support.shortLink}</span>
               </button>
             </div>
           </aside>

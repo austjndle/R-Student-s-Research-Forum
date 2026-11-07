@@ -223,8 +223,17 @@ function clubChunks(): KnowledgeChunk[] {
   return getVerifiedClubs().map((club: ClubRecord) => {
     const sourceId = sourceIdFor("club", club.id);
     const recruitment = club.recruitment;
-    const text = [club.nameEn, club.nameVi, club.descriptionEn, club.descriptionVi, `Campus: ${club.campus}`, `Category: ${club.category}`, `Interview required: ${recruitment.interviewRequired}`, `General membership: ${recruitment.generalMembershipEn}`, recruitment.generalMembershipVi, `Recruitment status: ${recruitment.recruitmentStatus}`, club.contactEmail].filter(Boolean).join("\n");
-    return chunkFromSource({ id: `chunk:club:${club.id}`, documentId: club.id, sourceId, text, title: club.nameEn, campus: club.campus, category: "clubs", sourceUrl: club.officialClubUrl ?? club.sourceUrl, sourceType: "official_organisation", verificationStatus: "verified", metadata: { recordId: club.id, recruitmentStatus: recruitment.recruitmentStatus } });
+    const announcements = recruitment.announcements.map((announcement) => [
+      `Recruitment announcement: ${announcement.titleEn}`,
+      `Recruitment status: ${announcement.status}`,
+      `Application deadline: ${announcement.applicationDeadline ?? "Not published"}`,
+      `Interview required: ${announcement.interviewRequired}`,
+      `CV or portfolio required: ${announcement.cvPortfolioRequired}`,
+      `Tryout required: ${announcement.tryoutRequired}`,
+      `Original post: ${announcement.originalPostUrl}`,
+    ].join("\n"));
+    const text = [club.nameEn, club.nameVi, club.descriptionEn, club.descriptionVi, `Campus: ${club.campus}`, `Category: ${club.category}`, `Interview required: ${recruitment.interviewRequired}`, `General membership: ${recruitment.generalMembershipEn}`, recruitment.generalMembershipVi, `Recruitment status: ${recruitment.recruitmentStatus}`, ...announcements, club.contactEmail].filter(Boolean).join("\n");
+    return chunkFromSource({ id: `chunk:club:${club.id}`, documentId: club.id, sourceId, text, title: club.nameEn, campus: club.campus, category: "clubs", sourceUrl: recruitment.announcements[0]?.originalPostUrl ?? club.officialClubUrl ?? club.sourceUrl, sourceType: "official_organisation", verificationStatus: "verified", metadata: { recordId: club.id, recruitmentStatus: recruitment.recruitmentStatus } });
   });
 }
 
@@ -232,7 +241,7 @@ function eventChunks(): KnowledgeChunk[] {
   const calendar = getPublishedCalendarEntries().map((event: CalendarEntry) => {
     const sourceId = sourceIdFor("event", event.id);
     const text = [event.titleEn, event.titleVi, event.descriptionEn, event.descriptionVi, event.venueEn, event.venueVi, event.startAt, event.registrationDeadline, event.eligibilityEn, event.eligibilityVi].filter(Boolean).join("\n");
-    return chunkFromSource({ id: `chunk:event:${event.id}`, documentId: event.id, sourceId, text, title: event.titleEn, campus: event.campus, category: event.category, sourceUrl: event.originalUrl, sourceType: "official_page", verificationStatus: event.verification === "manual_review_required" ? "needs_review" : "verified", metadata: { recordId: event.id, academicYear: event.academicYear, semester: event.semester } });
+    return chunkFromSource({ id: `chunk:event:${event.id}`, documentId: event.id, sourceId, text, title: event.titleEn, campus: event.campus, category: event.category, sourceUrl: event.originalUrl, sourceType: "official_page", verificationStatus: event.verification === "conflicting" ? "conflicting" : event.verification === "source_unavailable" ? "unavailable" : event.verification === "review_required" || event.verification === "partially_verified" || event.verification === "unverified" ? "needs_review" : "verified", metadata: { recordId: event.id, academicYear: event.academicYear, semester: event.semester } });
   });
   const activities = CAMPUS_ACTIVITY_HIGHLIGHTS.map((activity) => {
     const sourceId = sourceIdFor("activity", activity.id);

@@ -14,8 +14,8 @@ export interface KnowledgeIndexSource {
  * Update this manifest when verified records or source documents change;
  * do not fetch RMIT pages during a user request.
  */
-export const KNOWLEDGE_INDEX_VERSION = "2026-11-06-lost-and-found-scope-1";
-export const KNOWLEDGE_INDEX_LAST_BUILT = "2026-11-06";
+export const KNOWLEDGE_INDEX_VERSION = "2026-11-07-event-dedup-timetable-verification-1";
+export const KNOWLEDGE_INDEX_LAST_BUILT = "2026-11-07";
 
 export const KNOWLEDGE_INDEX_SOURCES: readonly KnowledgeIndexSource[] = [
   {

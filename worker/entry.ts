@@ -1,6 +1,7 @@
 import apiRouter from "./index.js";
 import nextHandler from "../dist/server/index.js";
 import { checkOfficialEventSources } from "../lib/events/refresh";
+import { clearPublicAnswerCache } from "../lib/ai/public-answer-cache";
 import { runContentSync } from "../lib/sync/monitor";
 import { WorkerContentSyncStore } from "../lib/sync/worker-store";
 export { AiQuotaDurableObject } from "../durable-objects/ai-quota";
@@ -92,7 +93,7 @@ export default {
       }));
     }
     if (env.CONTENT_SYNC_ENABLED === "true" && env.CONTENT_SYNC_DO) {
-      ctx.waitUntil(runContentSync(new WorkerContentSyncStore(env.CONTENT_SYNC_DO)).catch(() => undefined));
+      ctx.waitUntil(runContentSync(new WorkerContentSyncStore(env.CONTENT_SYNC_DO)).then(() => clearPublicAnswerCache()).catch(() => undefined));
     }
   },
 };

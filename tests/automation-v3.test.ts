@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calendarEntryToIcs } from "../lib/events/ics";
+import { calendarEntryToIcs, calendarEntriesToIcs } from "../lib/events/ics";
 import { detectEventConflicts, getFreshnessStatus } from "../lib/sync/quality";
 import { ContentSyncDurableObject } from "../durable-objects/content-sync";
 import type { MonitoredEvent, ParsedEventCandidate } from "../lib/sync/types";
@@ -35,6 +35,33 @@ describe("automation v3 quality controls", () => {
     expect(ics).toContain("DTSTART;TZID=Asia/Ho_Chi_Minh:20261115T090000");
     expect(ics).toContain("UID:event-1@");
     expect(() => calendarEntryToIcs({ ...entry, startAt: "date TBA" })).toThrow();
+  });
+  it("exports stable collection ICS and exclusive date-only end dates", () => {
+    const entry = {
+      id: "academic-1",
+      type: "academic_date",
+      titleEn: "Learning week",
+      titleVi: "Tuần học tập",
+      descriptionEn: "Learning week",
+      descriptionVi: "Tuần học tập",
+      category: "academic",
+      organiserEn: "RMIT",
+      organiserVi: "RMIT",
+      campus: "all",
+      startAt: "2027-02-22T00:00:00+07:00",
+      endAt: "2027-02-26T00:00:00+07:00",
+      timePrecision: "date_only",
+      originalUrl: "https://www.rmit.edu.vn/calendar",
+      sourceId: "rmit-academic-calendar-2027",
+      sourceType: "official_website",
+      sourceLastVerified: "2026-11-03",
+      publicationStatus: "published",
+      verification: "verified",
+    } as unknown as CalendarEntry;
+    const ics = calendarEntriesToIcs([entry, { ...entry, id: "academic-2" }]);
+    expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(2);
+    expect(ics).toContain("DTSTART;VALUE=DATE:20270222");
+    expect(ics).toContain("DTEND;VALUE=DATE:20270227");
   });
 
   it("supports protected review approval and rollback storage operations", async () => {

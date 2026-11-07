@@ -1,9 +1,9 @@
 import { getEffectiveRegistrationStatus } from "@/data/events/calendar";
-import { eventContentHash, eventIdentityKey, extractEventCandidates } from "./extract-events";
+import { eventContentHash, eventIdentityKey, extractEventCandidates, isForbiddenGenericCampusEvent, legacyEventIdentityKey } from "./extract-events";
 import { contentHash } from "./normalize";
 import { MONITORED_SOURCES } from "./registry";
 import { detectEventConflicts, getFreshnessStatus } from "./quality";
-import type { ContentSnapshot, MonitoredEvent, MonitoredSource, PendingReview, SourceState, SyncRevision, SyncRunReport } from "./types";
+import type { ContentSnapshot, MonitoredEvent, MonitoredSource, ParsedEventCandidate, PendingReview, SourceState, SyncRevision, SyncRunReport } from "./types";
 import { stableHash } from "@/lib/rag/corpus";
 
 export interface SyncStore {
@@ -25,11 +25,20 @@ function shouldCheck(source: MonitoredSource, state: SourceState | undefined, no
   return elapsed >= source.frequencyMinutes * 60_000;
 }
 
-function safeEvent(candidate: ReturnType<typeof extractEventCandidates>[number], source: MonitoredSource): boolean {
-  return candidate.confidence === "high" && candidate.reviewReasons.length === 0 && candidate.event.sourceId === source.id && candidate.event.originalUrl.startsWith("https://") && candidate.event.titleEn.length >= 4 && Boolean(Date.parse(candidate.event.startAt));
+function safeEvent(candidate: ParsedEventCandidate, source: MonitoredSource): boolean {
+  return candidate.confidence === "high"
+    && candidate.reviewReasons.length === 0
+    && !isForbiddenGenericCampusEvent(candidate.event)
+    && candidate.event.sourceId === source.id
+    && candidate.event.originalUrl.startsWith("https://")
+    && candidate.event.titleEn.length >= 4
+    && Boolean(Date.parse(candidate.event.startAt))
+    && candidate.event.lifecycle !== "date_tba"
+    && candidate.event.lifecycle !== "cancelled"
+    && candidate.event.lifecycle !== "postponed";
 }
 
-function toEvent(candidate: ReturnType<typeof extractEventCandidates>[number], fetchedAt: string, sourceLastModified?: string, sourceVersion?: string): MonitoredEvent {
+function toEvent(candidate: ParsedEventCandidate, fetchedAt: string, sourceLastModified?: string, sourceVersion?: string): MonitoredEvent {
   const identityKey = eventIdentityKey(candidate.event);
   const contentHashValue = eventContentHash(candidate.event);
   return {
@@ -183,6 +192,11 @@ export async function runContentSync(store: SyncStore, options: SyncRunOptions =
     }
     const existing = eventsBySource.get(source.id) ?? [];
     const existingByIdentity = new Map(existing.map((event) => [event.identityKey, event]));
+    const existingByLegacyIdentity = new Map<string, MonitoredEvent[]>();
+    for (const event of existing) {
+      const key = legacyEventIdentityKey(event);
+      existingByLegacyIdentity.set(key, [...(existingByLegacyIdentity.get(key) ?? []), event]);
+    }
     const revisions: SyncRevision[] = [];
     const reviews: PendingReview[] = [];
     const nextEvents: MonitoredEvent[] = [];
@@ -194,7 +208,9 @@ export async function runContentSync(store: SyncStore, options: SyncRunOptions =
         continue;
       }
       const next = toEvent(candidate, fetched.fetchedAt, fetched.lastModified, fetched.contentHash);
-      const before = existingByIdentity.get(next.identityKey);
+      const legacyMatches = existingByLegacyIdentity.get(legacyEventIdentityKey(next)) ?? [];
+      const before = existingByIdentity.get(next.identityKey) ?? (legacyMatches.length === 1 ? legacyMatches[0] : undefined);
+      if (before) next.id = before.id;
       nextEvents.push(next);
       if (!before) {
         newEvents += 1;

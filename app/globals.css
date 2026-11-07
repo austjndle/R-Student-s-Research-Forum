@@ -7,10 +7,10 @@
   --surface: #FFFFFF;
   --surface-elevated: #EEF1F5;
   --main-text: #20242B;
-  --secondary-text: #667085;
+  --secondary-text: #5D6675;
   --primary-navy: #0B1F46;
-  --accent: #E2231A;
-  --accent-hover: #B91C14;
+  --accent: #B91C14;
+  --accent-hover: #8F160F;
   --border: #D9DDE3;
   --hover: #F0F2F5;
   --card-bg: #FFFFFF;
@@ -27,8 +27,8 @@
   --main-text: #F5F6F8;
   --secondary-text: #AEB9C9;
   --primary-navy: #0B1F46;
-  --accent: #FF5B54;
-  --accent-hover: #FF807A;
+  --accent: #FFB4AC;
+  --accent-hover: #FF978F;
   --border: #34445D;
   --hover: #22324A;
   --card-bg: #182438;
@@ -36,6 +36,19 @@
   --badge-bg: rgba(255, 91, 84, 0.14);
   --badge-text: #FFB2AD;
   --badge-border: rgba(255, 91, 84, 0.35);
+}
+
+.dark [class~="bg-[var(--accent)]"] {
+  color: var(--primary-navy) !important;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.dark [class~="hover:bg-[var(--accent-hover)]"] {
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.dark [class~="hover:bg-[var(--accent-hover)]"]:hover {
+  color: var(--primary-navy) !important;
 }
 
 body {

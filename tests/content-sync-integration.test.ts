@@ -56,7 +56,8 @@ describe("published dynamic event consumers", () => {
     const response = await worker.request("http://127.0.0.1:8787/api/events", {}, envWithEvents());
     expect(response.status).toBe(200);
     const payload = await response.json() as { events?: Array<{ id: string; campus: string }> };
-    expect(payload.events).toEqual([{ ...toCalendarEntry(dynamicEvent) }]);
+    expect(payload.events?.some((event) => event.id === dynamicEvent.id && event.campus === "hanoi")).toBe(true);
+    expect(new Set(payload.events?.map((event) => event.id)).size).toBe(payload.events?.length);
   });
 
   it("merges published dynamic events into Worker search", async () => {

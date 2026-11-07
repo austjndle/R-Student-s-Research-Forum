@@ -76,8 +76,8 @@ export function getLocalizedFloorLabel(floor: FloorHours, language: "en" | "vi")
 export function getLocalizedScheduleLabel(floor: FloorHours, field: ScheduleField, language: "en" | "vi"): string {
   const localizedKey = `${field}${language === "en" ? "En" : "Vi"}` as keyof FloorHours;
   const localizedValue = floor[localizedKey];
-  if (typeof localizedValue === "string") return localizedValue;
-  const value = floor[field];
+  const value = typeof localizedValue === "string" ? localizedValue : floor[field];
+  if (/^(?:not published|chưa công bố)/i.test(value.trim())) return "";
   return language === "en" ? ENGLISH_SCHEDULE_LABELS[value] ?? value : value;
 }
 

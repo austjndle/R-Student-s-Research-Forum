@@ -136,7 +136,7 @@ export function ClubDirectory({ initialContext }: { initialContext: ClubDirector
           </p>
         ) : filteredClubs.map((club) => (
           <article key={club.id} className="editorial-card flex min-w-0 flex-col overflow-hidden">
-            <div className="aspect-square w-full border-b border-[var(--border)] bg-[var(--surface)]">
+            <div className="aspect-[16/9] w-full border-b border-[var(--border)] bg-[var(--surface)]">
               {club.imageUrl ? (
                 <img
                   src={club.imageUrl}
@@ -152,7 +152,8 @@ export function ClubDirectory({ initialContext }: { initialContext: ClubDirector
               )}
             </div>
             <div className="flex min-w-0 flex-1 flex-col p-5">
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--secondary-text)]">{campusLabels[language][club.campus]}</span>
                 <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--secondary-text)]">{labels[club.category]}</span>
               </div>
               <h2 className="mt-5 break-words text-lg font-semibold leading-6 text-[var(--main-text)]">{language === "vi" ? club.nameVi : club.nameEn}</h2>
@@ -163,8 +164,8 @@ export function ClubDirectory({ initialContext }: { initialContext: ClubDirector
                 <Link href={`/clubs/${club.id}?${clubDirectoryQuery(context)}`} className="inline-flex min-h-11 items-center gap-1 font-semibold text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
                   {t.clubs.viewClub}<ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
-                {club.facebookUrl && <a href={club.facebookUrl} target="_blank" rel="noreferrer" aria-label={`${t.clubs.facebookPage} ${club.nameVi}`} title="Facebook" className="ml-auto inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--border)] text-[var(--accent)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"><ExternalLink className="h-4 w-4" aria-hidden="true" /></a>}
-                {club.contactEmail && <a href={`mailto:${club.contactEmail}`} aria-label={`${club.nameVi} — ${t.contacts.email}`} title={club.contactEmail} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--border)] text-[var(--accent)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"><Mail className="h-4 w-4" aria-hidden="true" /></a>}
+                {(club.profile ? club.profile.facebookUrl : club.facebookUrl) && <a href={(club.profile ? club.profile.facebookUrl : club.facebookUrl)!} target="_blank" rel="noreferrer" aria-label={`${t.clubs.facebookPage} ${language === "vi" ? club.nameVi : club.nameEn}`} title="Facebook" className="ml-auto inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--border)] text-[var(--accent)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"><ExternalLink className="h-4 w-4" aria-hidden="true" /></a>}
+                {(club.profile ? club.profile.contactEmail : club.contactEmail) && <a href={`mailto:${club.profile ? club.profile.contactEmail : club.contactEmail}`} aria-label={`${language === "vi" ? club.nameVi : club.nameEn} — ${t.contacts.email}`} title={club.profile ? club.profile.contactEmail ?? undefined : club.contactEmail} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--border)] text-[var(--accent)] hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"><Mail className="h-4 w-4" aria-hidden="true" /></a>}
               </div>
             </div>
           </article>
