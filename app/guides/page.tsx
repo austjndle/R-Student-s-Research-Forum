@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/context";
 import { ALL_RESEARCH_GUIDES } from "@/data/guides/guides";
-import { ChevronRight, Clock, ShieldCheck } from "lucide-react";
+import { ChevronRight, ShieldCheck } from "lucide-react";
 
 export default function GuidesPage() {
   const { language, t } = useLanguage();
@@ -30,7 +30,7 @@ export default function GuidesPage() {
           >
             {/* Guide Thumbnail */}
             {guide.imageUrl && (
-              <div className="h-40 w-full overflow-hidden bg-[var(--surface-elevated)] relative">
+              <div className="h-32 w-full overflow-hidden bg-[var(--surface-elevated)] relative">
                 <img
                   src={guide.imageUrl}
                   alt={language === "vi" ? guide.titleVi : guide.imageAlt ?? guide.titleEn}
@@ -40,14 +40,10 @@ export default function GuidesPage() {
               </div>
             )}
 
-            <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+            <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
               <div className="space-y-2.5">
-                <div className="flex items-center justify-between text-xs text-[var(--secondary-text)]">
-                  <span className="flex items-center gap-1 font-semibold text-[var(--accent)] text-[11px]">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>{guide.readTimeMinutes} {t.guides.readTime}</span>
-                  </span>
-                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-[11px]">
+                <div className="flex items-center justify-end text-xs text-[var(--secondary-text)]">
+                  <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 text-[11px]">
                     <ShieldCheck className="w-3.5 h-3.5" />
                     <span>{t.common.verified}</span>
                   </span>
@@ -62,8 +58,7 @@ export default function GuidesPage() {
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--secondary-text)]">
-                <span>{guide.steps.length} {t.guides.steps}</span>
+              <div className="pt-3 border-t border-[var(--border)] flex items-center justify-end text-xs text-[var(--secondary-text)]">
                 <span className="font-semibold text-[var(--accent)] flex items-center gap-0.5">
                   <span>{t.common.readMore}</span>
                   <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useEffect } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/context";
@@ -25,6 +25,10 @@ export default function TopicDetailPage({
 }) {
   const { slug } = use(params);
   const { language, t } = useLanguage();
+  useEffect(() => {
+    const category = KNOWLEDGE_CATEGORIES.find((item) => item.id === slug);
+    if (category) document.title = `${language === "vi" ? category.nameVi : category.nameEn} | R-Students' Research Hub`;
+  }, [language, slug]);
   if (slug === "scholarships") {
     return <ScholarshipDirectory />;
   }

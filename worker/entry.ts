@@ -79,7 +79,7 @@ export default {
     }
 
     if (env.ASSETS) return withSecurityHeaders(await env.ASSETS.fetch(request));
-    return withSecurityHeaders(new Response("R-Students' Research Forum Cloudflare Worker", { status: 200 }));
+    return withSecurityHeaders(new Response("R-Students' Research Hub Cloudflare Worker", { status: 200 }));
   },
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     if (env.EVENT_REVIEW_DO) {

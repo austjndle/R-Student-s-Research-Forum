@@ -4,10 +4,14 @@ import { ClubDetail } from "@/components/clubs/ClubDetail";
 import { VERIFIED_CLUBS } from "@/data/clubs/clubs";
 import { parseClubDirectoryContext } from "@/lib/clubs/navigation";
 
-export const metadata: Metadata = {
-  title: "RMIT Student Club | R-Students' Research Hub",
-  description: "Verified RMIT Vietnam student club information and official channels.",
-};
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const club = VERIFIED_CLUBS.find((item) => item.id === id);
+  return {
+    title: club ? `${club.nameEn} | R-Students' Research Hub` : "RMIT Student Clubs | R-Students' Research Hub",
+    description: club?.descriptionEn ?? "Verified RMIT Vietnam student club information and official channels.",
+  };
+}
 
 export default async function ClubDetailPage({ params, searchParams }: {
   params: Promise<{ id: string }>;

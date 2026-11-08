@@ -1,4 +1,4 @@
-# R-Students' Research Forum
+# R-Students' Research Hub
 
 > **Find answers. Research smarter.**  
 > An independent, bilingual research and information discovery platform for students at RMIT University Vietnam.
@@ -7,7 +7,7 @@
 
 ## Overview
 
-R-Students' Research Forum is a high-performance web platform built specifically for students at RMIT Vietnam (Saigon South & Hanoi campuses). It helps students quickly locate verified information regarding academic policies, program and major transfers, course enrolment, tuition deadlines, scholarships, and official department contacts.
+R-Students' Research Hub is a high-performance web platform built specifically for students at RMIT Vietnam (Saigon South & Hanoi campuses). It helps students quickly locate verified information regarding academic policies, program and major transfers, course enrolment, tuition deadlines, scholarships, and official department contacts.
 
 ### Key Highlights
 - **Search First, AI Second:** Instant, typo-tolerant, diacritic-insensitive bilingual search (EN & VI) that runs without requiring AI tokens.
@@ -105,11 +105,11 @@ bun run rag:validate
 bun run rag:smoke
 ```
 
-No production deployment or new billable Cloudflare resource is created by this upgrade.
+The application deploys to the existing Cloudflare Worker and does not provision a new billable Cloudflare resource.
 
 ### Automated RMIT content monitoring
 
-The staged monitoring prototype is documented in [`docs/content-sync.md`](docs/content-sync.md). It is disabled by default with `CONTENT_SYNC_ENABLED=false`; no production cron or deployment was enabled. The protected `/api/admin/sync` route is available only after the binding and secret are configured.
+The staged monitoring prototype is documented in [`docs/content-sync.md`](docs/content-sync.md). The deployed Wrangler configuration currently sets `CONTENT_SYNC_ENABLED=true`; non-event source changes remain review-gated and no new sync service is provisioned. The protected `/api/admin/sync` route is available only after the binding and secret are configured.
 
 
 ### Running Tests

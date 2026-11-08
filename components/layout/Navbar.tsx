@@ -125,7 +125,7 @@ export function Navbar() {
           </span>
           <span className="flex min-w-0 shrink-0 flex-col">
             <span className="text-sm font-semibold tracking-tight text-[var(--main-text)] sm:text-lg">R-Students</span>
-            <span className="hidden font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--secondary-text)] sm:block">Research Forum</span>
+            <span className="hidden font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--secondary-text)] sm:block">Research Hub</span>
           </span>
         </Link>
 

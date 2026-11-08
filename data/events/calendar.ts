@@ -14,6 +14,18 @@ export type RegistrationStatus = "open" | "closed" | "unverified";
 
 export type EventTemporalStatus = "upcoming" | "ongoing" | "ended";
 export type EventVerification = "verified" | "partially_verified" | "unverified" | "source_unavailable" | "conflicting" | "review_required";
+export type EventAudience = "current_students" | "prospective_students" | "alumni" | "staff" | "general_public";
+
+export function getEventAudience(entry: Pick<CalendarEntry, "eligibilityEn">): EventAudience[] {
+  const eligibility = entry.eligibilityEn?.toLowerCase() ?? "";
+  const audience: EventAudience[] = [];
+  if (/high school|parents/.test(eligibility)) audience.push("prospective_students");
+  if (/current students|rmit community/.test(eligibility)) audience.push("current_students");
+  if (/staff|faculty|hr leaders|executives|strategists/.test(eligibility)) audience.push("staff");
+  if (/alumni/.test(eligibility)) audience.push("alumni");
+  if (/public event|rmit community/.test(eligibility)) audience.push("general_public");
+  return audience;
+}
 
 export interface RegistrationLink {
   labelEn: string;
@@ -66,6 +78,7 @@ export interface CalendarEntry {
   imageObjectPosition?: string;
   imageAspectRatio?: string;
   imageSourceUrl?: string;
+  imageFit?: "cover" | "contain";
   imageLastVerified?: string;
   originalUrl: string;
   sourceId: string;
@@ -372,6 +385,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     imageAltEn: "Official RMIT Sustainability Week 2026 artwork showing the event title and a student illustration.",
     imageAltVi: "Hình ảnh Tuần lễ Phát triển bền vững RMIT 2026 với tiêu đề chương trình và hình minh họa sinh viên.",
     imageObjectPosition: "50% 0%",
+    imageFit: "contain",
     imageAspectRatio: "8 / 3",
     imageSourceUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/sustainability-week",
     imageLastVerified: verifiedOn,
@@ -407,6 +421,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     imageAltEn: "Official RMIT Sustainability Week 2026 artwork showing the event title and a student illustration.",
     imageAltVi: "Hình ảnh Tuần lễ Phát triển bền vững RMIT 2026 với tiêu đề chương trình và hình minh họa sinh viên.",
     imageObjectPosition: "50% 0%",
+    imageFit: "contain",
     imageAspectRatio: "8 / 3",
     imageSourceUrl: "https://www.rmit.edu.vn/students/student-news-and-events/student-events-2026/sustainability-week",
     imageLastVerified: verifiedOn,
@@ -469,6 +484,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     registrationStatus: "unverified",
     eligibilityEn: "High school students aged 15–18 and their parents.",
     eligibilityVi: "Học sinh trung học 15–18 tuổi và phụ huynh.",
+    imageFit: "contain",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/2026/exp-day-2026/experience-day-2026-thumbnail-1200x800.jpg",
     imageAlt: "Three students collaborate on a robotics activity for RMIT Experience Day 2026.",
     imageSourceUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/experience-day-2026",
@@ -500,6 +516,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     registrationStatus: "unverified",
     eligibilityEn: "High school students aged 15–18 and their parents.",
     eligibilityVi: "Học sinh trung học 15–18 tuổi và phụ huynh.",
+    imageFit: "contain",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/2026/exp-day-2026/experience-day-2026-thumbnail-1200x800.jpg",
     imageAlt: "Three students collaborate on a robotics activity for RMIT Experience Day 2026.",
     imageSourceUrl: "https://www.rmit.edu.vn/events/all-events/2026/november-2026/experience-day-2026",
@@ -531,6 +548,7 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     eligibilityVi: "Học sinh trung học hiện tại; hãy kiểm tra thể lệ chính thức của cuộc thi.",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/events/2026/rbpc-2026/rbpc-2026-1200x800.jpg",
     imageAlt: "Official RMIT Business Plan Competition 2026 artwork showing a student with a robot.",
+    imageFit: "contain",
     imageSourceUrl: "https://www.rmit.edu.vn/events/all-events/2026/september-2026/rmit-business-plan-competition-2026",
     imageLastVerified: verifiedOn,
     originalUrl: "https://www.rmit.edu.vn/events/all-events/2026/september-2026/rmit-business-plan-competition-2026",
@@ -560,7 +578,37 @@ export function getEffectiveRegistrationStatus(entry: Pick<CalendarEntry, "regis
   return entry.registrationStatus;
 }
 
+function vietnamDateKey(value: string | Date): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(typeof value === "string" ? new Date(value) : value);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+export function getEventDateRange(entry: Pick<CalendarEntry, "startAt" | "endAt">): { start: string; end: string } {
+  return {
+    start: vietnamDateKey(entry.startAt),
+    end: entry.endAt ? vietnamDateKey(entry.endAt) : vietnamDateKey(entry.startAt),
+  };
+}
+
+export function eventOccursOnDate(entry: Pick<CalendarEntry, "startAt" | "endAt">, key: string): boolean {
+  const range = getEventDateRange(entry);
+  return range.start <= key && key <= range.end;
+}
+
 export function getEventTemporalStatus(entry: CalendarEntry, now = new Date()): EventTemporalStatus {
+  if (entry.timePrecision === "date_only") {
+    const today = vietnamDateKey(now);
+    const startDay = vietnamDateKey(entry.startAt);
+    const endDay = entry.endAt ? vietnamDateKey(entry.endAt) : startDay;
+    if (today < startDay) return "upcoming";
+    if (today <= endDay) return "ongoing";
+    return "ended";
+  }
   const start = new Date(entry.startAt).getTime();
   const end = new Date(entry.endAt ?? entry.startAt).getTime();
   const timestamp = now.getTime();
@@ -580,6 +628,20 @@ export function formatCalendarDate(value: string, language: "en" | "vi"): string
 
 export function formatCalendarDateRange(startAt: string, endAt: string | undefined, language: "en" | "vi"): string {
   const start = formatCalendarDate(startAt, language);
-  if (!endAt || startAt.slice(0, 10) === endAt.slice(0, 10)) return start;
+  const range = getEventDateRange({ startAt, endAt });
+  if (!endAt || range.start === range.end) return start;
   return `${start} – ${formatCalendarDate(endAt, language)}`;
+}
+export function formatCalendarTime(entry: Pick<CalendarEntry, "startAt" | "endAt" | "timePrecision" | "timeZone">, language: "en" | "vi", timeTba: string): string {
+  if (entry.timePrecision === "date_only") return "";
+  if (entry.timePrecision !== "exact") return timeTba;
+  const formatter = new Intl.DateTimeFormat(language === "vi" ? "vi-VN" : "en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: entry.timeZone ?? "Asia/Ho_Chi_Minh",
+  });
+  const start = formatter.format(new Date(entry.startAt));
+  const end = entry.endAt ? formatter.format(new Date(entry.endAt)) : undefined;
+  return end ? `${start}–${end}` : start;
 }

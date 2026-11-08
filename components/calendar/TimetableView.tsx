@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink, MapPin } from "lucide-react";
 import type { CalendarEntry, Campus } from "@/data/events/calendar";
-import { formatCalendarDateRange } from "@/data/events/calendar";
+import { eventOccursOnDate, formatCalendarDateRange, formatCalendarTime } from "@/data/events/calendar";
 import { getVerificationLabel } from "@/lib/verification/status";
 
 const TIME_ZONE = "Asia/Ho_Chi_Minh";
@@ -32,12 +32,8 @@ function localDate(key: string): Date {
   return new Date(`${key}T12:00:00+07:00`);
 }
 
-function eventDateKey(entry: CalendarEntry): string {
-  return dateKey(new Date(entry.startAt));
-}
-
-function startsOn(entry: CalendarEntry, key: string): boolean {
-  return eventDateKey(entry) === key;
+function occursOn(entry: CalendarEntry, key: string): boolean {
+  return eventOccursOnDate(entry, key);
 }
 
 function campusLabel(campus: Campus, language: "en" | "vi"): string {
@@ -54,13 +50,6 @@ function venue(entry: CalendarEntry, language: "en" | "vi"): string | undefined 
   return language === "vi" ? entry.venueVi ?? entry.venueEn : entry.venueEn ?? entry.venueVi;
 }
 
-function formatTime(entry: CalendarEntry, language: "en" | "vi", timeTba: string): string {
-  if (entry.timePrecision === "date_only" || entry.timePrecision === "tba") return timeTba;
-  const formatter = new Intl.DateTimeFormat(language === "vi" ? "vi-VN" : "en-GB", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: TIME_ZONE });
-  const formatted = formatter.format(new Date(entry.startAt));
-  const end = entry.endAt ? formatter.format(new Date(entry.endAt)) : undefined;
-  return end ? `${formatted}–${end}` : formatted;
-}
 
 function formatDay(key: string, language: "en" | "vi", options: Intl.DateTimeFormatOptions): string {
   return new Intl.DateTimeFormat(language === "vi" ? "vi-VN" : "en-GB", { ...options, timeZone: TIME_ZONE }).format(localDate(key));
@@ -69,10 +58,11 @@ function formatDay(key: string, language: "en" | "vi", options: Intl.DateTimeFor
 function EventCard({ entry, language, labels, onSelect }: { entry: CalendarEntry; language: "en" | "vi"; labels: CalendarLabels; onSelect: (entry: CalendarEntry) => void }) {
   const entryTitle = title(entry, language);
   const entryVenue = venue(entry, language);
+  const eventTime = formatCalendarTime(entry, language, labels.timeTba);
   return (
     <button type="button" onClick={() => onSelect(entry)} className="block w-full min-w-0 border border-[var(--border)] bg-[var(--surface-elevated)] p-2 text-left transition-colors hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
       <span className="block break-words text-xs font-semibold leading-4 text-[var(--main-text)]">{entryTitle}</span>
-      <span className="mt-1 block break-words text-[11px] leading-4 text-[var(--secondary-text)]">{formatTime(entry, language, labels.timeTba)}</span>
+      {eventTime && <span className="mt-1 block break-words text-[11px] leading-4 text-[var(--secondary-text)]">{eventTime}</span>}
       <span className="mt-1 block break-words text-[11px] leading-4 text-[var(--secondary-text)]">{campusLabel(entry.campus, language)}</span>
       {entryVenue && <span className="mt-1 inline-flex max-w-full items-start gap-1 break-words text-[11px] leading-4 text-[var(--secondary-text)]"><MapPin className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />{entryVenue}</span>}
     </button>
@@ -83,6 +73,7 @@ function EventDetails({ entry, language, labels, onClose }: { entry: CalendarEnt
   const entryTitle = title(entry, language);
   const entryDescription = language === "vi" ? entry.descriptionVi : entry.descriptionEn;
   const entryVenue = venue(entry, language);
+  const eventTime = formatCalendarTime(entry, language, labels.timeTba);
   return (
     <aside className="border-l-4 border-[var(--accent)] bg-[var(--surface-elevated)] p-4" aria-label={labels.details}>
       <div className="flex items-start justify-between gap-3">
@@ -94,7 +85,7 @@ function EventDetails({ entry, language, labels, onClose }: { entry: CalendarEnt
       </div>
       <p className="mt-3 text-sm leading-6 text-[var(--secondary-text)]">{entryDescription}</p>
       <dl className="mt-3 grid gap-2 text-xs text-[var(--secondary-text)] sm:grid-cols-2">
-        <div><dt className="font-semibold text-[var(--main-text)]">{language === "vi" ? "Thời gian" : "Date and time"}</dt><dd>{formatCalendarDateRange(entry.startAt, entry.endAt, language)} · {formatTime(entry, language, labels.timeTba)}</dd></div>
+        <div><dt className="font-semibold text-[var(--main-text)]">{language === "vi" ? "Thời gian" : "Date and time"}</dt><dd>{formatCalendarDateRange(entry.startAt, entry.endAt, language)}{eventTime && <> · {eventTime}</>}</dd></div>
         <div><dt className="font-semibold text-[var(--main-text)]">{language === "vi" ? "Cơ sở" : "Campus"}</dt><dd>{campusLabel(entry.campus, language)}</dd></div>
         {entryVenue && <div><dt className="font-semibold text-[var(--main-text)]">{language === "vi" ? "Địa điểm" : "Venue"}</dt><dd>{entryVenue}</dd></div>}
         <div><dt className="font-semibold text-[var(--main-text)]">{language === "vi" ? "Trạng thái nguồn" : "Source status"}</dt><dd>{getVerificationLabel(entry.verification, language)}</dd></div>
@@ -120,8 +111,8 @@ export function TimetableView({ entries, language, mode, anchor, labels, onAncho
     return Array.from({ length: 42 }, (_, index) => shiftDate(start, index));
   }, [anchor, mode]);
 
-  const visibleEntries = useMemo(() => entries.filter((entry) => days.some((day) => startsOn(entry, day))), [days, entries]);
-  const monthAgendaDays = useMemo(() => days.filter((day) => day.slice(0, 7) === anchor.slice(0, 7) && visibleEntries.some((entry) => startsOn(entry, day))), [anchor, days, visibleEntries]);
+  const visibleEntries = useMemo(() => entries.filter((entry) => days.some((day) => occursOn(entry, day))), [days, entries]);
+  const monthAgendaDays = useMemo(() => days.filter((day) => day.slice(0, 7) === anchor.slice(0, 7) && visibleEntries.some((entry) => occursOn(entry, day))), [anchor, days, visibleEntries]);
   const periodLabel = mode === "week"
     ? `${formatDay(days[0], language, { day: "numeric", month: "short" })} – ${formatDay(days[days.length - 1], language, { day: "numeric", month: "short", year: "numeric" })}`
     : formatDay(`${anchor.slice(0, 7)}-01`, language, { month: "long", year: "numeric" });
@@ -146,7 +137,7 @@ export function TimetableView({ entries, language, mode, anchor, labels, onAncho
       {visibleEntries.length === 0 && <p className="border border-dashed border-[var(--border)] p-6 text-center text-sm text-[var(--secondary-text)]">{labels.noEvents}</p>}
       {mode === "week" ? (
         <div className="grid min-w-0 gap-3 md:grid-cols-7">
-          {days.map((day) => <section key={day} className="min-w-0 border-t-4 border-[var(--primary-navy)] pt-2"><h3 className="text-xs font-bold text-[var(--main-text)]">{formatDay(day, language, { weekday: "short", day: "numeric", month: "short" })}</h3><div className="mt-2 space-y-2">{visibleEntries.filter((entry) => startsOn(entry, day)).map((entry) => <EventCard key={`${day}-${entry.id}`} entry={entry} language={language} labels={labels} onSelect={setSelected} />)}</div></section>)}
+          {days.map((day) => <section key={day} className="min-w-0 border-t-4 border-[var(--primary-navy)] pt-2"><h3 className="text-xs font-bold text-[var(--main-text)]">{formatDay(day, language, { weekday: "short", day: "numeric", month: "short" })}</h3><div className="mt-2 space-y-2">{visibleEntries.filter((entry) => occursOn(entry, day)).map((entry) => <EventCard key={`${day}-${entry.id}`} entry={entry} language={language} labels={labels} onSelect={setSelected} />)}</div></section>)}
         </div>
       ) : (
         <>
@@ -154,13 +145,13 @@ export function TimetableView({ entries, language, mode, anchor, labels, onAncho
             {monthAgendaDays.map((day) => (
               <section key={day} className="border-l-4 border-[var(--primary-navy)] bg-[var(--surface-elevated)] p-3">
                 <h3 className="text-sm font-semibold text-[var(--main-text)]">{formatDay(day, language, { weekday: "long", day: "numeric", month: "long" })}</h3>
-                <div className="mt-2 space-y-2">{visibleEntries.filter((entry) => startsOn(entry, day)).map((entry) => <EventCard key={`${day}-${entry.id}`} entry={entry} language={language} labels={labels} onSelect={setSelected} />)}</div>
+                <div className="mt-2 space-y-2">{visibleEntries.filter((entry) => occursOn(entry, day)).map((entry) => <EventCard key={`${day}-${entry.id}`} entry={entry} language={language} labels={labels} onSelect={setSelected} />)}</div>
               </section>
             ))}
             {monthAgendaDays.length === 0 && <p className="border border-dashed border-[var(--border)] p-6 text-sm text-[var(--secondary-text)]">{labels.noEvents}</p>}
           </div>
           <div className="hidden min-w-0 grid-cols-7 gap-px border border-[var(--border)] bg-[var(--border)] sm:grid">
-            {days.map((day) => <section key={day} className={`min-w-0 bg-[var(--surface)] p-1.5 sm:min-h-28 sm:p-2 ${day.slice(0, 7) !== anchor.slice(0, 7) ? "opacity-50" : ""}`}><h3 className="text-[11px] font-semibold text-[var(--secondary-text)]">{formatDay(day, language, { day: "numeric" })}</h3><div className="mt-1 space-y-1">{visibleEntries.filter((entry) => startsOn(entry, day)).map((entry) => <EventCard key={`${day}-${entry.id}`} entry={entry} language={language} labels={labels} onSelect={setSelected} />)}</div></section>)}
+            {days.map((day) => <section key={day} className={`min-w-0 bg-[var(--surface)] p-1.5 sm:min-h-28 sm:p-2 ${day.slice(0, 7) !== anchor.slice(0, 7) ? "opacity-50" : ""}`}><h3 className="text-[11px] font-semibold text-[var(--secondary-text)]">{formatDay(day, language, { day: "numeric" })}</h3><div className="mt-1 space-y-1">{visibleEntries.filter((entry) => occursOn(entry, day)).map((entry) => <EventCard key={`${day}-${entry.id}`} entry={entry} language={language} labels={labels} onSelect={setSelected} />)}</div></section>)}
           </div>
         </>
       )}

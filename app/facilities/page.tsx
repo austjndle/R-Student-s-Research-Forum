@@ -61,13 +61,13 @@ export default function CampusHoursPage() {
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-[var(--main-text)]">
           {language === "vi"
-            ? "Giờ mở cửa & Vào tòa nhà các cơ sở (Saigon South & Hanoi)"
-            : "RMIT Vietnam Building & Floor Access Hours (SGS & Hanoi)"}
+            ? "Giờ mở cửa cơ sở"
+            : "Campus Access Hours"}
         </h1>
         <p className="text-sm sm:text-base text-[var(--secondary-text)] max-w-3xl leading-relaxed">
           {language === "vi"
-            ? "Thông tin chi tiết thời gian mở và đóng cửa từng tầng, từng tòa nhà, thư viện, phòng gym Active Hub và các phòng máy chuyên dụng tại 2 cơ sở Nam Sài Gòn và Hà Nội."
-            : "Detailed official opening and access hours for every building, floor, library, gym, and studio across Saigon South and Hanoi campuses."}
+            ? "Giờ mở cửa và quyền ra vào các tòa nhà, thư viện, Active Hub và phòng chuyên dụng tại Nam Sài Gòn và Hà Nội."
+            : "Official opening and access hours for buildings, libraries, Active Hub, and specialist rooms across Saigon South and Hanoi."}
         </p>
       </div>
 
@@ -138,8 +138,8 @@ export default function CampusHoursPage() {
           </h2>
           <p className="text-xs sm:text-sm text-[var(--secondary-text)] leading-relaxed">
             {language === "vi" 
-              ? "Công cụ trực quan hỗ trợ sinh viên kiểm tra ngay phòng học nào đang trống tại tất cả các tòa nhà của cơ sở Nam Sài Gòn và Hà Nội để tự học hoặc họp nhóm không sợ trùng lịch lớp." 
-              : "Interactive room schedule viewer to instantly find available empty classrooms across all buildings at Saigon South and Hanoi campuses."}
+              ? "Tìm phòng trống và lịch phòng học tại các tòa nhà RMIT Việt Nam."
+              : "Find available rooms and schedules across RMIT Vietnam buildings."}
           </p>
           <p className="text-[11px] text-[var(--secondary-text)]/90 italic pt-0.5">
             {language === "vi" 
@@ -288,7 +288,7 @@ export default function CampusHoursPage() {
                       <td className="py-4 px-4 text-xs sm:text-sm text-[var(--secondary-text)] leading-relaxed align-top">
                         <div className="font-normal text-[var(--main-text)]/90">{language === "vi" ? floor.facilitiesVi : floor.facilitiesEn}</div>
                       </td>
-                      <td className="py-4 px-3 font-mono font-semibold text-emerald-600 dark:text-emerald-400 whitespace-normal break-words align-top">
+                      <td className="py-4 px-3 font-mono font-semibold text-emerald-700 dark:text-emerald-400 whitespace-normal break-words align-top">
                         {getLocalizedScheduleLabel(floor, "weekdayHours", language)}
                       </td>
                       <td className="py-4 px-3 font-mono text-[var(--main-text)] whitespace-normal break-words align-top">

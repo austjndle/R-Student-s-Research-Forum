@@ -36,6 +36,33 @@ describe("automation v3 quality controls", () => {
     expect(ics).toContain("UID:event-1@");
     expect(() => calendarEntryToIcs({ ...entry, startAt: "date TBA" })).toThrow();
   });
+  it("preserves timezone conversion and date-only semantics at UTC boundaries", () => {
+    const timed = {
+      id: "event-utc-boundary",
+      type: "campus_event",
+      titleEn: "UTC boundary event",
+      titleVi: "Sự kiện biên UTC",
+      descriptionEn: "Verified event",
+      descriptionVi: "Sự kiện đã xác minh",
+      category: "academic",
+      organiserEn: "RMIT",
+      organiserVi: "RMIT",
+      campus: "hanoi",
+      startAt: "2026-11-15T22:00:00Z",
+      originalUrl: "https://www.rmit.edu.vn/events/utc-boundary",
+      sourceId: "rmit-events",
+      sourceType: "official_website",
+      sourceLastVerified: "2026-11-04",
+      publicationStatus: "published",
+      verification: "verified",
+    } as unknown as CalendarEntry;
+    expect(calendarEntryToIcs(timed)).toContain("DTSTART;TZID=Asia/Ho_Chi_Minh:20261116T050000");
+
+    const dateOnly = { ...timed, id: "date-only", startAt: "2026-11-15T22:00:00Z", timePrecision: "date_only" } as unknown as CalendarEntry;
+    const ics = calendarEntryToIcs(dateOnly);
+    expect(ics).toContain("DTSTART;VALUE=DATE:20261116");
+    expect(ics.split("\r\n").find((line) => line.startsWith("DTSTART;VALUE=DATE:"))).toBe("DTSTART;VALUE=DATE:20261116");
+  });
   it("exports stable collection ICS and exclusive date-only end dates", () => {
     const entry = {
       id: "academic-1",

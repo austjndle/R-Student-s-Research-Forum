@@ -38,6 +38,16 @@
   --badge-border: rgba(255, 91, 84, 0.35);
 }
 
+.dark {
+  background-color: var(--background);
+  color: var(--main-text);
+}
+
+.dark body {
+  background-color: var(--background) !important;
+  color: var(--main-text);
+}
+
 .dark [class~="bg-[var(--accent)]"] {
   color: var(--primary-navy) !important;
   transition: color 160ms ease, background-color 160ms ease;
@@ -49,6 +59,7 @@
 
 .dark [class~="hover:bg-[var(--accent-hover)]"]:hover {
   color: var(--primary-navy) !important;
+  transition: color 160ms ease, background-color 160ms ease;
 }
 
 body {

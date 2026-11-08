@@ -29,7 +29,25 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "R-Students' Research Forum — Find answers. Research smarter.",
+  metadataBase: new URL("https://r-students-searchsite.rstuhub.workers.dev"),
+  title: "R-Students' Research Hub — Find answers. Research smarter.",
+  openGraph: {
+    type: "website",
+    siteName: "R-Students' Research Hub",
+    title: "R-Students' Research Hub — Find answers. Research smarter.",
+    description: "An independent, bilingual research and information discovery platform for students at RMIT University Vietnam.",
+    locale: "en_US",
+    alternateLocale: ["vi_VN"],
+  },
+  twitter: {
+    card: "summary",
+    title: "R-Students' Research Hub",
+    description: "Independent bilingual RMIT Vietnam student information platform.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   description:
     "An independent, bilingual research and information discovery platform for students at RMIT University Vietnam. Smart search, verified knowledge base, and official contact directory.",
   keywords: [

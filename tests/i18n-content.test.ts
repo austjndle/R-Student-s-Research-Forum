@@ -11,7 +11,7 @@ describe("English/Vietnamese interface copy", () => {
     expect(translations.vi.common.skipToContent).toBe("Bỏ qua để đến nội dung chính");
     expect(translations.en.search.loading).toBe("Loading search...");
     expect(translations.vi.search.loading).toBe("Đang tải kết quả tìm kiếm...");
-    expect(translations.en.aboutPage.title).toBe("About R-Students' Research Forum");
+    expect(translations.en.aboutPage.title).toBe("About R-Students' Research Hub");
     expect(translations.vi.privacyPage.title).toBe("Chính sách quyền riêng tư");
   });
   it("uses localized footer slogans", () => {

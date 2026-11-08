@@ -1,6 +1,6 @@
 # R-Students website audit
 
-Audit basis: current repository inspection, production homepage fetch, production `/sitemap.xml` request, static design audit, local browser checks, axe-core checks, typecheck, tests, and production build. A route is marked browser-tested only where this run visited it.
+Audit basis: prior repository inspection, production fetches, static design audit, local browser checks, axe checks where available, typecheck, tests, and production build. The current engineering audit and remediation evidence are in [`docs/engineering-audit.md`](./engineering-audit.md); this file preserves the earlier route-level audit snapshot.
 
 ## Route inventory
 
@@ -36,8 +36,9 @@ Audit basis: current repository inspection, production homepage fetch, productio
 
 ## Known limits
 
-- Production was not changed or deployed.
-- Admin route was not tested without authorized credentials.
-- Third-party image/text reuse permissions are not established by attribution alone; existing source-linked records remain flagged for institutional/legal review where permission is unclear.
-- The static design audit still reports conditional-render and timer patterns; these are not all defects and require product-specific motion decisions.
-- The full route browser matrix beyond the explicit local checks remains a QA follow-up.
+Known limits in the earlier snapshot:
+
+- Production was not changed at the time of that snapshot; the current audit also does not deploy its new changes.
+- Admin route was not browser-tested without authorization.
+- Third-party image/text reuse permissions are not established by attribution alone.
+- Static design findings and full visual regression remain bounded by the tools actually installed and executed.

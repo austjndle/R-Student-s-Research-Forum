@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CALENDAR_ENTRIES, CAMPUS_ACTIVITY_HIGHLIGHTS, getEventTemporalStatus, getPublishedCalendarEntries } from "../data/events/calendar";
+import { CALENDAR_ENTRIES, CAMPUS_ACTIVITY_HIGHLIGHTS, eventOccursOnDate, getEventAudience, getEventDateRange, getEventTemporalStatus, getPublishedCalendarEntries } from "../data/events/calendar";
 import { EVENT_SOURCES } from "../data/events/sources";
 import { validateEventReviewCandidate } from "../lib/events/review";
 import { deduplicateEventCandidates, isForbiddenGenericCampusEvent } from "../lib/sync/extract-events";
@@ -67,6 +67,11 @@ describe("Official RMIT activity and event images", () => {
       .toContain("club-day-goes-full-rcade");
     expect(CAMPUS_ACTIVITY_HIGHLIGHTS.find((activity) => activity.id === "activity-club-day")?.imageObjectPosition).toBe("50% 35%");
   });
+  it("marks poster-style event artwork for contain fitting", () => {
+    for (const id of ["rmit-sustainability-week-2026-hanoi", "rmit-business-plan-competition-2026", "rmit-experience-day-2026-hanoi"]) {
+      expect(CALENDAR_ENTRIES.find((entry) => entry.id === id)?.imageFit).toBe("contain");
+    }
+  });
 });
 describe("Campus-specific event dates", () => {
   it("keeps records unique and calculates status at Vietnam timezone boundaries", () => {
@@ -81,6 +86,23 @@ describe("Campus-specific event dates", () => {
     const carnivalHanoi = events.find((event) => event.id === "rmit-carnival-2026-hanoi");
     expect(carnivalHanoi?.registrationLinks?.some((link) => link.url.includes("26Carnival-StudentHN"))).toBe(true);
     expect(carnivalHanoi?.registrationLinks?.some((link) => link.url.includes("26Carnival-StaffHN")) ?? false).toBe(false);
+  });
+  it("keeps date-only academic milestones active through the local day", () => {
+    const milestone = CALENDAR_ENTRIES.find((entry) => entry.id === "academic-s3-2026-start");
+    expect(milestone).toBeDefined();
+    expect(getEventTemporalStatus(milestone!, new Date("2026-10-26T18:00:00+07:00"))).toBe("ongoing");
+    expect(getEventTemporalStatus(milestone!, new Date("2026-10-27T00:00:00+07:00"))).toBe("ended");
+  });
+  it("places single-day and verified multi-day events on exact Vietnam dates", () => {
+    const carnival = CALENDAR_ENTRIES.find((entry) => entry.id === "rmit-carnival-2026-hanoi");
+    const sustainability = CALENDAR_ENTRIES.find((entry) => entry.id === "rmit-sustainability-week-2026-hanoi");
+    expect(carnival && getEventDateRange(carnival)).toEqual({ start: "2026-11-07", end: "2026-11-07" });
+    expect(carnival && eventOccursOnDate(carnival, "2026-11-07")).toBe(true);
+    expect(carnival && eventOccursOnDate(carnival, "2026-11-08")).toBe(false);
+    expect(sustainability && getEventDateRange(sustainability)).toEqual({ start: "2026-11-09", end: "2026-11-10" });
+    expect(sustainability && eventOccursOnDate(sustainability, "2026-11-09")).toBe(true);
+    expect(sustainability && eventOccursOnDate(sustainability, "2026-11-10")).toBe(true);
+    expect(sustainability && eventOccursOnDate(sustainability, "2026-11-11")).toBe(false);
   });
 });
 
@@ -99,6 +121,14 @@ describe("Experience Day duplicate protection", () => {
       { event: { titleEn: "Experience Day 2026 — Saigon South", campus: "saigon_south", startAt: "2026-11-29T05:00:00.000Z", originalUrl: "https://www.rmit.edu.vn/events/experience-day" } },
     ] as never;
     expect(deduplicateEventCandidates(candidates).map((candidate) => candidate.event.campus).sort()).toEqual(["hanoi", "saigon_south"]);
+  });
+});
+describe("Event audience classification", () => {
+  it("separates prospective-only events from current-student activities using published eligibility", () => {
+    const businessPlan = CALENDAR_ENTRIES.find((entry) => entry.id === "rmit-business-plan-competition-2026");
+    const sustainability = CALENDAR_ENTRIES.find((entry) => entry.id === "rmit-sustainability-week-2026-hanoi");
+    expect(businessPlan && getEventAudience(businessPlan)).toContain("prospective_students");
+    expect(sustainability && getEventAudience(sustainability)).toContain("current_students");
   });
 });
 

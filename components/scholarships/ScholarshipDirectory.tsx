@@ -73,6 +73,9 @@ function getCurrentCycle(record: ScholarshipRecord): { cycle?: ScholarshipCycle;
   const active = ranked.find(({ status }) => status === "open") ?? ranked.find(({ status }) => status === "upcoming");
   return active ?? { cycle: ranked.at(-1)?.cycle, status: ranked.at(-1)?.status ?? "not_announced" };
 }
+export function matchesScholarshipCampus(record: Pick<ScholarshipRecord, "campuses">, campus: string): boolean {
+  return campus === "all" || record.campuses.length === 0 || record.campuses.includes(campus as ScholarshipRecord["campuses"][number]);
+}
 
 
 function ScholarshipCard({
@@ -120,7 +123,7 @@ function ScholarshipCard({
       <div className="flex flex-1 flex-col gap-4 p-5">
         <div>
           <h2 className="break-words text-xl font-semibold leading-tight text-[var(--main-text)]">{name}</h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--secondary-text)]">{record.summary[language]}</p>
+          <p className="mt-3 text-sm leading-6 text-[var(--secondary-text)]">{record.targetGroup[language]}</p>
         </div>
         <div className="grid gap-3 border-y border-[var(--border)] py-4 text-sm sm:grid-cols-2">
           <div><dt className="font-mono text-[10px] uppercase tracking-wider text-[var(--secondary-text)]">{labels.fields.awardValue}</dt><dd className="mt-1 font-semibold text-[var(--main-text)]">{record.award.display[language]}</dd></div>
@@ -189,7 +192,7 @@ export function ScholarshipDirectory() {
   const filtered = useMemo(() => SCHOLARSHIPS.filter((record) => {
     const current = getCurrentCycle(record);
     const searchable = [record.name.en, record.name.vi, record.summary.en, record.summary.vi, record.searchTermsEn.join(" "), record.searchTermsVi.join(" "), record.eligiblePrograms.map((item) => item.en).join(" ")].join(" ").toLocaleLowerCase();
-    return (category === "all" || record.category === category) && (status === "all" || current.status === status) && (campus === "all" || record.campuses.some((value) => value === campus)) && (!queryText || searchable.includes(queryText));
+    return (category === "all" || record.category === category) && (status === "all" || current.status === status) && matchesScholarshipCampus(record, campus) && (!queryText || searchable.includes(queryText));
   }), [category, campus, queryText, status]);
   const comparison = SCHOLARSHIPS.filter((record) => selected.includes(record.id));
   const toggleSelected = (id: string) => setSelected((items) => items.includes(id) ? items.filter((item) => item !== id) : items.length < 4 ? [...items, id] : items);

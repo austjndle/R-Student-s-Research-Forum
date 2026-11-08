@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { requestOpenMrHachiware } from "@/components/chat/chatEvents";
 import { useLanguage } from "@/lib/i18n/context";
-import { getEventTemporalStatus, formatCalendarDateRange, getPublishedCalendarEntries } from "@/data/events/calendar";
+import { getEventAudience, getEventTemporalStatus, formatCalendarDateRange, getPublishedCalendarEntries } from "@/data/events/calendar";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -24,12 +24,13 @@ export default function HomePage() {
   const now = new Date();
   const featuredEvents = calendarEntries
     .filter((entry) => entry.type === "campus_event")
+    .filter((entry) => !getEventAudience(entry).includes("prospective_students"))
     .filter((entry) => ["ongoing", "upcoming"].includes(getEventTemporalStatus(entry, now)))
     .sort((a, b) => a.startAt.localeCompare(b.startAt))
     .slice(0, 3);
   const featuredAcademicDates = calendarEntries
     .filter((entry) => entry.type === "academic_date")
-    .filter((entry) => new Date(entry.endAt ?? entry.startAt).getTime() >= now.getTime())
+    .filter((entry) => getEventTemporalStatus(entry, now) !== "ended")
     .sort((a, b) => a.startAt.localeCompare(b.startAt))
     .slice(0, 3);
 
@@ -53,7 +54,7 @@ export default function HomePage() {
 
   const copy = language === "vi"
     ? {
-        eyebrow: "R-STUDENTS' RESEARCH FORUM / RMIT VIETNAM",
+        eyebrow: "R-STUDENTS' RESEARCH HUB / RMIT VIETNAM",
         heading: "Tìm điều quan trọng.",
         subheading: "Tra cứu thông tin học vụ, nguồn hỗ trợ và đời sống cơ sở bằng một trải nghiệm rõ ràng, có nguồn kiểm chứng.",
         searchPlaceholder: "Tìm học bổng, đổi ngành, học phí, lịch học...",
@@ -72,7 +73,7 @@ export default function HomePage() {
         read: "Đọc cẩm nang",
       }
     : {
-        eyebrow: "R-STUDENTS' RESEARCH FORUM / RMIT VIETNAM",
+        eyebrow: "R-STUDENTS' RESEARCH HUB / RMIT VIETNAM",
         heading: "Find what matters.",
         subheading: "Research academic information, support services, and campus life through one clear, source-linked experience.",
         searchPlaceholder: "Search scholarships, major transfer, fees, calendar...",
@@ -94,13 +95,13 @@ export default function HomePage() {
   return (
     <div className="pb-20">
       <section className="relative overflow-hidden bg-[var(--primary-navy)] text-white">
-        <span aria-hidden="true" className="pointer-events-none absolute -right-10 top-1/2 hidden -translate-y-1/2 select-none font-sans text-[22rem] font-black leading-none text-[var(--accent)] opacity-[0.07] lg:block lg:right-8 lg:text-[30rem]">R</span>
-        <div className="mx-auto grid min-h-[560px] max-w-[1200px] grid-cols-1 gap-12 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:items-end lg:px-8 lg:py-24">
+        <span aria-hidden="true" className="pointer-events-none absolute -right-10 top-1/2 hidden -translate-y-1/2 select-none font-sans text-[16rem] font-black leading-none text-[var(--accent)] opacity-[0.05] lg:block lg:right-8 lg:text-[22rem]">R</span>
+        <div className="mx-auto grid min-h-[420px] max-w-[1200px] grid-cols-1 gap-8 px-4 py-10 sm:px-6 lg:grid-cols-12 lg:items-end lg:px-8 lg:py-14">
           <div className="lg:col-span-8">
             <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-[#FF807A]">{copy.eyebrow}</p>
-            <h1 className="mt-6 max-w-4xl text-5xl font-bold leading-[0.98] tracking-[-0.05em] sm:text-7xl">{copy.heading}</h1>
-            <p className="mt-7 max-w-2xl text-base leading-7 text-white/75 sm:text-lg">{copy.subheading}</p>
-            <form onSubmit={handleSearchSubmit} className="mt-10 max-w-3xl">
+            <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-[1.02] tracking-[-0.05em] sm:text-6xl">{copy.heading}</h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-white/75">{copy.subheading}</p>
+            <form onSubmit={handleSearchSubmit} className="mt-6 max-w-3xl">
               <label htmlFor="home-search" className="sr-only">{t.hero.searchPlaceholder}</label>
               <div className="flex flex-col gap-2 border border-white/30 bg-white p-2 sm:flex-row">
                 <div className="flex min-h-12 flex-1 items-center">
@@ -121,7 +122,7 @@ export default function HomePage() {
               </div>
             </form>
           </div>
-          <div className="border-t border-white/20 pt-6 lg:col-span-4 lg:border-l lg:border-t-0 lg:pl-8">
+          <div className="border-t border-white/20 pt-4 lg:col-span-4 lg:border-l lg:border-t-0 lg:pl-8">
             <div className="flex items-start gap-3">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#FF807A]" aria-hidden="true" />
               <p className="text-sm leading-6 text-white/70">{t.common.disclaimer}</p>

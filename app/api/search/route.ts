@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchKnowledgeBase } from "@/lib/search/engine";
-import type { Campus } from "@/data/knowledge/schema";
+import { KNOWLEDGE_CATEGORIES, type Campus } from "@/data/knowledge/schema";
 
 // Simple IP-based in-memory burst protection for search route
 const searchRateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -31,22 +31,39 @@ export async function GET(request: NextRequest) {
       { status: 429, headers: { "Retry-After": "60" } }
     );
   }
-
   const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q") || "";
-  const categoryId = searchParams.get("category") || "all";
-  const campus = (searchParams.get("campus") as Campus) || "all";
-  const lang = (searchParams.get("lang") as "en" | "vi") || "en";
-  const limit = Math.min(20, Math.max(1, parseInt(searchParams.get("limit") || "10", 10)));
+
+  const q = (searchParams.get("q") || "").trim();
+  const requestedCategory = searchParams.get("category") || "all";
+  const requestedCampus = searchParams.get("campus") || "all";
+  const requestedLanguage = searchParams.get("lang") || "en";
+  const requestedLimit = searchParams.get("limit") || "10";
+
+  if (q.length > 500) {
+    return NextResponse.json({ error: "Search query must be 500 characters or fewer." }, { status: 400 });
+  }
+  if (requestedCategory !== "all" && requestedCategory !== "events" && !KNOWLEDGE_CATEGORIES.some((category) => category.id === requestedCategory)) {
+    return NextResponse.json({ error: "Invalid search category." }, { status: 400 });
+  }
+  if (!["all", "saigon_south", "hanoi"].includes(requestedCampus)) {
+    return NextResponse.json({ error: "Invalid campus filter." }, { status: 400 });
+  }
+  if (!["en", "vi"].includes(requestedLanguage)) {
+    return NextResponse.json({ error: "Invalid language." }, { status: 400 });
+  }
+  if (!/^(?:[1-9]|1[0-9]|20)$/.test(requestedLimit)) {
+    return NextResponse.json({ error: "Limit must be an integer between 1 and 20." }, { status: 400 });
+  }
+  const limit = Number(requestedLimit);
 
   if (!q.trim()) {
     return NextResponse.json({ query: "", total: 0, results: [] });
   }
 
   const results = searchKnowledgeBase(q, {
-    categoryId,
-    campus,
-    language: lang,
+    categoryId: requestedCategory === "events" ? "all" : requestedCategory,
+    campus: requestedCampus as Campus,
+    language: requestedLanguage as "en" | "vi",
     limit,
   });
 

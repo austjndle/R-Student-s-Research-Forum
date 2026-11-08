@@ -16,11 +16,14 @@ import {
   type CalendarEntry,
   type CalendarEntryType,
   type Campus,
+  type EventAudience,
   type EventTemporalStatus,
   CAMPUS_ACTIVITY_HIGHLIGHTS,
   formatCalendarDateRange,
+  formatCalendarTime,
   getEffectiveRegistrationStatus,
   getEventTemporalStatus,
+  getEventAudience,
   getPublishedCalendarEntries,
 } from "@/data/events/calendar";
 import { EVENT_SOURCES } from "@/data/events/sources";
@@ -33,7 +36,13 @@ import { getVerificationLabel } from "@/lib/verification/status";
 import { formatLocalizedDateTime } from "@/lib/i18n/date";
 
 type TimeFilter = "all" | "upcoming" | "ongoing" | "ended" | "this_month";
+type AudienceFilter = "all" | EventAudience;
 type ViewFilter = "list" | "week" | "month";
+function matchesAudience(entry: CalendarEntry, filter: AudienceFilter): boolean {
+  if (filter === "all" || entry.type === "academic_date") return true;
+  const audience = getEventAudience(entry);
+  return audience.length === 0 || audience.includes(filter);
+}
 
 const categoryLabels = {
   en: {
@@ -144,17 +153,16 @@ function EntryRow({ entry, language, now }: { entry: CalendarEntry; language: "e
   const visibleRegistrationLinks = registrationStatus === "closed" || temporalStatus === "ended" ? [] : registrationLinks;
 
   return (
-    <article className="group min-w-0 border border-[var(--border)] bg-[var(--surface-elevated)] p-4 md:p-5">
-      <div className="min-w-0">
+    <article className={`group min-w-0 border border-[var(--border)] bg-[var(--surface-elevated)] p-4 md:p-5 ${entry.imageUrl ? "md:grid md:grid-cols-[12rem_minmax(0,1fr)] md:gap-5" : ""}`}>
         {entry.imageUrl && (
           <EventImage
             src={entry.imageUrl}
             alt={language === "vi" ? entry.imageAltVi ?? title : entry.imageAltEn ?? entry.imageAlt ?? title}
-            className="mb-5 aspect-[16/7] w-full"
-            objectPosition={entry.imageObjectPosition}
-            aspectRatio={entry.imageAspectRatio}
+            className="aspect-[4/3] w-full md:mb-0"
+            fit={entry.imageFit}
           />
         )}
+      <div className="min-w-0">
 
         <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
@@ -166,7 +174,7 @@ function EntryRow({ entry, language, now }: { entry: CalendarEntry; language: "e
             </div>
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
               <h2 className="text-xl font-semibold leading-tight text-[var(--main-text)] transition-colors duration-200 group-hover:text-[var(--accent)]">{title}</h2>
-              <p className="font-mono text-sm font-semibold text-[var(--accent)]">{formatCalendarDateRange(entry.startAt, entry.endAt, language)}</p>
+              <p className="font-mono text-sm font-semibold text-[var(--accent)]">{formatCalendarDateRange(entry.startAt, entry.endAt, language)}{entry.timePrecision === "exact" && <> · {formatCalendarTime(entry, language, "")}</>}</p>
             </div>
           </div>
 
@@ -210,7 +218,7 @@ function EntryRow({ entry, language, now }: { entry: CalendarEntry; language: "e
               href={registration.url}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-11 items-center border border-[var(--accent)] bg-[var(--accent)] px-3 text-xs font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2"
+              className={`inline-flex min-h-11 items-center border px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 ${registrationStatus === "unverified" ? "border-[var(--border)] text-[var(--accent)] hover:border-[var(--accent)] hover:bg-[var(--surface-elevated)]" : "border-[var(--accent)] bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]"}`}
             >
               {registrationStatus === "unverified"
                 ? language === "vi" ? "Thông tin đăng ký" : "Registration details"
@@ -234,7 +242,7 @@ function EntryRow({ entry, language, now }: { entry: CalendarEntry; language: "e
   );
 }
 
-export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultType?: CalendarEntryType | "all"; lockedType?: CalendarEntryType }) {
+export function CalendarExplorer({ defaultType = "all", lockedType, defaultAudience = "all" }: { defaultType?: CalendarEntryType | "all"; lockedType?: CalendarEntryType; defaultAudience?: AudienceFilter }) {
   const { language } = useLanguage();
   const [typeFilter, setTypeFilter] = useState<CalendarEntryType | "all">(defaultType);
   const activeType = lockedType ?? typeFilter;
@@ -242,6 +250,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("upcoming");
+  const [audienceFilter, setAudienceFilter] = useState<AudienceFilter>(defaultAudience);
   const [viewFilter, setViewFilter] = useState<ViewFilter>("list");
   const [currentTime, setCurrentTime] = useState<string | null>(null);
   const [viewAnchor, setViewAnchor] = useState<string | null>(null);
@@ -282,20 +291,17 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
 
   const entries = useMemo(() => {
     const now = currentTime ? new Date(currentTime) : null;
-    const currentDayStart = currentTime ? new Date(`${toDateKey(currentTime)}T00:00:00+07:00`) : null;
     const currentMonth = currentTime ? toDateKey(currentTime).slice(0, 7) : null;
     return allEntries
       .filter((entry) => activeType === "all" || entry.type === activeType)
       .filter((entry) => campusFilter === "all" || entry.campus === "all" || entry.campus === campusFilter)
       .filter((entry) => categoryFilter === "all" || entry.category === categoryFilter)
+      .filter((entry) => matchesAudience(entry, audienceFilter))
       .filter((entry) => activeType !== "academic_date" || yearFilter === "all" || entry.academicYear === yearFilter)
       .filter((entry) => {
-        if (viewFilter !== "list") return true;
         if (!now || timeFilter === "all") return true;
         if (timeFilter === "upcoming") {
-          return entry.type === "academic_date"
-            ? new Date(entry.endAt ?? entry.startAt) >= currentDayStart!
-            : getEventTemporalStatus(entry, now) === "upcoming";
+          return getEventTemporalStatus(entry, now) !== "ended";
         }
         if (timeFilter === "ongoing" || timeFilter === "ended") {
           return entry.type === "campus_event" && getEventTemporalStatus(entry, now) === timeFilter;
@@ -303,7 +309,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         return toDateKey(entry.startAt).slice(0, 7) === currentMonth || (!!entry.endAt && toDateKey(entry.endAt).slice(0, 7) === currentMonth);
       })
       .sort((a, b) => a.startAt.localeCompare(b.startAt));
-  }, [activeType, campusFilter, categoryFilter, yearFilter, timeFilter, viewFilter, currentTime, allEntries]);
+  }, [activeType, audienceFilter, campusFilter, categoryFilter, yearFilter, timeFilter, viewFilter, currentTime, allEntries]);
 
 
   const ui = language === "vi"
@@ -323,6 +329,13 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         allTime: "Toàn bộ",
         campus: "Cơ sở",
         category: "Loại",
+        audience: "Đối tượng",
+        allAudiences: "Tất cả đối tượng",
+        currentStudents: "Sinh viên hiện tại",
+        prospectiveStudents: "Sinh viên tương lai",
+        alumni: "Cựu sinh viên",
+        staff: "Nhân viên / giảng viên",
+        generalPublic: "Công chúng",
         year: "Năm học",
         allYears: "Tất cả năm",
         allCampuses: "Tất cả cơ sở",
@@ -336,7 +349,6 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         timeTba: "Chưa công bố giờ",
         details: "Chi tiết sự kiện",
         noEvents: "Không có sự kiện trong khoảng thời gian này.",
-        downloadCalendar: "Tải lịch",
         noEntries: "Chưa có mục nào phù hợp với bộ lọc.",
         sourceTitle: "Nguồn xác minh",
         sourceText: activeType === "campus_event"
@@ -365,6 +377,13 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         allTime: "All dates",
         campus: "Campus",
         category: "Type",
+        audience: "Audience",
+        allAudiences: "All audiences",
+        currentStudents: "Current students",
+        prospectiveStudents: "Prospective students",
+        alumni: "Alumni",
+        staff: "Staff / faculty",
+        generalPublic: "General public",
         year: "Academic year",
         allYears: "All years",
         allCampuses: "All campuses",
@@ -378,7 +397,6 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         timeTba: "Time TBA",
         details: "Event details",
         noEvents: "No events in this period.",
-        downloadCalendar: "Download calendar",
         noEntries: "No entries match these filters.",
         sourceTitle: "Verification source",
         sourceText: activeType === "campus_event"
@@ -400,9 +418,9 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
           <h1 className="mt-4 max-w-3xl text-4xl font-bold leading-[1.05] tracking-[-0.04em] text-[var(--main-text)] sm:text-6xl">{ui.title}</h1>
           <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--secondary-text)]">{ui.intro}</p>
         </div>
-        <div className="border-l-4 border-[var(--primary-navy)] bg-[var(--surface-elevated)] p-5 text-sm leading-6 text-[var(--secondary-text)]">
+        <div className="border-l-2 border-[var(--primary-navy)] bg-[var(--surface-elevated)] p-3 text-xs leading-5 text-[var(--secondary-text)]">
           <p className="font-semibold text-[var(--main-text)]">{ui.sourceTitle}</p>
-          <p className="mt-2">{ui.sourceText}</p>
+          <p className="mt-1">{ui.sourceText}</p>
         </div>
       </header>
       <RecentUpdates language={language} />
@@ -436,6 +454,19 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
               <option value="saigon_south">{language === "vi" ? "Nam Sài Gòn" : "Saigon South"}</option>
               <option value="hanoi">{language === "vi" ? "Hà Nội" : "Hanoi"}</option>
             </select>
+            {activeType !== "academic_date" && (
+              <>
+                <label className="sr-only" htmlFor="calendar-audience">{ui.audience}</label>
+                <select id="calendar-audience" value={audienceFilter} onChange={(event) => setAudienceFilter(event.target.value as AudienceFilter)} className="min-h-11 border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--main-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+                  <option value="all">{ui.allAudiences}</option>
+                  <option value="current_students">{ui.currentStudents}</option>
+                  <option value="prospective_students">{ui.prospectiveStudents}</option>
+                  <option value="alumni">{ui.alumni}</option>
+                  <option value="staff">{ui.staff}</option>
+                  <option value="general_public">{ui.generalPublic}</option>
+                </select>
+              </>
+            )}
             {activeType === "academic_date" && (
               <>
                 <label className="sr-only" htmlFor="calendar-year">{ui.year}</label>
@@ -478,7 +509,7 @@ export function CalendarExplorer({ defaultType = "all", lockedType }: { defaultT
         {entries.length === 0 ? (
           <div className="border border-dashed border-[var(--border)] px-6 py-16 text-center text-sm text-[var(--secondary-text)]">{ui.noEntries}</div>
         ) : viewFilter === "list" ? (
-          <div>
+          <div className="space-y-4">
             {entries.map((entry) => <EntryRow key={entry.id} entry={entry} language={language} now={currentTime ? new Date(currentTime) : null} />)}
           </div>
         ) : viewAnchor ? (

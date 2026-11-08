@@ -28,6 +28,9 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       // LocalStorage might be disabled in private browsing
     }
   }, []);
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatCalendarDateRange,
+  formatCalendarTime,
   getEffectiveRegistrationStatus,
   getPublishedCalendarEntries,
 } from "../data/events/calendar";
@@ -17,10 +18,14 @@ describe("production content accuracy", () => {
     }, new Date("2026-11-04T00:00:00+07:00"))).toBe("closed");
   });
 
-  it("keeps multi-day ranges visible and preserves graduation campus mappings", () => {
+  it("keeps multi-day ranges visible and preserves verified timed and campus mappings", () => {
     expect(formatCalendarDateRange("2027-04-06T00:00:00+07:00", "2027-04-09T23:59:59+07:00", "en")).toContain("06 Apr");
     expect(formatCalendarDateRange("2027-04-06T00:00:00+07:00", "2027-04-09T23:59:59+07:00", "en")).toContain("09 Apr");
     const entries = getPublishedCalendarEntries();
+    const experienceDay = entries.find((entry) => entry.id === "rmit-experience-day-2026-hanoi");
+    const dateOnly = entries.find((entry) => entry.id === "rmit-sustainability-week-2026-hanoi");
+    expect(experienceDay && formatCalendarTime(experienceDay, "en", "Time TBA")).toBe("08:00–16:00");
+    expect(dateOnly && formatCalendarTime(dateOnly, "en", "Time TBA")).toBe("");
     expect(entries.find((entry) => entry.id === "academic-s1-graduation-sgs-2027")?.campus).toBe("saigon_south");
     expect(entries.find((entry) => entry.id === "academic-s1-graduation-hanoi-2027")?.campus).toBe("hanoi");
   });

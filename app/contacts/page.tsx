@@ -22,13 +22,13 @@ function AcademicSchoolCard({ department, language, t, onCopyEmail }: { departme
   const [expanded, setExpanded] = useState(false);
   const specialized = department.specializedContacts ?? [];
   return (
-    <article id={`contact-${department.id}`} className="editorial-card flex min-w-0 flex-col gap-5 p-6 transition-colors hover:border-[var(--accent)]">
+    <article id={`contact-${department.id}`} className="editorial-card flex min-w-0 flex-col gap-4 p-5 transition-colors hover:border-[var(--accent)]">
       <div className="flex items-start justify-between gap-3">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent)]">{department.abbreviation} · {language === "vi" ? "Khoa học thuật" : "Academic school"}</span>
           <h3 className="mt-2 text-xl font-bold text-[var(--main-text)]">{language === "vi" ? department.nameVi : department.nameEn}</h3>
         </div>
-        <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-label={t.common.verified} />
+        <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-700 dark:text-emerald-400" aria-label={t.common.verified} />
       </div>
       <p className="text-sm leading-relaxed text-[var(--secondary-text)]">{language === "vi" ? department.descriptionVi : department.descriptionEn}</p>
       <div className="space-y-2 text-xs">
@@ -46,8 +46,6 @@ function AcademicSchoolCard({ department, language, t, onCopyEmail }: { departme
           <p className="editorial-info p-2.5 text-[var(--secondary-text)]">{t.contacts.noDirectContact}</p>
         )}
         {department.phone && <a href={`tel:${department.phone.replace(/[^\d+]/g, "")}`} className="inline-flex min-h-10 items-center gap-2 px-1 font-mono text-[var(--accent)] hover:underline"><Phone className="h-3.5 w-3.5" aria-hidden="true" />{department.phone}</a>}
-        <div className="flex items-start gap-2 px-1 text-[var(--secondary-text)]"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" aria-hidden="true" /><span>{language === "vi" ? department.locationVi : department.locationEn}</span></div>
-        <div className="flex items-start gap-2 px-1 text-[var(--secondary-text)]"><Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" aria-hidden="true" /><span>{language === "vi" ? department.serviceHoursVi : department.serviceHoursEn}</span></div>
       </div>
       <div className="flex flex-wrap items-center gap-3 border-t border-[var(--border)] pt-4 text-xs">
         <button type="button" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded} className="inline-flex min-h-11 items-center gap-1 font-semibold text-[var(--accent)]">
@@ -59,6 +57,8 @@ function AcademicSchoolCard({ department, language, t, onCopyEmail }: { departme
       </div>
       {expanded && (
         <div className="space-y-4 border-t border-[var(--border)] pt-4 text-xs">
+        <div className="flex items-start gap-2 px-1 text-[var(--secondary-text)]"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" aria-hidden="true" /><span>{language === "vi" ? department.locationVi : department.locationEn}</span></div>
+        <div className="flex items-start gap-2 px-1 text-[var(--secondary-text)]"><Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" aria-hidden="true" /><span>{language === "vi" ? department.serviceHoursVi : department.serviceHoursEn}</span></div>
           {department.campusContacts && <div><h4 className="font-semibold text-[var(--main-text)]">{t.common.campus}</h4><ul className="mt-2 space-y-2 text-[var(--secondary-text)]">{department.campusContacts.map((contact) => <li key={contact.campus}><strong>{contact.campus === "hanoi" ? t.common.hanoi : contact.campus === "da_nang" ? (language === "vi" ? "Đà Nẵng" : "Da Nang") : t.common.saigonSouth}:</strong> {language === "vi" ? contact.locationVi : contact.locationEn}{contact.email ? ` · ${contact.email}` : ""}</li>)}</ul></div>}
           <div><h4 className="font-semibold text-[var(--main-text)]">{t.contacts.specializedContacts}</h4><ul className="mt-2 space-y-3 text-[var(--secondary-text)]">{specialized.map((contact) => <li key={contact.id}><strong className="text-[var(--main-text)]">{language === "vi" ? contact.labelVi : contact.labelEn}</strong><p className="mt-1">{language === "vi" ? contact.purposeVi : contact.purposeEn}</p>{contact.email ? <a href={`mailto:${contact.email}`} className="mt-1 inline-flex text-[var(--accent)] hover:underline">{contact.email}</a> : <span className="mt-1 block italic">{t.contacts.noDirectContact}</span>}</li>)}</ul></div>
         </div>
@@ -133,6 +133,7 @@ export default function ContactsPage() {
             <label htmlFor="contacts-search" className="sr-only">{t.contacts.searchPlaceholder}</label>
             <Search className="w-4 h-4 text-[var(--secondary-text)] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
+              id="contacts-search"
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -167,14 +168,14 @@ export default function ContactsPage() {
       )}
 
       {/* Directory Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
         {filteredDepartments.filter((dept) => !dept.isAcademicSchool).map((dept) => {
           const isExpanded = expandedId === dept.id;
 
           return (
             <div
               key={dept.id}
-              className="editorial-card space-y-5 p-6 transition-colors hover:border-[var(--accent)]"
+              className="editorial-card space-y-4 p-5 transition-colors hover:border-[var(--accent)]"
             >
               <div className="space-y-4">
                 {/* Header */}
@@ -187,7 +188,7 @@ export default function ContactsPage() {
                       {language === "vi" ? dept.nameVi : dept.nameEn}
                     </h2>
                   </div>
-                  <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium shrink-0">
+                  <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium shrink-0">
                     <ShieldCheck className="w-3.5 h-3.5" />
                     <span>{t.common.verified}</span>
                   </span>
@@ -232,6 +233,11 @@ export default function ContactsPage() {
                     </div>
                   )}
 
+                </div>
+
+                {/* Expandable Responsibilities & Enquiries */}
+                {isExpanded && (
+                  <div id={`department-details-${dept.id}`} className="editorial-copy space-y-3 border-t border-[var(--border)] pt-3 text-xs">
                   <div className="flex items-start gap-2 text-[var(--secondary-text)] px-1">
                     <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[var(--accent)]" />
                     <span>{language === "vi" ? dept.locationVi : dept.locationEn}</span>
@@ -241,11 +247,6 @@ export default function ContactsPage() {
                     <Clock className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[var(--accent)]" />
                     <span>{language === "vi" ? dept.serviceHoursVi : dept.serviceHoursEn}</span>
                   </div>
-                </div>
-
-                {/* Expandable Responsibilities & Enquiries */}
-                {isExpanded && (
-                  <div id={`department-details-${dept.id}`} className="editorial-copy space-y-3 border-t border-[var(--border)] pt-3 text-xs">
                     <div className="space-y-1">
                       <h4 className="font-bold text-[var(--main-text)]">
                         {t.contacts.responsibilities}:

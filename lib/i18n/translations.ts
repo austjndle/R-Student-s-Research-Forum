@@ -369,7 +369,6 @@ export interface Translations {
     timeTba: string;
     details: string;
     noEvents: string;
-    downloadCalendar: string;
   };
   footer: {
     aboutText: string;
@@ -419,7 +418,7 @@ export interface Translations {
 export const translations: Record<Language, Translations> = {
   en: {
     common: {
-      siteName: "R-Students' Research Forum",
+      siteName: "R-Students' Research Hub",
       tagline: "Find answers. Research smarter.",
       disclaimer: "Independent student-created research platform. Not an official RMIT University service.",
       independentNotice: "This platform is an independent student initiative created to help peers quickly locate accurate official university information. All official administrative procedures must be conducted directly via official RMIT channels.",
@@ -786,7 +785,6 @@ export const translations: Record<Language, Translations> = {
       timeTba: "Time TBA",
       details: "Event details",
       noEvents: "No events in this period.",
-      downloadCalendar: "Download calendar",
     },
     footer: {
       aboutText: "An independent, bilingual research and information discovery platform created by students for students at RMIT University Vietnam.",
@@ -794,17 +792,17 @@ export const translations: Record<Language, Translations> = {
       officialResources: "Official RMIT Links",
       legal: "Disclaimer & Privacy",
       rmitOfficial: "Official RMIT Vietnam Website",
-      copyright: "© 2026 R-Students' Research Forum. Independent student initiative.",
+      copyright: "© 2026 R-Students' Research Hub. Independent student initiative.",
       privacy: "Privacy Policy",
       about: "About Us",
       creatorSlogan: "💔 Built by students, powered by stress.",
     },
     aboutPage: {
       eyebrow: "Independent student initiative",
-      title: "About R-Students' Research Forum",
+      title: "About R-Students' Research Hub",
       missionTitle: "Our mission",
       missionIntro: "Navigating university rules, enrolment deadlines, academic policies, and support services at RMIT Vietnam can be complex and fragmented.",
-      missionBody: "R-Students' Research Forum is an independent, bilingual student portal for researching university information. Search verified records and concise guides to find relevant answers without relying on unverified advice.",
+      missionBody: "R-Students' Research Hub is an independent, bilingual student portal for researching university information. Search verified records and concise guides to find relevant answers without relying on unverified advice.",
       searchFirstTitle: "Search first, AI second",
       searchFirstBody: "Search queries curated RMIT records directly and does not use an AI quota or external AI call.",
       noRegistrationTitle: "No registration required",
@@ -819,9 +817,9 @@ export const translations: Record<Language, Translations> = {
     privacyPage: {
       eyebrow: "Privacy and security architecture",
       title: "Privacy Policy",
-      lastUpdated: "Last updated: October 2026. How R-Students' Research Forum handles your privacy and data.",
-      zeroPersonalDataTitle: "1. Zero personal data collection",
-      zeroPersonalDataBody: "We do not require account creation, student email login, RMIT Single Sign-On (SSO), passwords, or identity verification. You can search, browse guides, and use the research assistant anonymously.",
+      lastUpdated: "Last updated: October 2026. How R-Students' Research Hub handles your privacy and data.",
+      zeroPersonalDataTitle: "1. No account or identity verification required",
+      zeroPersonalDataBody: "We do not require account creation, student email login, RMIT Single Sign-On (SSO), passwords, or identity verification. You can search, browse guides, and use the research assistant without registering. The site still uses a signed visitor identifier for quota control and browser storage for preferences and conversation history, as described below.",
       cookieQuotaTitle: "2. Anonymous visitor cookie and daily AI quota",
       cookieQuotaIntro: "To enforce the fair-use limit of 10 successful AI questions per day, we use a signed, anonymous visitor identifier cookie:",
       cookieQuotaBullets: [
@@ -843,7 +841,7 @@ export const translations: Record<Language, Translations> = {
   },
   vi: {
     common: {
-      siteName: "R-Students' Research Forum",
+      siteName: "R-Students' Research Hub",
       tagline: "Tìm câu trả lời. Nghiên cứu thông minh hơn.",
       disclaimer: "Nền tảng tra cứu độc lập do sinh viên xây dựng. Không phải dịch vụ chính thức của Đại học RMIT.",
       independentNotice: "Đây là dự án độc lập do sinh viên khởi xướng nhằm hỗ trợ sinh viên nhanh chóng tiếp cận thông tin chính thức của nhà trường. Mọi thủ tục hành chính phải được thực hiện qua các kênh chính thức của RMIT.",
@@ -1210,7 +1208,6 @@ export const translations: Record<Language, Translations> = {
       timeTba: "Chưa công bố giờ",
       details: "Chi tiết sự kiện",
       noEvents: "Không có sự kiện trong khoảng thời gian này.",
-      downloadCalendar: "Tải lịch",
     },
     footer: {
       aboutText: "Nền tảng tra cứu và khám phá thông tin song ngữ độc lập do sinh viên RMIT phát triển nhằm hỗ trợ cộng đồng sinh viên.",
@@ -1218,17 +1215,17 @@ export const translations: Record<Language, Translations> = {
       officialResources: "Liên kết chính thức RMIT",
       legal: "Tuyên bố miễn trừ & Quyền riêng tư",
       rmitOfficial: "Trang web chính thức RMIT Việt Nam",
-      copyright: "© 2026 R-Students' Research Forum. Dự án sinh viên độc lập.",
+      copyright: "© 2026 R-Students' Research Hub. Dự án sinh viên độc lập.",
       privacy: "Chính sách bảo mật",
       about: "Về chúng tôi",
       creatorSlogan: "💔 Sinh viên xây dựng, áp lực thúc đẩy.",
     },
     aboutPage: {
       eyebrow: "Dự án độc lập do sinh viên xây dựng",
-      title: "Về R-Students' Research Forum",
+      title: "Về R-Students' Research Hub",
       missionTitle: "Sứ mệnh",
       missionIntro: "Quy định đại học, hạn đăng ký môn, chính sách học vụ và dịch vụ hỗ trợ tại RMIT Việt Nam có thể nằm rải rác và khó tra cứu.",
-      missionBody: "R-Students' Research Forum là cổng tra cứu song ngữ độc lập do sinh viên xây dựng. Tìm kiếm nguồn đã xác minh và hướng dẫn ngắn gọn để tìm thông tin phù hợp, thay vì dựa vào lời khuyên chưa được kiểm chứng.",
+      missionBody: "R-Students' Research Hub là cổng tra cứu song ngữ độc lập do sinh viên xây dựng. Tìm kiếm nguồn đã xác minh và hướng dẫn ngắn gọn để tìm thông tin phù hợp, thay vì dựa vào lời khuyên chưa được kiểm chứng.",
       searchFirstTitle: "Ưu tiên tìm kiếm, sau đó mới dùng AI",
       searchFirstBody: "Tìm kiếm truy vấn trực tiếp trong các hồ sơ RMIT đã chọn lọc, không sử dụng lượt AI hoặc gọi dịch vụ AI bên ngoài.",
       noRegistrationTitle: "Không cần đăng ký tài khoản",
@@ -1243,9 +1240,9 @@ export const translations: Record<Language, Translations> = {
     privacyPage: {
       eyebrow: "Kiến trúc quyền riêng tư và bảo mật",
       title: "Chính sách quyền riêng tư",
-      lastUpdated: "Cập nhật lần cuối: tháng 10/2026. Cách R-Students' Research Forum xử lý quyền riêng tư và dữ liệu của bạn.",
-      zeroPersonalDataTitle: "1. Không thu thập dữ liệu cá nhân",
-      zeroPersonalDataBody: "Chúng tôi không yêu cầu tạo tài khoản, đăng nhập bằng email sinh viên, RMIT Single Sign-On (SSO), mật khẩu hoặc xác minh danh tính. Bạn có thể tìm kiếm, đọc hướng dẫn và dùng trợ lý nghiên cứu ẩn danh.",
+      lastUpdated: "Cập nhật lần cuối: tháng 10/2026. Cách R-Students' Research Hub xử lý quyền riêng tư và dữ liệu của bạn.",
+      zeroPersonalDataTitle: "1. Không yêu cầu tài khoản hoặc xác minh danh tính",
+      zeroPersonalDataBody: "Chúng tôi không yêu cầu tạo tài khoản, đăng nhập bằng email sinh viên, RMIT Single Sign-On (SSO), mật khẩu hoặc xác minh danh tính. Bạn có thể tìm kiếm, đọc hướng dẫn và dùng trợ lý nghiên cứu mà không cần đăng ký. Hệ thống vẫn dùng mã định danh khách truy cập đã ký để kiểm soát hạn mức và lưu tùy chọn cùng lịch sử hội thoại trong trình duyệt như mô tả bên dưới.",
       cookieQuotaTitle: "2. Cookie định danh người dùng ẩn danh và hạn mức AI hằng ngày",
       cookieQuotaIntro: "Để thực thi giới hạn sử dụng hợp lý là 10 câu hỏi AI thành công mỗi ngày, hệ thống dùng cookie định danh ẩn danh đã ký:",
       cookieQuotaBullets: [

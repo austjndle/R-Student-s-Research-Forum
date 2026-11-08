@@ -738,7 +738,7 @@ app.all("*", async (c) => {
     url.pathname = "/index.html";
     return c.env.ASSETS.fetch(new Request(url.toString(), c.req.raw));
   }
-  return c.text("R-Students' Research Forum Cloudflare Worker", 200);
+  return c.text("R-Students' Research Hub Cloudflare Worker", 200);
 });
 
 export default app;

@@ -87,7 +87,7 @@ export function ClubDetail({ club, sidebarClubs = [], directoryContext }: { club
             </div>
           </aside>
 
-          <main className="min-w-0 space-y-10">
+          <div className="min-w-0 space-y-10">
             <section aria-labelledby="club-overview-title">
               <h2 id="club-overview-title" className="text-3xl font-semibold tracking-[-0.03em] text-[var(--main-text)]">{t.clubs.overview}</h2>
               <dl className="mt-6 grid gap-x-8 sm:grid-cols-2">
@@ -111,7 +111,7 @@ export function ClubDetail({ club, sidebarClubs = [], directoryContext }: { club
               <a href={club.campusListPdfUrl} target="_blank" rel="noopener noreferrer" className={externalLink}>{t.clubs.campusList}<ExternalLink className="h-4 w-4" aria-hidden="true" /></a>
               <span>{t.common.lastVerified}: <time dateTime={club.lastVerifiedDate}>{club.lastVerifiedDate}</time></span>
             </footer>
-          </main>
+          </div>
         </div>
       </div>
     </div>

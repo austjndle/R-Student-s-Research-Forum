@@ -292,20 +292,13 @@ export function ChatWidget() {
           ref={launcherRef}
           type="button"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-[calc(16px+env(safe-area-inset-bottom))] right-[calc(16px+env(safe-area-inset-right))] z-50 flex h-12 min-h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-[var(--accent)] text-white shadow-lg transition-colors duration-200 hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] active:opacity-90 md:bottom-5 md:right-5 md:h-auto md:w-auto md:min-w-12 md:gap-1.5 md:px-3.5 md:py-2.5"
+          className="fixed bottom-[calc(16px+env(safe-area-inset-bottom))] right-[calc(16px+env(safe-area-inset-right))] z-50 flex h-12 min-h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-[var(--accent)] text-white shadow-lg transition-colors duration-200 hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] active:opacity-90 md:bottom-5 md:right-5"
           aria-label={t.ai.name}
           aria-haspopup="dialog"
           aria-expanded={isOpen}
           title={t.ai.name}
         >
-          <MessageSquare className="h-5 w-5 shrink-0 text-white md:hidden" aria-hidden="true" />
-          <Sparkles className="hidden h-4 w-4 shrink-0 animate-pulse text-white md:block" aria-hidden="true" />
-          <span className="hidden text-xs font-semibold md:inline-block">{t.ai.name}</span>
-          {remainingQuota !== null && (
-            <span className="hidden rounded-full bg-white/20 px-1.5 py-0.5 font-mono text-[10px] font-medium leading-none md:inline">
-              {remainingQuota}/{quotaLimit}
-            </span>
-          )}
+          <MessageSquare className="h-5 w-5 shrink-0 text-white" aria-hidden="true" />
         </button>
       )}
 

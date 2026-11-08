@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/context";
@@ -95,6 +95,9 @@ export default function GuideDetailPage({
   if (!guide) {
     notFound();
   }
+  useEffect(() => {
+    document.title = `${language === "vi" ? guide.titleVi : guide.titleEn} | R-Students' Research Hub`;
+  }, [guide, language]);
 
   const relatedGuides = [
     ...ALL_RESEARCH_GUIDES.filter((candidate) => guide.relatedGuideSlugs.includes(candidate.slug)),
@@ -160,7 +163,7 @@ export default function GuideDetailPage({
           <Clock className="w-4 h-4" />
           <span>{guide.readTimeMinutes} {t.guides.readTime}</span>
           <span>•</span>
-          <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+          <span className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
             <ShieldCheck className="w-4 h-4" />
             <span>{isGlobalExperienceGuide ? (language === "vi" ? "Thông tin Global Experience đã xác minh" : "Verified Global Experience information") : t.guides.verifiedProcedure}</span>
           </span>

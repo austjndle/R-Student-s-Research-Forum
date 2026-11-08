@@ -146,7 +146,7 @@ function SearchContent() {
           <span>
             {results.length} {t.search.resultsFound} {language === "vi" ? "cho" : "for"} &quot;{query}&quot;
           </span>
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-600 dark:text-emerald-400">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase text-emerald-700 dark:text-emerald-400">
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
             {language === "vi" ? "Tìm kiếm miễn phí, không dùng hạn mức AI" : "Free smart search · no AI quota used"}
           </span>
@@ -348,9 +348,9 @@ function SearchContent() {
           <div className="editorial-panel space-y-4 p-12 text-center">
             <HelpCircle className="w-10 h-10 text-[var(--secondary-text)] mx-auto opacity-60" />
             <div className="space-y-1">
-              <h3 className="font-bold text-lg text-[var(--main-text)]">
+              <h2 className="font-bold text-lg text-[var(--main-text)]">
                 {t.search.noResults}
-              </h3>
+              </h2>
               <p className="text-xs text-[var(--secondary-text)] max-w-md mx-auto">
                 {t.search.noResultsSub}
               </p>
@@ -431,9 +431,9 @@ function SearchContent() {
                     <div className="flex h-10 w-10 items-center justify-center border border-[var(--badge-border)] bg-[var(--badge-bg)] text-[var(--accent)] transition-colors group-hover:border-[var(--accent)]">
                       <item.Icon className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-sm sm:text-base text-[var(--main-text)] group-hover:text-[var(--accent)] transition-colors leading-snug">
+                    <h2 className="font-bold text-sm sm:text-base text-[var(--main-text)] group-hover:text-[var(--accent)] transition-colors leading-snug">
                       {language === "vi" ? item.titleVi : item.titleEn}
-                    </h3>
+                    </h2>
                     <p className="text-xs text-[var(--secondary-text)] leading-relaxed line-clamp-2">
                       {language === "vi" ? item.descVi : item.descEn}
                     </p>
