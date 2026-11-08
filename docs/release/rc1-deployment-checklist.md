@@ -1,19 +1,26 @@
 # RC1 Deployment Checklist
 
-Deployment is not authorized by this verification run.
+Deployment was executed after explicit user approval. The deployed version is recorded below.
 
-## Before approval
-
-- [ ] Review the current uncommitted diff and preserve unrelated user work.
-- [ ] Run `bun run check` after a clean Vinext build.
-- [ ] Run `bun run test --config vitest.config.ts`.
-- [ ] Run `bun run build:vinext`.
-- [ ] Run `bun run start:vinext` locally and verify CSS/JS/font/image delivery.
+- [x] Review the current diff and preserve unrelated user work.
+- [x] Run `bun run check` after a clean Vinext build.
+- [x] Run `bun run test --config vitest.config.ts`.
+- [x] Run `bun run build:vinext`.
+- [x] Run `bun run start:vinext` locally and verify CSS/JS/font/image delivery.
 - [ ] Run authorized admin/sync smoke tests in staging or an approved environment.
 - [ ] Confirm third-party asset permission decisions.
-- [ ] Confirm Wrangler account, project, and environment are correct.
-- [ ] Confirm no billing, cron, binding, or secret changes are included.
-- [ ] Record the release commit or immutable artifact identifier.
+- [x] Confirm Wrangler account, project, and environment.
+- [x] Confirm no billing, cron, binding, or secret changes were included.
+- [x] Record the release commit and deployed version.
+
+## Deployment record
+
+- Git commit: `ef625f7`
+- GitHub: `origin/main`
+- Cloudflare version: `3f7a6407-c9ed-4db4-a1dd-e169a3a67089`
+- Production URL: `https://r-students-searchsite.rstuhub.workers.dev`
+- Post-deploy smoke: routes 200, stylesheet 200 `text/css`, admin endpoint 401
+
 
 ## Approved deployment sequence
 

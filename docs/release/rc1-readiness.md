@@ -4,9 +4,9 @@ Date: 2026-11-08
 
 ## Decision
 
-**READY WITH WARNINGS** for controlled release preparation. No production deployment or GitHub push was performed.
+**READY WITH WARNINGS**. The RC1 artifact was deployed after explicit user approval. GitHub commit `ef625f7` is on `origin/main`; Cloudflare version `3f7a6407-c9ed-4db4-a1dd-e169a3a67089` is live at `https://r-students-searchsite.rstuhub.workers.dev`.
 
-The Cloudflare-compatible artifact builds and runs locally under Wrangler. Required public routes, CSS, JavaScript, fonts, theme switching, language switching, client navigation, API boundaries, and core data tests passed. Release remains conditional on owner review of admin workflows, third-party asset rights, and the existing CSP `unsafe-inline` policy.
+The Cloudflare-compatible artifact builds and runs locally under Wrangler. Required public routes, CSS, JavaScript, fonts, theme switching, language switching, client navigation, API boundaries, and core data tests passed. Remaining warnings are admin workflow access, third-party asset rights, the existing CSP `unsafe-inline` policy, and screenshot tooling.
 
 ## Verification summary
 

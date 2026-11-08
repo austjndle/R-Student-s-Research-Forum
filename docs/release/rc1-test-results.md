@@ -59,10 +59,21 @@ Browser checks:
 
 ## Production smoke checks
 
-Without modifying production:
+Deployment command:
 
-- `/`, `/calendar`, `/events`, `/clubs`: HTTP 200.
-- `/api/admin/sync`: HTTP 401.
+```bash
+bun run deploy:vinext
+```
+
+Deployment succeeded:
+
+- URL: `https://r-students-searchsite.rstuhub.workers.dev`
+- Cloudflare version: `3f7a6407-c9ed-4db4-a1dd-e169a3a67089`
+- `/`, `/calendar`, `/events`, `/clubs`, `/guides`, `/facilities`, `/contacts`, `/topics/scholarships`: HTTP 200
+- Production stylesheet: HTTP 200, `text/css`
+- Production browser computed styles: verified
+- Production browser failed responses/page errors: none
+- `/api/admin/sync`: HTTP 401
 
 ## Not executed or blocked
 
