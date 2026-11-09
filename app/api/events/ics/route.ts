@@ -3,7 +3,7 @@ import { calendarEntriesToIcs } from "@/lib/events/ics";
 
 export async function GET() {
   try {
-    const entries = getPublishedCalendarEntries().filter((entry) => entry.timePrecision !== "tba");
+    const entries = getPublishedCalendarEntries().filter((entry) => entry.timePrecision !== "tba" && entry.calendarPlacement !== "none");
     return new Response(calendarEntriesToIcs(entries), {
       status: 200,
       headers: {

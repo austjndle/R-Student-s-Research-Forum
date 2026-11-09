@@ -15,12 +15,102 @@ export type ChangelogEntry = {
   }>;
 };
 
-// The production homepage was reviewed on 2026-11-02 at
-// https://r-students-searchsite.rstuhub.workers.dev. It establishes existing
-// features, but not a versioned release or its publication date. package.json's
-// 1.0.0 is not deployment evidence. Keep this empty until a maintainer records
-// an actually shipped release; in-progress club/scholarship work is not one.
-export const CHANGELOG_RELEASES: readonly ChangelogEntry[] = [];
+// Release 1.0.0 was deployed on 2026-11-08 as Cloudflare version
+// 3f7a6407-c9ed-4db4-a1dd-e169a3a67089; the release notes are published with
+// the approved production hotfix deployment.
+export const CHANGELOG_RELEASES: readonly ChangelogEntry[] = [
+  {
+    version: "1.0.0",
+    releaseDate: "2026-11-08",
+    published: true,
+    title: {
+      en: "A clearer way to find what matters",
+      vi: "Tìm điều quan trọng dễ dàng hơn",
+    },
+    introduction: {
+      en: "A focused release improving everyday student discovery across R-Students.",
+      vi: "Bản phát hành tập trung cải thiện trải nghiệm tìm kiếm thông tin hằng ngày của sinh viên.",
+    },
+    changes: [
+      {
+        id: "calendar-event-views",
+        category: "improvement",
+        title: {
+          en: "Clearer event dates and calendar views",
+          vi: "Ngày sự kiện và chế độ xem lịch rõ ràng hơn",
+        },
+        description: {
+          en: "List, Week and Month views now present event dates, times and campus details more clearly.",
+          vi: "Các chế độ Danh sách, Tuần và Tháng trình bày ngày, giờ và cơ sở rõ ràng hơn.",
+        },
+        href: "/events",
+      },
+      {
+        id: "search-scholarship-filters",
+        category: "improvement",
+        title: {
+          en: "Refined search and scholarship filters",
+          vi: "Cải thiện tìm kiếm và bộ lọc học bổng",
+        },
+        description: {
+          en: "Search results and scholarship filters make relevant student information easier to compare.",
+          vi: "Kết quả tìm kiếm và bộ lọc học bổng giúp tìm và so sánh thông tin phù hợp dễ dàng hơn.",
+        },
+        href: "/topics/scholarships",
+      },
+      {
+        id: "mobile-navigation-layouts",
+        category: "improvement",
+        title: {
+          en: "Cleaner mobile navigation and layouts",
+          vi: "Điều hướng và giao diện điện thoại gọn gàng hơn",
+        },
+        description: {
+          en: "Responsive navigation, cards and controls are easier to use on smaller screens.",
+          vi: "Điều hướng, thẻ thông tin và bộ điều khiển thích ứng tốt hơn trên màn hình nhỏ.",
+        },
+      },
+      {
+        id: "club-contact-directories",
+        category: "improvement",
+        title: {
+          en: "Improved club and contact directories",
+          vi: "Cải thiện danh bạ câu lạc bộ và liên hệ",
+        },
+        description: {
+          en: "Club details and specialised contact information are easier to scan and access.",
+          vi: "Thông tin câu lạc bộ và liên hệ chuyên trách dễ theo dõi và truy cập hơn.",
+        },
+        href: "/clubs",
+      },
+      {
+        id: "hachiware-interface",
+        category: "improvement",
+        title: {
+          en: "A more focused Mr Hachiware interface",
+          vi: "Giao diện Mr Hachiware tập trung hơn",
+        },
+        description: {
+          en: "The assistant launcher is more compact while remaining accessible across the site.",
+          vi: "Nút trợ lý gọn hơn nhưng vẫn dễ tiếp cận trên toàn trang.",
+      },
+      },
+      {
+        id: "institutional-cleanup",
+        category: "fix",
+        title: {
+          en: "Content and attribution cleanup",
+          vi: "Cải thiện nội dung và ghi nguồn",
+        },
+        description: {
+          en: "Donation features were removed and the RMIT Space creator credit was added.",
+          vi: "Các tính năng quyên góp đã được gỡ bỏ và bổ sung ghi công tác giả RMIT Space.",
+        },
+        href: "/facilities",
+      },
+    ],
+  },
+];
 
 /** Release IDs are bounded, URL-safe identifiers, not translated display copy. */
 export function isValidChangelogVersion(version: string): boolean {

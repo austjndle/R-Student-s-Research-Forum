@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { CALENDAR_ENTRIES, CAMPUS_ACTIVITY_HIGHLIGHTS, eventOccursOnDate, getEventAudience, getEventDateRange, getEventTemporalStatus, getPublishedCalendarEntries } from "../data/events/calendar";
+import { CALENDAR_ENTRIES, CAMPUS_ACTIVITY_HIGHLIGHTS, deduplicateCalendarEntries, eventOccursOnDate, getEventAudience, getEventDateRange, getEventTemporalStatus, getPublishedCalendarEntries } from "../data/events/calendar";
 import { EVENT_SOURCES } from "../data/events/sources";
 import { validateEventReviewCandidate } from "../lib/events/review";
-import { deduplicateEventCandidates, isForbiddenGenericCampusEvent } from "../lib/sync/extract-events";
+import { deduplicateEventCandidates, extractEventCandidates, isForbiddenGenericCampusEvent } from "../lib/sync/extract-events";
+import { calendarEntryToIcs } from "../lib/events/ics";
+import type { MonitoredSource } from "../lib/sync/types";
 
 describe("Verified calendar data", () => {
   it("contains only published entries with registered HTTPS sources", () => {
@@ -103,6 +105,35 @@ describe("Campus-specific event dates", () => {
     expect(sustainability && eventOccursOnDate(sustainability, "2026-11-09")).toBe(true);
     expect(sustainability && eventOccursOnDate(sustainability, "2026-11-10")).toBe(true);
     expect(sustainability && eventOccursOnDate(sustainability, "2026-11-11")).toBe(false);
+  });
+
+  it("keeps long-running competition periods out of daily calendar placement", () => {
+    const competition = CALENDAR_ENTRIES.find((entry) => entry.id === "rmit-business-plan-competition-2026");
+    expect(competition?.scheduleKind).toBe("program_period");
+    expect(competition?.calendarPlacement).toBe("none");
+    expect(getEventTemporalStatus(competition!, new Date("2026-11-08T12:00:00+07:00"))).toBe("program_period");
+    for (const day of ["2026-09-20", "2026-11-08", "2026-12-06"]) {
+      expect(eventOccursOnDate(competition!, day)).toBe(false);
+    }
+    expect(() => calendarEntryToIcs(competition!)).toThrow("Event session dates are not confirmed.");
+  });
+
+  it("deduplicates static and synced records for the same verified source session", () => {
+    const competition = CALENDAR_ENTRIES.find((entry) => entry.id === "rmit-business-plan-competition-2026")!;
+    const synced = { ...competition, id: "monitored-event:duplicate", startAt: "2026-09-20T05:00:00.000Z" };
+    expect(deduplicateCalendarEntries([competition, synced])).toHaveLength(1);
+  });
+
+  it("normalizes long competition periods as program records during sync extraction", () => {
+    const source = { id: "rmit-events", canonicalUrl: "https://www.rmit.edu.vn/events", category: "events", campus: "all", parser: "events", frequencyMinutes: 60, priority: 1, enabled: true, notes: "test source" } satisfies MonitoredSource;
+    const candidates = extractEventCandidates(
+      `<div class="events-gridcmp__item"><h2>RMIT Business Plan Competition 2026</h2><time datetime="2026-09-20">20 September 2026</time><div data-end-date="2026-12-06">Competition period</div><a href="https://www.rmit.edu.vn/events/business-plan">Official source</a><p>Competition for high school students.</p></div>`,
+      source,
+      "2026-11-01T00:00:00.000Z",
+    );
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].event.scheduleKind).toBe("program_period");
+    expect(candidates[0].event.calendarPlacement).toBe("none");
   });
 });
 

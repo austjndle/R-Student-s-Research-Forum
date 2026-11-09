@@ -12,9 +12,11 @@ export type Campus = "saigon_south" | "hanoi" | "all";
 export type PublicationStatus = "published" | "draft" | "archived";
 export type RegistrationStatus = "open" | "closed" | "unverified";
 
-export type EventTemporalStatus = "upcoming" | "ongoing" | "ended";
+export type EventTemporalStatus = "upcoming" | "ongoing" | "ended" | "program_period";
 export type EventVerification = "verified" | "partially_verified" | "unverified" | "source_unavailable" | "conflicting" | "review_required";
 export type EventAudience = "current_students" | "prospective_students" | "alumni" | "staff" | "general_public";
+export type EventScheduleKind = "session" | "program_period";
+export type CalendarPlacement = "range" | "none";
 
 export function getEventAudience(entry: Pick<CalendarEntry, "eligibilityEn">): EventAudience[] {
   const eligibility = entry.eligibilityEn?.toLowerCase() ?? "";
@@ -63,6 +65,8 @@ export interface CalendarEntry {
   venueVi?: string;
   startAt: string;
   endAt?: string;
+  scheduleKind?: EventScheduleKind;
+  calendarPlacement?: CalendarPlacement;
   timePrecision?: "exact" | "date_only" | "tba";
   timeZone?: string;
   registrationUrl?: string;
@@ -541,6 +545,8 @@ export const CALENDAR_ENTRIES: CalendarEntry[] = [
     campus: "all",
     startAt: "2026-09-20T00:00:00+07:00",
     endAt: "2026-12-06T23:59:59+07:00",
+    scheduleKind: "program_period",
+    calendarPlacement: "none",
     timePrecision: "date_only",
     registrationUrl: "https://www.rmit.edu.vn/events/all-events/2026/september-2026/rmit-business-plan-competition-2026#register",
     registrationStatus: "unverified",
@@ -564,6 +570,19 @@ export const ACADEMIC_CALENDAR_SOURCE = getEventSource("rmit-academic-calendar-2
 
 export function getPublishedCalendarEntries(): CalendarEntry[] {
   return CALENDAR_ENTRIES.filter((entry) => entry.publicationStatus === "published");
+}
+
+function calendarEntryIdentity(entry: Pick<CalendarEntry, "titleEn" | "campus" | "startAt" | "originalUrl">): string {
+  return `${entry.originalUrl}|${entry.titleEn.toLowerCase().replace(/\s+/g, " ").trim()}|${entry.campus}|${vietnamDateKey(entry.startAt)}`;
+}
+
+export function deduplicateCalendarEntries(entries: readonly CalendarEntry[]): CalendarEntry[] {
+  const byIdentity = new Map<string, CalendarEntry>();
+  for (const entry of entries) {
+    const key = calendarEntryIdentity(entry);
+    if (!byIdentity.has(key)) byIdentity.set(key, entry);
+  }
+  return [...byIdentity.values()];
 }
 
 export function getCalendarEntriesByType(type: CalendarEntryType): CalendarEntry[] {
@@ -595,12 +614,21 @@ export function getEventDateRange(entry: Pick<CalendarEntry, "startAt" | "endAt"
   };
 }
 
-export function eventOccursOnDate(entry: Pick<CalendarEntry, "startAt" | "endAt">, key: string): boolean {
+export function eventOccursOnDate(entry: Pick<CalendarEntry, "startAt" | "endAt" | "calendarPlacement">, key: string): boolean {
+  if (entry.calendarPlacement === "none") return false;
   const range = getEventDateRange(entry);
   return range.start <= key && key <= range.end;
 }
 
 export function getEventTemporalStatus(entry: CalendarEntry, now = new Date()): EventTemporalStatus {
+  if (entry.calendarPlacement === "none" || entry.scheduleKind === "program_period") {
+    const start = new Date(entry.startAt).getTime();
+    const end = new Date(entry.endAt ?? entry.startAt).getTime();
+    const timestamp = now.getTime();
+    if (timestamp < start) return "upcoming";
+    if (timestamp > end) return "ended";
+    return "program_period";
+  }
   if (entry.timePrecision === "date_only") {
     const today = vietnamDateKey(now);
     const startDay = vietnamDateKey(entry.startAt);

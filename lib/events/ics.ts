@@ -26,8 +26,8 @@ function addCalendarDay(value: string): string {
 }
 
 export function calendarEntryToIcs(entry: CalendarEntry): string {
-  if (entry.cancellationNoticeEn || entry.cancellationNoticeVi || entry.timePrecision === "tba" || /tba|tbd|not announced/i.test(`${entry.startAt} ${entry.titleEn} ${entry.titleVi}`)) {
-    throw new Error("Event date is not confirmed.");
+  if (entry.calendarPlacement === "none" || entry.cancellationNoticeEn || entry.cancellationNoticeVi || entry.timePrecision === "tba" || /tba|tbd|not announced/i.test(`${entry.startAt} ${entry.titleEn} ${entry.titleVi}`)) {
+    throw new Error("Event session dates are not confirmed.");
   }
   const uid = `${entry.id}@r-students-searchsite.rstuhub.workers.dev`;
   const timeZone = entry.timeZone ?? "Asia/Ho_Chi_Minh";

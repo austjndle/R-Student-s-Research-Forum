@@ -4,9 +4,9 @@ Date: 2026-11-08
 
 ## Decision
 
-**READY WITH WARNINGS**. The RC1 artifact was deployed after explicit user approval. GitHub commit `ef625f7` is on `origin/main`; Cloudflare version `3f7a6407-c9ed-4db4-a1dd-e169a3a67089` is live at `https://r-students-searchsite.rstuhub.workers.dev`.
+**NOT READY for the current production version.** Production still contains the confirmed Business Plan Competition calendar-placement defect. The local hotfix is implemented and verified in the Cloudflare-compatible preview, but deployment and GitHub push were not authorized for this sprint.
 
-The Cloudflare-compatible artifact builds and runs locally under Wrangler. Required public routes, CSS, JavaScript, fonts, theme switching, language switching, client navigation, API boundaries, and core data tests passed. Remaining warnings are admin workflow access, third-party asset rights, the existing CSP `unsafe-inline` policy, and screenshot tooling.
+The previously deployed RC1 artifact remains operational. The next release-note entry is prepared as an unpublished bilingual draft and is intentionally not visible until that release-note change is deployed and verified.
 
 ## Verification summary
 
@@ -20,7 +20,7 @@ The Cloudflare-compatible artifact builds and runs locally under Wrangler. Requi
 | Browser hydration | Passed | No page errors or console errors in preview browser checks |
 | Theme/language | Passed | Light/dark computed styles and Vietnamese `html[lang]` verified |
 | Client navigation | Passed | Home to Calendar retained stylesheet and computed styles |
-| Unit/integration tests | Passed | 30 files, 307 tests |
+| Unit/integration tests | Passed | 30 files, 310 tests including calendar program-period regressions |
 | TypeScript | Passed | `bun run check` after clean Vinext build |
 | RAG validation | Passed | No duplicate chunks, invalid URLs, or missing mappings |
 | Dependency audit | Passed | `bun audit --json` returned `{}` |
@@ -41,6 +41,13 @@ A mixed Next-dev/Vinext-build workspace can leave incompatible generated `.next/
 - Privacy policy: describes browser storage, anonymous quota identifiers, optional AI processing, and external links.
 - Branding: normalized to `R-Students' Research Hub`.
 - Copyright: source attribution remains; reproduction permissions for some third-party images/text are not confirmed.
+
+## Current stabilisation sprint
+
+- Production reproduction: Business Plan Competition appeared 72 times in Month View after selecting all audiences.
+- Preview result: one Events List record, zero Month View placements; Sustainability Week Hanoi remains 9–10 November and Experience Day Hanoi remains 15 November, 08:00–16:00.
+- Search, RAG validation, deterministic chat tests, scholarships, contacts, attribution, donation-removal checks, and representative responsive checks remain passing.
+- What's New `1.0.0` bilingual notes are present as `published: false`; the automatic popup remains hidden until the notes are deployed.
 
 ## Release blockers
 

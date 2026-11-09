@@ -39,7 +39,7 @@ import { WorkerContentSyncStore } from "../lib/sync/worker-store";
 import { buildDynamicEventContext, toCalendarEntry, searchDynamicEvents } from "../lib/sync/presentation";
 import { runContentSync } from "../lib/sync/monitor";
 import { calendarEntryToIcs, calendarEntriesToIcs } from "../lib/events/ics";
-import { getPublishedCalendarEntries } from "../data/events/calendar";
+import { deduplicateCalendarEntries, getPublishedCalendarEntries } from "../data/events/calendar";
 import { normalizeCampusBuzzInput } from "../lib/sync/campus-buzz";
 import type { CampusBuzzInput, CampusBuzzReport } from "../lib/sync/campus-buzz";
 import type { FeedbackReport, MonitoredEvent } from "../lib/sync/types";
@@ -133,16 +133,18 @@ app.get("/api/search", async (c) => {
   );
 });
 app.get("/api/events", async (c) => {
-  const byId = new Map(getPublishedCalendarEntries().map((entry) => [entry.id, entry]));
-  for (const entry of (await getDynamicEvents(c)).map(toCalendarEntry)) byId.set(entry.id, entry);
-  return c.json({ events: [...byId.values()].filter((entry) => entry.publicationStatus === "published") }, 200, { "Cache-Control": "public, max-age=0, s-maxage=0, must-revalidate" });
+  const entries = deduplicateCalendarEntries([
+    ...getPublishedCalendarEntries(),
+    ...(await getDynamicEvents(c)).map(toCalendarEntry),
+  ]).filter((entry) => entry.publicationStatus === "published");
+  return c.json({ events: entries }, 200, { "Cache-Control": "public, max-age=0, s-maxage=0, must-revalidate" });
 });
 app.get("/api/events/ics", async (c) => {
   try {
-    const dynamic = (await getDynamicEvents(c)).map(toCalendarEntry);
-    const byId = new Map(getPublishedCalendarEntries().map((entry) => [entry.id, entry]));
-    for (const entry of dynamic) byId.set(entry.id, entry);
-    const entries = [...byId.values()].filter((entry) => entry.publicationStatus === "published" && entry.timePrecision !== "tba");
+    const entries = deduplicateCalendarEntries([
+      ...getPublishedCalendarEntries(),
+      ...(await getDynamicEvents(c)).map(toCalendarEntry),
+    ]).filter((entry) => entry.publicationStatus === "published" && entry.timePrecision !== "tba" && entry.calendarPlacement !== "none");
     return new Response(calendarEntriesToIcs(entries), {
       status: 200,
       headers: {

@@ -47,6 +47,8 @@ export interface MonitoredEvent {
   venueVi?: string;
   startAt: string;
   endAt?: string;
+  scheduleKind?: "session" | "program_period";
+  calendarPlacement?: "range" | "none";
   timePrecision?: "exact" | "date_only" | "tba";
   registrationUrl?: string;
   registrationStatus: "open" | "closed" | "unverified";

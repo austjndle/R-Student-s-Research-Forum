@@ -19,6 +19,7 @@ import {
   type EventAudience,
   type EventTemporalStatus,
   CAMPUS_ACTIVITY_HIGHLIGHTS,
+  deduplicateCalendarEntries,
   formatCalendarDateRange,
   formatCalendarTime,
   getEffectiveRegistrationStatus,
@@ -88,6 +89,7 @@ function getTemporalStatusLabel(status: EventTemporalStatus, language: "en" | "v
     upcoming: language === "vi" ? "Sắp tới" : "Upcoming",
     ongoing: language === "vi" ? "Đang diễn ra" : "Ongoing",
     ended: language === "vi" ? "Đã kết thúc" : "Ended",
+    program_period: language === "vi" ? "Giai đoạn chương trình" : "Program period",
   }[status];
 }
 function getSemesterLabel(semester: string, language: "en" | "vi"): string {
@@ -256,9 +258,10 @@ export function CalendarExplorer({ defaultType = "all", lockedType, defaultAudie
   const [viewAnchor, setViewAnchor] = useState<string | null>(null);
   const [dynamicEntries, setDynamicEntries] = useState<CalendarEntry[]>([]);
   const allEntries = useMemo(() => {
-    const byId = new Map(getPublishedCalendarEntries().map((entry) => [entry.id, entry]));
-    for (const entry of dynamicEntries) byId.set(entry.id, entry);
-    return [...byId.values()];
+    return deduplicateCalendarEntries([
+      ...getPublishedCalendarEntries(),
+      ...dynamicEntries,
+    ]);
   }, [dynamicEntries]);
   const availableAcademicYears = useMemo(
     () => [...new Set(allEntries.filter((entry) => entry.type === "academic_date" && entry.academicYear).map((entry) => entry.academicYear!))].sort(),

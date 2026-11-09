@@ -156,26 +156,33 @@ export function extractEventCandidates(html: string, source: MonitoredSource, fe
     if (!originalUrl.startsWith("https://")) reviewReasons.push("Official HTTPS detail URL was not extracted.");
     const registrationUrl = extractRegistrationUrl(block, source);
     const registrationStatus = /registration closed|registration is closed|đã đóng đăng ký/.test(sourceText.toLowerCase()) ? "closed" : /registration open|register now|đăng ký ngay|đang mở/.test(sourceText.toLowerCase()) ? "open" : "unverified";
+    const endAt = parseDate(firstMatch(block, /data-end-date=["']([^"']+)["']/i));
+    const category = inferCategory(sourceText);
+    const isProgramPeriod = category === "competition"
+      && !!endAt
+      && new Date(endAt).getTime() - new Date(startAt).getTime() > 7 * 24 * 60 * 60 * 1000;
     const event = {
       titleEn: title,
       titleVi: title,
       descriptionEn: extractDescription(block, title),
       descriptionVi: extractDescription(block, title),
-      category: inferCategory(sourceText),
+      category,
       organiserEn: "RMIT University Vietnam",
       organiserVi: "RMIT Việt Nam",
       campus,
       venueEn: extractVenue(block),
       venueVi: extractVenue(block),
       startAt,
-      endAt: parseDate(firstMatch(block, /data-end-date=["']([^"']+)["']/i)),
+      endAt,
+      scheduleKind: isProgramPeriod ? "program_period" as const : "session" as const,
+      calendarPlacement: isProgramPeriod ? "none" as const : "range" as const,
       timePrecision: timePrecision(block),
       registrationUrl,
       registrationStatus: registrationStatus as "open" | "closed" | "unverified",
       originalUrl,
       sourceId: source.id,
       sourceLastVerified: fetchedAt,
-      lifecycle: lifecycleStatus,
+      lifecycle: isProgramPeriod ? "upcoming" as const : lifecycleStatus,
     } satisfies ParsedEventCandidate["event"];
     const campusSchedules = [...sourceText.matchAll(/\b(Hanoi|Saigon South)\s+campus\b[^0-9]{0,80}?(\d{1,2}\/\d{1,2}\/20\d{2})/gi)];
     if (campusSchedules.length >= 2) {
@@ -183,7 +190,7 @@ export function extractEventCandidates(html: string, source: MonitoredSource, fe
         const scheduledStart = parseDate(schedule[2]);
         if (!scheduledStart) continue;
         const scheduledCampus = schedule[1].toLowerCase().startsWith("hanoi") ? "hanoi" : "saigon_south";
-        candidates.push({ event: { ...event, campus: scheduledCampus, startAt: scheduledStart, timePrecision: "date_only", lifecycle: lifecycle(sourceText, scheduledStart) }, confidence: "high", reviewReasons: [] });
+        candidates.push({ event: { ...event, campus: scheduledCampus, startAt: scheduledStart, endAt: undefined, scheduleKind: "session", calendarPlacement: "range", timePrecision: "date_only", lifecycle: lifecycle(sourceText, scheduledStart) }, confidence: "high", reviewReasons: [] });
       }
     } else {
       candidates.push({ event, confidence: reviewReasons.length === 0 ? "high" : "partial", reviewReasons });
