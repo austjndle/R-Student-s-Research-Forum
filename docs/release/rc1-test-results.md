@@ -81,12 +81,13 @@ Deployment succeeded:
 - Live Gemini browser calls: intentionally not used to avoid quota/cost consumption; deterministic and mocked paths were used.
 - Managed-browser screenshot capture: timed out; no screenshot pass is claimed.
 
-## Current stabilisation hotfix — not deployed
+## Current stabilisation hotfix — deployed
 
-- Production reproduction: 72 Business Plan Competition Month View cards after selecting all audiences.
-- Cloudflare preview after hotfix: zero Business Plan Competition Month View cards and one Events List record.
+- Production reproduction before deployment: 72 Business Plan Competition Month View cards after selecting all audiences.
+- Production after hotfix: zero Business Plan Competition Month View cards and one Events List record.
 - Sustainability Week Hanoi remained on 9–10 November; Experience Day Hanoi remained on 15 November, 08:00–16:00.
 - Full Vitest suite: 30 files, 310 tests passed.
 - `bun run check`: passed after a clean Vinext build.
 - `bun run build:vinext`: passed.
-- What's New `1.0.0` draft was verified as unpublished; automatic popup remained hidden.
+- Cloudflare version: `b764b36f-cbe6-43c2-9949-79e55a450b6d`.
+- What's New `1.0.0` popup, dismissal persistence, and manual reopen were verified in production.

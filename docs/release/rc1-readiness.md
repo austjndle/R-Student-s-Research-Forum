@@ -4,9 +4,9 @@ Date: 2026-11-08
 
 ## Decision
 
-**NOT READY for the current production version.** Production still contains the confirmed Business Plan Competition calendar-placement defect. The local hotfix is implemented and verified in the Cloudflare-compatible preview, but deployment and GitHub push were not authorized for this sprint.
+**READY WITH WARNINGS.** The calendar hotfix and release notes were deployed after explicit approval. GitHub commit `4ee666d` is on `origin/main`; Cloudflare version `b764b36f-cbe6-43c2-9949-79e55a450b6d` is live at `https://r-students-searchsite.rstuhub.workers.dev`.
 
-The previously deployed RC1 artifact remains operational. The next release-note entry is prepared as an unpublished bilingual draft and is intentionally not visible until that release-note change is deployed and verified.
+Production now deduplicates the Business Plan Competition record, keeps it in Events List, and omits it from daily Week/Month placements. The bilingual `1.0.0` What's New entry is published and verified.
 
 ## Verification summary
 
@@ -44,10 +44,10 @@ A mixed Next-dev/Vinext-build workspace can leave incompatible generated `.next/
 
 ## Current stabilisation sprint
 
-- Production reproduction: Business Plan Competition appeared 72 times in Month View after selecting all audiences.
-- Preview result: one Events List record, zero Month View placements; Sustainability Week Hanoi remains 9–10 November and Experience Day Hanoi remains 15 November, 08:00–16:00.
+- Production reproduction before hotfix: Business Plan Competition appeared 72 times in Month View after selecting all audiences.
+- Production result after hotfix: one Events List record, zero Month View placements; Sustainability Week Hanoi remains 9–10 November and Experience Day Hanoi remains 15 November, 08:00–16:00.
 - Search, RAG validation, deterministic chat tests, scholarships, contacts, attribution, donation-removal checks, and representative responsive checks remain passing.
-- What's New `1.0.0` bilingual notes are present as `published: false`; the automatic popup remains hidden until the notes are deployed.
+- What's New `1.0.0` bilingual notes are published; automatic popup, dismiss persistence, and manual reopen were verified in production.
 
 ## Release blockers
 
