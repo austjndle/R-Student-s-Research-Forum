@@ -18,6 +18,19 @@ The dependency scanner sidecar was unavailable, so no new package was added; exi
 - `/admin/sync` is protected and was not exercised without an authorized token. `/qa-release` is intentionally local-only in production.
 - No new package was introduced. Existing `next`, `vinext`, and `@vinext/cloudflare` patch releases were upgraded; transitive `fflate` and `postcss` overrides remove the reported audit advisories.
 
+## Current feature architecture
+
+The later structural migration organizes product ownership under `features/`, shared contracts/UI under `shared/`, and runtime integrations under `platform/`. `app/` files are route adapters; `worker/index.ts` is the Hono composition root; `worker/entry.ts` retains Cloudflare fetch/scheduled behavior and Durable Object exports.
+
+Current ownership examples:
+
+- `features/events/`: calendar data, UI, ICS, event review, and event routes.
+- `features/clubs/`, `features/scholarships/`, `features/academics/`, `features/contacts/`, and `features/facilities/`: product data/UI and public contracts.
+- `features/search/` and `features/assistant/`: search, RAG, Mr Hachiware, and quota-facing routes.
+- `features/guides/`, `features/knowledge/`, `features/content-sync/`, and `features/changelog/`: guide/topic content, sync/review, and release UI/data.
+- `shared/`: UI shell, i18n, verification, events, and domain contracts.
+- `platform/`: Cloudflare environment, RAG provider/ingestion contracts, and runtime/session security.
+
 ## Deliverable A — Audit issue log
 
 | ID | Route / area | Finding and evidence | Root cause | Resolution | Status |
@@ -46,21 +59,19 @@ The dependency scanner sidecar was unavailable, so no new package was added; exi
 
 ### Modified
 
-- `data/events/calendar.ts`: Vietnam-local date-only status handling and evidence-derived event audience classification.
-- `components/calendar/TimetableView.tsx`, `data/events/calendar.ts`: inclusive verified multi-day placement and shared timezone-safe time formatting.
+- `features/events/data/calendar.ts` and `features/academics/data/calendar.ts`: Vietnam-local date-only status handling, evidence-derived event audience classification, and academic milestones.
+- `features/events/components/TimetableView.tsx`, `features/events/data/calendar.ts`: inclusive verified multi-day placement and shared timezone-safe time formatting.
 - `app/events/page.tsx`: current-student audience default.
 - `app/page.tsx`: prospective-only events excluded from homepage recommendations; date-only status reused.
 - `app/sitemap.ts`: knowledge-document guide fallback routes included.
-- `lib/i18n/context.tsx`: synchronized document language attribute.
-- `lib/i18n/translations.ts`: privacy wording corrected and dead calendar-download strings removed.
+- `shared/i18n/context.tsx`, `shared/i18n/translations.ts`: synchronized document language attribute, corrected privacy wording, and removed dead calendar-download strings.
 - `README.md`: content-sync/deployment statements corrected to match the deployed configuration.
 - `package.json`, `bun.lock`: patched framework and transitive dependency versions/overrides.
-- `app/layout.tsx`, `app/robots.ts`, `app/topics/[slug]/page.tsx`, `app/guides/[slug]/page.tsx`, `app/clubs/[id]/page.tsx`, `components/layout/Navbar.tsx`, `worker/entry.ts`: SEO metadata, robots policy, dynamic titles, and public `Research Hub` branding normalized.
-- `tests/i18n-content.test.ts`: updated the intentional public-brand assertion.
-- `tests/events.test.ts`, `tests/production-accuracy.test.ts`, `tests/automation-v3.test.ts`: exact-date, audience, UTC-boundary, timed, date-only, and ICS coverage.
-- `app/api/search/route.ts`, `components/clubs/ClubDetail.tsx`, `app/search/page.tsx`, `app/globals.css`: API allow-list validation, landmark correction, heading correction, and dark-theme contrast fix.
-- `app/page.tsx`, `components/calendar/CalendarExplorer.tsx`, `app/guides/page.tsx`, `app/contacts/page.tsx`, `components/scholarships/ScholarshipDirectory.tsx`, `app/facilities/page.tsx`, `components/chat/ChatWidget.tsx`: final compact UI polish, shared event-card layout, calendar list spacing, standardized 4:3 thumbnails, campus-hour heading/resource reduction, scholarship campus semantics, contact progressive disclosure, and compact launcher.
-- `components/clubs/ClubDirectory.tsx`: restored the original image-forward card values from the pre-compaction Git baseline; filters, links, and Club Detail simplification were preserved.
+- `app/layout.tsx`, `app/robots.ts`, dynamic route adapters, `shared/ui/Navbar.tsx`, and `worker/entry.ts`: SEO metadata, robots policy, dynamic titles, and public `Research Hub` branding normalized.
+- `features/*/__tests__/`: exact-date, audience, UTC-boundary, timed, date-only, ICS, API, and content regression coverage co-located with feature ownership.
+- `features/search/server/next-route.ts`, `features/clubs/components/ClubDetail.tsx`, `app/search/page.tsx`, `app/globals.css`: API allow-list validation, landmark correction, heading correction, and dark-theme contrast fix.
+- `features/home/`, `features/events/components/`, `features/guides/components/`, `features/contacts/components/`, `features/scholarships/components/`, `features/facilities/components/`, and `features/assistant/components/`: compact UI polish, calendar/event layout, standardized thumbnails, campus-hours resource reduction, scholarship campus semantics, contact progressive disclosure, and compact launcher.
+- `features/clubs/components/ClubDirectory.tsx`: restored the original image-forward card values from the pre-compaction Git baseline; filters, links, and Club Detail simplification were preserved.
 
 ### Added
 

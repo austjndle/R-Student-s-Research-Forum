@@ -21,7 +21,7 @@ The existing static TypeScript corpus remains last-known-good content. Dynamic m
 
 ## Smart Automation v3 additions
 
-- `lib/sync/quality.ts` provides configurable `CURRENT`, `REVIEW_DUE`, `STALE`, `SOURCE_UNAVAILABLE`, and `CONFLICTED` states plus field-level event date conflicts.
+- `features/content-sync/domain/quality.ts` provides configurable `CURRENT`, `REVIEW_DUE`, `STALE`, `SOURCE_UNAVAILABLE`, and `CONFLICTED` states plus field-level event date conflicts.
 - Static RAG retrieval applies freshness penalties; dynamic events with stale/source-unavailable/conflicted status are excluded from current Search/RAG presentation.
 - `/admin/sync` is a token-gated review UI backed by `/api/admin/sync`; approval, rejection, and rollback actions are server-authorized.
 - `/api/events/:id/ics` provides timezone-aware `.ics` download only for confirmed published events.
@@ -43,7 +43,7 @@ Payload: `{ messageId?, from, subject, receivedAt?, text }`. Only `@rmit.edu.vn`
 The current `workers.dev` URL is not an Outlook mailbox. To make forwarding automatic, configure an approved relay (for example Power Automate/Microsoft Graph or a custom-domain email worker) to POST the forwarded message to the endpoint. This requires an approved token and an actual Outlook/custom-domain integration; no mailbox credentials are stored in R-Students.
 
 
-`lib/sync/registry.ts` contains the approved registry. The active event prototype monitors:
+`features/content-sync/data/registry.ts` contains the approved registry. The active event prototype monitors:
 
 - Student Activities and Events
 - Student News and Events
@@ -120,13 +120,13 @@ Temporary HTTP failure never deletes events.
 ## Tests and controlled validation
 
 ```bash
-npx vitest run --config vitest.config.ts tests/content-sync.test.ts
+npx vitest run --config vitest.config.ts features/content-sync/__tests__/content-sync.test.ts
 npm run check
 npm run rag:validate
 npm run rag:smoke
 ```
 
-`tests/content-sync.test.ts` covers new events, date updates, no-change behavior, campus separation, source failure retention, and incomplete extraction review.
+`features/content-sync/__tests__/content-sync.test.ts` covers new events, date updates, no-change behavior, campus separation, source failure retention, and incomplete extraction review.
 
 ## Operational report
 

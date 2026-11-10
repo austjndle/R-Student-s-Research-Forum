@@ -1,7 +1,7 @@
-import { getKnowledgeChunks, getSourceRegistry } from "../lib/rag/corpus";
-import { buildEvidencePackage } from "../lib/rag/evidence";
-import { retrieveHybridSync } from "../lib/rag/retrieval";
-import { validateIngestionUrl } from "../lib/rag/ingestion";
+import { getKnowledgeChunks, getSourceRegistry } from "@/features/assistant/rag/public"
+import { buildEvidencePackage } from "@/features/assistant/rag/public"
+import { retrieveHybridSync } from "@/features/assistant/rag/public"
+import { validateIngestionUrl } from "@/platform/rag/ingestion"
 
 const command = process.argv[2] ?? "inventory";
 const chunks = getKnowledgeChunks();

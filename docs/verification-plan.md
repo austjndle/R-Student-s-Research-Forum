@@ -5,7 +5,7 @@
 - Experience Day sync candidates with `campus: all` are rejected; Hanoi and Saigon South instances remain separate.
 - Static and dynamic event consumers use the canonical event ID and the updated index version.
 - English and Vietnamese translation dictionaries have identical key shapes; changed UI surfaces are checked in both languages.
-- Week and month views derive from the filtered canonical event collection, show `Time TBA` for date-only records, and handle multi-day overlap.
+- Week and month views derive from the filtered canonical event collection, show a time only when verified or explicitly pending, and handle verified multi-day overlap.
 - Per-event and collection ICS exports use stable UIDs, Vietnam timezone metadata, and exclusive date-only end dates.
 - Club recruitment imports are bound to an existing club and its official channel; expired records cannot be submitted as open.
 - Pending recruitment records remain private; only approved records are returned by the public club endpoint.
@@ -49,3 +49,15 @@
 - ICS regression: timed event exports `DTSTART;TZID=Asia/Ho_Chi_Minh:20261115T080000` / matching `DTEND`; date-only range exports `DTSTART;VALUE=DATE:20261109` and exclusive `DTEND;VALUE=DATE:20261111`.
 - Event List regression: every card has a `16px` vertical gap; poster thumbnails are identical `4:3` containers across the tested viewports.
 - No production deployment was performed for the current audit patch.
+
+## Feature architecture migration verification
+
+- `bun run check`: passed after migration.
+- `bun run test --config vitest.config.ts`: 30 files, 310 tests passed.
+- `bun run rag:validate`: no duplicate chunks, invalid URLs, or broken source mappings.
+- `bun run build:vinext`: passed; non-fatal Lucide barrel optimization warnings remain.
+- Cloudflare-compatible Wrangler preview: 122/122 inventory routes returned HTTP 200; key page stylesheets returned HTTP 200 with `text/css`.
+- Preview API checks: valid search/events/ICS returned 200; invalid search limit returned 400; protected admin sync returned 401.
+- Responsive smoke: 320, 390, 768, and 1440px checks reported no horizontal overflow on representative routes.
+- No schema, binding, public route, API contract, dependency, or pricing changes.
+- Production deployment and GitHub push are the release actions for this approved change; record their result after post-deployment smoke checks.

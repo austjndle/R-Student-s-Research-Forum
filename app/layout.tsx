@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/components/Providers";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { ChatWidget } from "@/components/chat/ChatWidget";
-import { WhatsNewModal } from "@/components/changelog/WhatsNewModal";
+import { Providers } from "@/shared/ui/Providers";
+import { Navbar } from "@/shared/ui/Navbar";
+import { Footer } from "@/shared/ui/Footer";
+import { ChatWidget } from "@/features/assistant/ui";
+import { WhatsNewModal } from "@/features/changelog/ui";
 
 const plexSans = IBM_Plex_Sans({
   subsets: ["vietnamese", "latin"],

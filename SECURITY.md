@@ -60,10 +60,10 @@ Tested using Vitest & k6 scenarios:
 - **Race Condition Resistance:** 20 simultaneous quota reservation attempts on a 10-quota visitor allowed exactly 10 and blocked exactly 10 without overdraft.
 ## 5. Calendar Sources & Private Event Review
 
-- Public calendar entries are static, source-linked records from the verified registry in `data/events/sources.ts`.
+- Public calendar entries are source-linked records from the verified registry in `features/events/data/sources.ts`; the Worker read path also merges published dynamic Content Sync events through `features/events/server/routes.ts`.
 - Candidate events must use a registered source, HTTPS URLs, bounded text fields, valid ISO dates, and an allowed category/campus before storage.
 - The private `/api/admin/events` workflow requires a bearer token from the `EVENT_ADMIN_TOKEN` Cloudflare secret. Missing configuration fails closed.
-- Drafts and review status are stored in the `EventReviewDurableObject`; the public UI can read only published static entries.
+- Drafts and review status are stored in the `EventReviewDurableObject`; the public UI can read only published records.
 - Review actions are limited to `GET`, `POST`, and `PATCH`; unsupported HTTP methods are rejected by the Worker.
 - Facebook is manual/admin-assisted only. Personal credentials, cookies, access tokens, private messages, and authenticated browser sessions are never stored or sent to production.
 - **TODO(security):** connect admin identity to an organization-managed OIDC/RBAC provider before expanding the private workflow beyond a small maintainer group.

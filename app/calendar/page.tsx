@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CalendarExplorer } from "@/components/calendar/CalendarExplorer";
+import { CalendarExplorer } from "@/features/events/components/CalendarExplorer";
 
 export const metadata: Metadata = {
   title: "Academic Calendar | R-Students' Research Hub",

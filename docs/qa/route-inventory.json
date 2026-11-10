@@ -3,10 +3,10 @@
   "sourceFiles": [
     "app/**/page.tsx",
     "app/sitemap.ts",
-    "data/knowledge/schema.ts",
-    "data/guides/guides.ts",
-    "data/knowledge/documents.ts",
-    "data/clubs/clubs.ts"
+    "features/knowledge/data/schema.ts",
+    "features/guides/data/guides.ts",
+    "features/knowledge/data/documents.ts",
+    "features/clubs/data/clubs.ts"
   ],
   "counts": {
     "static": 11,

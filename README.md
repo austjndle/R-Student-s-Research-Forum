@@ -33,39 +33,29 @@ R-Students' Research Hub is a high-performance web platform built specifically f
 
 ```text
 R-students' research hub/
-├── app/
-│   ├── api/                  # Existing Gemini, usage, and search routes
-│   ├── calendar/page.tsx     # Unified academic dates and campus events
-│   ├── events/page.tsx       # Campus events view
-│   ├── search/page.tsx       # Smart Search interface
-│   ├── guides/               # Research Guides
-│   ├── topics/               # Topic categories
-│   ├── contacts/             # Verified University Contact Directory
-│   ├── about/                # About, source registry, and independence notice
-│   ├── globals.css           # Swiss Academic semantic design tokens
-│   ├── layout.tsx            # Root layout with navigation, footer, and assistant
-│   └── page.tsx              # Search-first Swiss Academic homepage
-├── components/
-│   ├── calendar/CalendarExplorer.tsx # Accessible calendar and event filters
-│   ├── layout/               # Responsive Navbar and Footer
-│   └── chat/                 # Existing Gemini AI Assistant widget
-├── data/
-│   ├── events/               # Verified sources and curated calendar entries
-│   ├── knowledge/            # Verified RMIT records
-│   ├── contacts/             # Department contact channels
-│   └── guides/               # Student research guides
-├── durable-objects/
-│   ├── ai-quota.ts           # Atomic anonymous AI quota
-│   └── event-review.ts       # Private event draft and approval storage
-├── lib/
-│   ├── events/               # Admin token verification and candidate validation
-│   ├── ai/                   # Gemini proxy and RAG
-│   ├── search/               # Bilingual search engine
-│   └── i18n/                 # English/Vietnamese translations
-├── worker/                   # Cloudflare Worker entry and API router
-├── tests/                    # Vitest unit and concurrency tests
-├── wrangler.jsonc            # Cloudflare Workers configuration
-└── SECURITY.md               # Security and production hardening documentation
+├── app/                         # Thin Next.js route and API adapters
+├── features/
+│   ├── events/                  # Calendar/event domain, UI, ICS and review
+│   ├── clubs/                   # Club directory, profiles and recruitment domain
+│   ├── scholarships/            # Scholarships and academic recognition
+│   ├── academics/               # Schools, SSET and academic datasets
+│   ├── contacts/                # Contact directory and student services
+│   ├── facilities/              # Campus access hours and RMIT Space
+│   ├── guides/                  # Research guides and templates
+│   ├── knowledge/               # Topics, documents and sitemap data
+│   ├── search/                  # Search application and API routes
+│   ├── assistant/               # Mr Hachiware, RAG and quota orchestration
+│   ├── content-sync/            # Source sync, review and publication
+│   ├── changelog/               # What's New release data and UI
+│   ├── home/                    # Homepage feature
+│   └── institutional/           # About and Privacy pages
+├── shared/                      # Shared UI, i18n, verification and domain contracts
+├── platform/                    # Cloudflare, RAG and runtime adapters
+├── durable-objects/             # Durable Object class implementations
+├── worker/                      # Cloudflare Worker composition root
+├── migrations/                  # Optional D1 schema
+├── wrangler.jsonc               # Cloudflare Workers configuration
+└── SECURITY.md                  # Security and production hardening documentation
 ```
 ### Live Deployment
 - **Production URL:** [https://r-students-searchsite.rstuhub.workers.dev](https://r-students-searchsite.rstuhub.workers.dev)

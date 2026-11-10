@@ -2,13 +2,13 @@
 
 ## Existing system
 
-- **Frontend:** Next.js App Router / React, built for Cloudflare Workers with Vinext. `components/chat/ChatWidget.tsx` is a responsive, bilingual client widget.
-- **Public API paths:** `app/api/chat/route.ts` for local/Next runtime and `worker/index.ts` for the deployed Worker router. Both currently duplicate chat orchestration.
+- **Frontend:** Next.js App Router / React, built for Cloudflare Workers with Vinext. `features/assistant/components/ChatWidget.tsx` is a responsive, bilingual client widget.
+- **Public API paths:** `app/api/chat/route.ts` is a thin local/Next adapter and `worker/index.ts` composes the deployed Worker router. Both use the feature-owned assistant application.
 - **Generation:** `@google/genai`, Gemini model selected by `GEMINI_MODEL`; Worker optionally uses the existing Workers AI binding.
 - **Quota:** `durable-objects/ai-quota.ts` is the deployed atomic 10-question/day store. The Next route currently falls back to process memory and is not equivalent to production.
-- **Knowledge:** curated TypeScript records for policies, contacts, facilities/floor plans, clubs/recruitment, events/calendar, scholarships, global experience, and guides. `data/knowledge/indexManifest.ts` is the existing static source boundary.
-- **Search:** `lib/search/engine.ts` performs bilingual diacritic-insensitive weighted lexical matching with campus/category filters and auxiliary structured records. It is useful exact-match infrastructure but does not expose chunk IDs, evidence states, or provider-independent retrieval contracts.
-- **PDFs:** no checked-in PDF files. Floor-plan URLs and manually reviewed page/room facts are stored in `data/facilities/campusHours.ts`; records explicitly mark `needs_review` and `conflicting` facts.
+- **Knowledge:** curated TypeScript records for policies, contacts, facilities/floor plans, clubs/recruitment, events/calendar, scholarships, global experience, and guides. `features/knowledge/data/indexManifest.ts` is the existing static source boundary.
+- **Search:** `features/search/application/engine.ts` performs bilingual diacritic-insensitive weighted lexical matching with campus/category filters and auxiliary structured records. It is useful exact-match infrastructure but does not expose chunk IDs, evidence states, or provider-independent retrieval contracts.
+- **PDFs:** no checked-in PDF files. Floor-plan URLs and manually reviewed page/room facts are stored in `features/facilities/data/campusHours.ts`; records explicitly mark `needs_review` and `conflicting` facts.
 - **Security:** server-side secrets, signed anonymous cookie, request-size limits, scope checks, rate controls, CSP/security headers, and an authenticated event-review endpoint already exist.
 
 ## Architecture decision
@@ -45,14 +45,14 @@ flowchart TD
 
 ## Boundaries
 
-1. `lib/rag/types.ts`: stable contracts for chunks, sources, query analysis, retrieval, evidence, providers, and diagnostics.
-2. `lib/rag/corpus.ts`: adapters for existing structured records; no duplicate manually maintained database.
-3. `lib/rag/query.ts`: deterministic bilingual normalization, intent, entity, campus, temporal and exact-identifier extraction.
-4. `lib/rag/retrieval.ts`: lexical retrieval now; optional embedding/vector adapters later; strict campus/year filters.
-5. `lib/rag/evidence.ts`: source allow-list, authority ordering, conflict and sufficiency classification, compact context construction.
-6. `lib/rag/providers.ts`: Gemini primary, Workers AI fallback adapter, and embedding abstraction. Providers never own indexing or retrieval.
-7. `lib/rag/ingestion.ts`: idempotent chunk hashing, structured adapters, text/PDF page ingestion boundary, stale-record reporting, and D1 migration output.
-8. `lib/rag/chat-service.ts`: one orchestration contract shared by both API surfaces.
+1. `platform/rag/types.ts`: stable contracts for chunks, sources, query analysis, retrieval, evidence, providers, and diagnostics.
+2. `features/assistant/rag/corpus.ts`: adapters for existing structured records; no duplicate manually maintained database.
+3. `features/search/application/query.ts`: deterministic bilingual normalization, intent, entity, campus, temporal and exact-identifier extraction.
+4. `features/assistant/rag/retrieval.ts`: lexical retrieval now; optional embedding/vector adapters later; strict campus/year filters.
+5. `features/assistant/rag/evidence.ts`: source allow-list, authority ordering, conflict and sufficiency classification, compact context construction.
+6. `platform/rag/providers.ts`: Gemini primary, Workers AI fallback adapter, and embedding abstraction. Providers never own indexing or retrieval.
+7. `platform/rag/ingestion.ts`: idempotent chunk hashing, structured adapters, text/PDF page ingestion boundary, stale-record reporting, and D1 migration output.
+8. `features/assistant/rag/chat-service.ts`: one orchestration contract shared by both API surfaces.
 
 ## Cost/latency estimate
 

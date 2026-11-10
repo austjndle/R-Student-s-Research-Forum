@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { ClubDirectory } from "@/components/clubs/ClubDirectory";
-import { parseClubDirectoryContext } from "@/lib/clubs/navigation";
+import { ClubDirectory } from "@/features/clubs/ui";
+import { clubDirectoryContextFromSearchParams } from "@/features/clubs/public";
 
 export const metadata: Metadata = {
   title: "RMIT Student Clubs | R-Students' Research Hub",
@@ -8,10 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default async function ClubsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const values = await searchParams;
-  const params = new URLSearchParams();
-  for (const key of ["campus", "category", "q"]) {
-    if (typeof values[key] === "string") params.set(key, values[key]);
-  }
-  return <ClubDirectory initialContext={parseClubDirectoryContext(params)} />;
+  return <ClubDirectory initialContext={clubDirectoryContextFromSearchParams(await searchParams)} />;
 }

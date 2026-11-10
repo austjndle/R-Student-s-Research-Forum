@@ -2,7 +2,7 @@
 
 ## Implemented routing
 
-Mr Hachiware now has deterministic route classification in `lib/ai/query-router.ts`:
+Mr Hachiware now has deterministic route classification in `features/assistant/application/query-router.ts`:
 
 - `direct_retrieval`: complete factual evidence and factual intent; no provider call.
 - `general_guidance`: student-life advice; deterministic guidance.
@@ -13,7 +13,7 @@ Classroom-permission questions are explicitly separated from dining queries. For
 
 ## Cache
 
-`lib/ai/public-answer-cache.ts` provides a bounded in-memory cache for reusable public answers. Keys include:
+`features/assistant/application/public-answer-cache.ts` provides a bounded in-memory cache for reusable public answers. Keys include:
 
 - Knowledge index version
 - Language
@@ -25,7 +25,7 @@ Conversation history and page context disable reuse. TTL is 10 minutes and the c
 
 ## Budget guard
 
-`lib/ai/budget.ts` enforces a configurable default global limit of 1,000 LLM attempts/day per runtime process. The Worker config exposes `AI_GLOBAL_DAILY_LIMIT=1000`; user quota remains unchanged at 10/day through the Durable Object.
+`features/assistant/application/budget.ts` enforces a configurable default global limit of 1,000 LLM attempts/day per runtime process. The Worker config exposes `AI_GLOBAL_DAILY_LIMIT=1000`; user quota remains unchanged at 10/day through the Durable Object.
 
 The guard is fail-safe for an isolate and does not imply a globally coordinated account-wide provider budget across every Cloudflare isolate. A stronger account-wide limit requires extending the existing quota Durable Object with a dedicated global budget key before production high-volume use.
 

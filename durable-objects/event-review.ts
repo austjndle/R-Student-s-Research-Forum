@@ -1,5 +1,5 @@
-import type { EventSourceCheck } from "../lib/events/refresh";
-import type { EventReviewDraft } from "../lib/events/review";
+import type { EventSourceCheck } from "@/features/events/server/public"
+import type { EventReviewDraft } from "@/features/events/server/public"
 
 const DRAFTS_KEY = "event-review-drafts";
 const SOURCE_CHECKS_KEY = "event-source-checks";

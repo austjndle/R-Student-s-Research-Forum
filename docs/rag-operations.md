@@ -32,7 +32,7 @@ npm test -- --config vitest.config.ts
 
 `inventory` reports the source/chunk corpus and campus/category counts. `validate` checks stable IDs, source mappings, HTTPS URLs, and duplicate chunks. `smoke` exercises campus, floor-plan, club, scholarship, and general-advice retrieval without calling an LLM.
 
-For external text/PDF ingestion, use the `lib/rag/ingestion.ts` boundary. Fetch and parse documents in a maintainer-controlled job, preserve page numbers, pass only approved HTTPS sources, compare SHA-256 source hashes, and review the returned changed/unchanged/stale/failed report before upserting. There is intentionally no public ingestion endpoint.
+For external text/PDF ingestion, use the `platform/rag/ingestion.ts` boundary. Fetch and parse documents in a maintainer-controlled job, preserve page numbers, pass only approved HTTPS sources, compare SHA-256 source hashes, and review the returned changed/unchanged/stale/failed report before upserting. There is intentionally no public ingestion endpoint.
 
 ## Optional D1/Vectorize activation
 

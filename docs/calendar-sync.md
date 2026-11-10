@@ -1,6 +1,6 @@
 # Calendar and Outlook compatibility
 
-R-Students uses the canonical `CalendarEntry` records in `data/events/calendar.ts` for the academic calendar and Campus Events views. The list, week, month, per-event ICS, and collection ICS views are projections of that same record set.
+R-Students uses the canonical `CalendarEntry` records in `features/events/data/calendar.ts` for the academic calendar and Campus Events views. The list, week, month, per-event ICS, and collection ICS views are projections of that same record set.
 
 ## Verified sources
 

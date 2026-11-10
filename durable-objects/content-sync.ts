@@ -1,6 +1,6 @@
-import type { ContentSnapshot, FeedbackReport, MonitoredEvent, PendingReview, SourceState, SyncRevision, SyncRunReport } from "../lib/sync/types";
-import type { RecruitmentReviewCandidate } from "../lib/clubs/recruitment-review";
-import { isForbiddenGenericCampusEvent } from "../lib/sync/extract-events";
+import type { ContentSnapshot, FeedbackReport, MonitoredEvent, PendingReview, SourceState, SyncRevision, SyncRunReport, CampusBuzzReport } from "@/features/content-sync/public";
+import type { RecruitmentReviewCandidate } from "@/features/clubs/public";
+import { isForbiddenGenericCampusEvent } from "@/features/content-sync/public";
 const STATE_KEY = "content-sync-source-state";
 const EVENTS_KEY = "content-sync-events";
 const SNAPSHOTS_KEY = "content-sync-snapshots";
@@ -135,13 +135,13 @@ export class ContentSyncDurableObject {
       return Response.json({ updated: true, id: body.id, reviewStatus: body.reviewStatus }, { headers: { "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/campus-buzz" && request.method === "POST") {
-      const report = await request.json<import("../lib/sync/campus-buzz").CampusBuzzReport>();
-      const reports = await this.read<import("../lib/sync/campus-buzz").CampusBuzzReport[]>(CAMPUS_BUZZ_KEY, []);
+      const report = await request.json<CampusBuzzReport>();
+      const reports = await this.read<CampusBuzzReport[]>(CAMPUS_BUZZ_KEY, []);
       await this.state.storage.put(CAMPUS_BUZZ_KEY, [report, ...reports].slice(0, MAX_HISTORY));
       return Response.json({ saved: true, id: report.id }, { status: 201, headers: { "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/sync/campus-buzz" && request.method === "GET") {
-      return Response.json({ reports: await this.read<import("../lib/sync/campus-buzz").CampusBuzzReport[]>(CAMPUS_BUZZ_KEY, []) }, { headers: { "Cache-Control": "no-store" } });
+      return Response.json({ reports: await this.read<CampusBuzzReport[]>(CAMPUS_BUZZ_KEY, []) }, { headers: { "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/feedback" && request.method === "POST") {
       const report = await request.json<FeedbackReport>();

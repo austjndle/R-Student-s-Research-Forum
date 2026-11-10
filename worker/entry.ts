@@ -1,29 +1,15 @@
 import apiRouter from "./index.js";
 import nextHandler from "../dist/server/index.js";
-import { checkOfficialEventSources } from "../lib/events/refresh";
-import { clearPublicAnswerCache } from "../lib/ai/public-answer-cache";
-import { runContentSync } from "../lib/sync/monitor";
-import { WorkerContentSyncStore } from "../lib/sync/worker-store";
+import { checkOfficialEventSources } from "@/features/events/server/public"
+import { clearPublicAnswerCache } from "@/features/assistant/public"
+import { runContentSync } from "@/features/content-sync/public";
+import { WorkerContentSyncStore } from "@/features/content-sync/server/public";
 export { AiQuotaDurableObject } from "../durable-objects/ai-quota";
 export { EventReviewDurableObject } from "../durable-objects/event-review";
 export { ContentSyncDurableObject } from "../durable-objects/content-sync";
+import type { WorkerEnv } from "@/platform/cloudflare/env";
 
-export interface Env {
-  AI_QUOTA_DO: DurableObjectNamespace;
-  EVENT_REVIEW_DO: DurableObjectNamespace;
-  CONTENT_SYNC_DO: DurableObjectNamespace;
-  CONTENT_SYNC_ENABLED?: string;
-  EVENT_ADMIN_TOKEN?: string;
-  CAMPUS_BUZZ_INGEST_TOKEN?: string;
-  AI_GLOBAL_DAILY_LIMIT?: string;
-  APP_TIMEZONE: string;
-  GEMINI_MODEL: string;
-  GEMINI_API_KEY: string;
-  ANONYMOUS_SESSION_SECRET: string;
-  ASSETS?: Fetcher;
-}
-
-type NextHandlerFn = (req: Request, env: Env, ctx: ExecutionContext) => Promise<Response>;
+type NextHandlerFn = (req: Request, env: WorkerEnv, ctx: ExecutionContext) => Promise<Response>;
 
 const SECURITY_HEADERS: Record<string, string> = {
   "Content-Security-Policy": "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://generativelanguage.googleapis.com; upgrade-insecure-requests",
@@ -40,7 +26,7 @@ function withSecurityHeaders(response: Response): Response {
 }
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: WorkerEnv, ctx: ExecutionContext): Promise<Response> {
     if (!["GET", "HEAD", "POST", "PATCH"].includes(request.method)) {
       return withSecurityHeaders(new Response("Method Not Allowed", { status: 405, headers: { Allow: "GET, HEAD, POST, PATCH" } }));
     }
@@ -81,7 +67,7 @@ export default {
     if (env.ASSETS) return withSecurityHeaders(await env.ASSETS.fetch(request));
     return withSecurityHeaders(new Response("R-Students' Research Hub Cloudflare Worker", { status: 200 }));
   },
-  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(_controller: ScheduledController, env: WorkerEnv, ctx: ExecutionContext): Promise<void> {
     if (env.EVENT_REVIEW_DO) {
       const checks = await checkOfficialEventSources();
       const reviewId = env.EVENT_REVIEW_DO.idFromName("r-students-event-review");

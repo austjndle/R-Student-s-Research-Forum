@@ -1,0 +1,61 @@
+export {
+  buildAcademicRecognitionContext,
+  buildClubContext,
+  buildEventContext,
+  buildGlobalExperienceContext,
+  buildLostPropertyContext,
+  buildRAGContext,
+  buildScholarshipContext,
+  buildSSETContext,
+  buildSystemInstruction,
+  classifyQueryOutcome,
+  detectChatLanguage,
+  formatAcademicRecognitionFallback,
+  formatClubFallback,
+  formatFoodFacilityFallback,
+  formatGlobalExperienceFallback,
+  formatInsufficientEvidenceFallback,
+  formatKnowledgeAnswer,
+  formatLostPropertyFallback,
+  formatScholarshipFallback,
+  formatSSETFallback,
+  formatStudentLifeFallback,
+  isAcademicRecognitionQuery,
+  isFoodFacilityQuery,
+  isGlobalExperienceQuery,
+  isLostPropertyQuery,
+  isPracticalStudentLifeQuery,
+  isQueryInScope,
+  isScholarshipQuery,
+  isSimpleFactualQuery,
+  isSSETQuery,
+  resolveContextClubId,
+  resolveConversationQuery,
+  sanitizeChatHistory,
+} from "./application/gemini";
+export type {
+  AcademicRecognitionContext,
+  ChatHistoryTurn,
+  ChatMessage,
+  ClubContext,
+  EventContext,
+  GlobalExperienceContext,
+  GroundedContext,
+  LostPropertyContext,
+  QueryScopeOutcome,
+  QueryScopeResult,
+  QueryScopeState,
+  ScholarshipContext,
+  SSETContext,
+} from "./application/gemini";
+export { classifyChatRoute, classroomPermissionFallback, isClassroomPermissionQuery } from "./application/query-router";
+export type { ChatRoute } from "./application/query-router";
+export { refundGlobalLlmCall, reserveGlobalLlmCall, resetGlobalLlmBudget } from "./application/budget";
+export type { BudgetDecision } from "./application/budget";
+export {
+  clearPublicAnswerCache,
+  getPublicAnswer,
+  publicAnswerCacheKey,
+  setPublicAnswer,
+} from "./application/public-answer-cache";
+export type { PublicAnswerCacheEntry } from "./application/public-answer-cache";

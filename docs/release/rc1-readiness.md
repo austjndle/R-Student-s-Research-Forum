@@ -28,7 +28,7 @@ Production now deduplicates the Business Plan Competition record, keeps it in Ev
 
 ## Important runtime finding
 
-Vinext development mode still generates a stylesheet URL that returned HTTP 404 during local development. This is separate from the production-compatible artifact: the built artifact served CSS correctly under Wrangler. The supported manual localhost workflow is the repository's Next.js command on port 3001; Cloudflare compatibility must be validated with the Wrangler preview command.
+Vinext development mode still generates a stylesheet URL that returned HTTP 404 during local development. The built artifact serves CSS correctly under Wrangler. The default Next.js command uses port 3000; for manual localhost UI work use `bun run dev -- --port 3001 --hostname 127.0.0.1`. Cloudflare compatibility must be validated with the Wrangler preview command.
 
 A mixed Next-dev/Vinext-build workspace can leave incompatible generated `.next/types` files. The release check was restored by stopping Next dev, rebuilding Vinext cleanly, and running `bun run check` against the generated Vinext types.
 

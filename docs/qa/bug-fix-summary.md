@@ -19,7 +19,7 @@ Route inventory: [`route-inventory.json`](./route-inventory.json)
 
 ## Club restoration
 
-The current `components/clubs/ClubDirectory.tsx` card presentation was compared with Git history. The recent compact changes were limited to the image wrapper, image fit, fallback initials size, content padding, title spacing, and description height. Those visual changes were restored to the original pre-compaction presentation from the current baseline commit; no club records or detail-page recruitment code was restored.
+The current `features/clubs/components/ClubDirectory.tsx` card presentation was compared with Git history. The recent compact changes were limited to the image wrapper, image fit, fallback initials size, content padding, title spacing, and description height. Those visual changes were restored to the original pre-compaction presentation from the current baseline commit; no club records or detail-page recruitment code was restored.
 
 Preserved:
 

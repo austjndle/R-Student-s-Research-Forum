@@ -6,10 +6,10 @@ The inventory is generated from the checked-in authoritative datasets and the ex
 
 | Family | Existing source | Authority | Campus handling | Notes |
 |---|---|---:|---|---|
-| Official web pages | `data/knowledge/indexManifest.ts`, `lib/knowledge/sync.ts` | Tier 1 | `all` or record-specific | Runtime chat never fetches external pages. Refresh is maintainer-controlled. |
+| Official web pages | `features/knowledge/data/indexManifest.ts`, `features/content-sync/application/knowledge-sync.ts` | Tier 1 | `all` or record-specific | Runtime chat never fetches external pages. Refresh is maintainer-controlled. |
 | Official PDFs | Floor-plan and academic-calendar URLs in the manifest/facilities data | Tier 1 | SGS/Hanoi preserved | Page references are retained. Graphical/ambiguous labels remain `needs_review`. |
-| Structured RMIT records | `data/knowledge/documents.ts`, calendar, facilities, contacts, scholarships, guides | Tier 3 with official source links | Explicit metadata | Reused directly through adapters; no manual duplicate database. |
-| Official student organisations | `data/clubs/*` and official-page metadata | Tier 2 | Club campus is mandatory | Recruitment fields remain unknown when not verified. |
+| Structured RMIT records | `features/knowledge/data/documents.ts`, calendar, facilities, contacts, scholarships, guides | Tier 3 with official source links | Explicit metadata | Reused directly through adapters; no manual duplicate database. |
+| Official student organisations | `features/clubs/data/*` and official-page metadata | Tier 2 | Club campus is mandatory | Recruitment fields remain unknown when not verified. |
 | General guidance | deterministic student-life responses | Tier 4 | Not institutional fact | Never overrides official records. |
 
 ## Coverage
