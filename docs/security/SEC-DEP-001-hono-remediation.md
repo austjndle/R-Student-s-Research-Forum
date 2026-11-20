@@ -3,7 +3,7 @@
 **Scope:** Local dependency remediation and validation only
 **Production changes:** None
 **Merge/deployment:** Not approved or performed
-**Status:** READY FOR GITHUB-HOSTED CI REVIEW
+**Status:** HOSTED CI PASSED; AWAITING PRODUCT OWNER MERGE APPROVAL
 
 ## Root cause
 
@@ -36,7 +36,9 @@ Official sources:
 - `bun.lock`: root dependency and integrity-pinned package entry changed to `hono@4.13.19`.
 - No unrelated package or product files were changed by the dependency update.
 
-## Validation
+## Historical local validation
+
+These results were collected before hosted verification and are retained as local baseline evidence.
 
 Executed with Bun `1.4.5`:
 
@@ -47,6 +49,15 @@ Executed with Bun `1.4.5`:
 - `bun run build:vinext` — passed; existing Vinext warnings remain.
 
 Existing auth regression coverage includes unauthenticated sync/admin requests in `features/content-sync/__tests__/sync-route.test.ts` and `content-sync-integration.test.ts`. No new Hono-specific test was added because the affected middleware APIs are absent from this application; adding a source-presence test would not improve runtime coverage.
+
+## GitHub-hosted verification
+
+Commit `774f2f1fd6e13d3bade875deceb97041e99d9140` passed both Quality workflow runs:
+
+- [Push run 44716863024](https://github.com/austjndle/R-Student-s-Research-Forum/actions/runs/44716863024) — `SUCCESS`.
+- [Pull-request run 44718544636](https://github.com/austjndle/R-Student-s-Research-Forum/actions/runs/44718544636) — `SUCCESS`.
+- Both `quality` jobs passed locked install, dependency audit, Vinext build, TypeScript check, and the test suite.
+
 ## Independent review evidence
 
 Two separate OMP subagent contexts reviewed the post-remediation change; neither is human approval:
@@ -59,11 +70,11 @@ The request-size finding requires a separate owner-approved security work packag
 ## Remaining risks
 
 - Separate medium request-size hardening risk remains in existing API routes; it is outside this dependency remediation and needs owner-approved follow-up.
-- GitHub-hosted CI has not run this revision.
 - Branch protection and required checks remain unconfigured.
 - Vinext import-optimization and route-classification warnings remain.
+- The hosted runs emitted a non-blocking checkout maintenance warning: the pinned `actions/checkout` v4 commit targets Node.js 20 and is being forced onto Node.js 24; upgrade to a Node.js 24-compatible release as follow-up maintenance.
 - Exact Hono pin reduces accidental drift but requires deliberate security updates.
 
 ## Approval state
 
-The dependency remediation is locally validated and ready for hosted CI review. Product Owner approval is still required before merge; deployment remains separately unauthorized.
+The dependency remediation passed local and GitHub-hosted validation. Product Owner approval is still required before merge; deployment remains separately unauthorized.

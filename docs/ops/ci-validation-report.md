@@ -2,16 +2,19 @@
 
 **Scope:** Governance/CI activation only
 **Production changes:** None
-**GitHub Actions execution:** Not observed
-**Status:** NEEDS REVIEW for protected-branch activation
+**GitHub Actions execution:** Completed successfully for both push and pull-request events
+**Status:** Hosted quality gate passed; protected-branch activation still requires owner authorization
 
 ## Repository and remote evidence
 
 - Remote: `https://github.com/austjndle/R-Student-s-Research-Forum`
-- Current local branch: `ci-001-sec-req-001-local`
+- Historical local branch during the initial OPS-002 validation: `ci-001-sec-req-001-local`
 - `gh` CLI is unavailable.
-- GitHub Actions REST API for the public repository returned HTTP 200 with zero workflow runs.
-- The quality workflow is committed locally in `026e2a8`, but no GitHub-hosted execution exists for this revision.
+- The initial GitHub Actions REST check returned HTTP 200 with zero workflow runs; the subsequent hosted verification is recorded below.
+- For commit `774f2f1fd6e13d3bade875deceb97041e99d9140`, both Quality runs completed successfully:
+  - [Push run 44716863024](https://github.com/austjndle/R-Student-s-Research-Forum/actions/runs/44716863024) — `SUCCESS`.
+  - [Pull-request run 44718544636](https://github.com/austjndle/R-Student-s-Research-Forum/actions/runs/44718544636) — `SUCCESS`.
+  - Both `quality` jobs passed locked install, dependency audit, Vinext build, TypeScript check, and the test suite.
 
 ## Workflow controls
 
@@ -30,9 +33,10 @@
 
 Action commit SHAs were resolved from the corresponding public `v4` and `v2` tags. Pin maintenance remains an owner-approved dependency task.
 
-## Exact local Bun validation
+## Historical local Bun validation (pre-hosted verification)
 
-Bun was not on `PATH`. Bun `1.4.5` was executed from an isolated `npx` cache outside the repository context; this is not a substitute for GitHub-hosted execution, but it exercises the same CLI/version and commands.
+These local results were recorded before the hosted runs above; they are retained for comparison and are not hosted-CI evidence.
+Bun was not on `PATH`; Bun `1.4.5` was executed from an isolated `npx` cache outside the repository context. This is not a substitute for GitHub-hosted execution.
 
 | Command | Result | Evidence/limitation |
 |---|---|---|
@@ -56,10 +60,12 @@ The policy is conservative for a small student-facing platform. A future owner-a
 
 ## Current advisory finding
 
-The prior `hono@4.13.14` finding is remediated locally. `package.json` and `bun.lock` now pin the direct dependency to exact `hono@4.13.19`; the active moderate threshold audit returned `{}`. The dependency remediation record is `docs/security/SEC-DEP-001-hono-remediation.md`.
+The prior `hono@4.13.14` finding is remediated. `package.json` and `bun.lock` pin the direct dependency to exact `hono@4.13.19`; the local and hosted moderate-threshold audits returned `{}`. The dependency remediation record is `docs/security/SEC-DEP-001-hono-remediation.md`.
 
-The protected-branch proposal remains **not ready for activation** until the owner observes a successful GitHub-hosted run for this workflow revision, confirms required reviewers/checks, and authorizes repository settings changes. No advisory exception is required for the locally validated Hono result.
+The protected-branch proposal remains inactive. The hosted-run precondition is satisfied, but the owner must still confirm required reviewers/checks and authorize repository settings changes. No advisory exception is required for the validated Hono result.
 
 ## Build warnings
 
 The successful Vinext build emitted existing import-optimization skips for `lucide-react`, ineffective dynamic-import notices, and route-classification uncertainty. These do not block this process-only pilot, but they should remain in release reports and be investigated before relying on static/dynamic classification for deployment policy.
+
+The hosted runs also emitted a non-blocking maintenance warning: the pinned `actions/checkout` v4 commit targets Node.js 20 and is being forced onto Node.js 24. Upgrade to a Node.js 24-compatible checkout release as follow-up maintenance.
