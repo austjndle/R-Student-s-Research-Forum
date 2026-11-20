@@ -1,5 +1,5 @@
 import { processQuery, removeVietnameseDiacritics, searchKnowledgeBase, type SearchResultItem } from "@/features/search/public"
-import { DEPARTMENT_CONTACTS } from "@/features/contacts/public"
+import { DEPARTMENT_CONTACTS, getCanonicalPhoneInstruction, getPublishedCanonicalContact } from "@/features/contacts/public"
 import { CAMPUS_ACTIVITY_HIGHLIGHTS, getPublishedCalendarEntries, type CalendarEntry } from "@/features/events/public"
 import { getVerifiedClubs, type ClubCategory, type ClubRecord } from "@/features/clubs/public"
 import { RMIT_CAMPUS_HOURS } from "@/features/facilities/public"
@@ -17,6 +17,9 @@ import { ACADEMIC_RECOGNITION, type AcademicRecognitionRecord } from "@/features
 import { SSET_PROJECTS, SSET_PROGRAMS, SSET_URLS } from "@/features/academics/public"
 import { LOST_AND_FOUND_SERVICE } from "@/features/contacts/public";
 import { isClassroomPermissionQuery } from "./query-router";
+const STUDENT_CONNECT = getPublishedCanonicalContact("dept-student-connect");
+const STUDENT_CONNECT_PHONE_INSTRUCTION = getCanonicalPhoneInstruction(STUDENT_CONNECT);
+
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -371,7 +374,20 @@ function buildHanoiFacilityContext(query: string, language: "en" | "vi"): Ground
             ? "https://www.rmit.edu.vn/students/campus-life/campus-facilities"
             : match.document.officialSourceUrl;
   const document = { ...match.document, officialSourceUrl: sourceUrl };
-  return buildGroundedContextFromSearchResults([{ ...match, document }], language);
+  const groundedContext = buildGroundedContextFromSearchResults([{ ...match, document }], language);
+  if (!/student connect|trung tam ho tro/.test(normalized)) return groundedContext;
+  const phoneLine = language === "vi"
+    ? `Điện thoại Student Connect: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}.`
+    : `Student Connect phone: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.en}.`;
+  const sources = [...new Map(
+    [...groundedContext.sources, { title: "RMIT Vietnam Student Connect", url: STUDENT_CONNECT.websiteUrl }]
+      .map((source) => [source.url, source]),
+  ).values()];
+  return {
+    ...groundedContext,
+    contextText: `${groundedContext.contextText}\n\n[Verified canonical contact]\n${phoneLine}\nSource: ${STUDENT_CONNECT.websiteUrl}`,
+    sources,
+  };
 }
 export function buildRAGContext(query: string, language: "en" | "vi" = "en"): GroundedContext {
   if (isPracticalStudentLifeQuery(query)) {
@@ -1366,8 +1382,8 @@ export function formatKnowledgeAnswer(
 
   if (!doc) {
     return isVi
-      ? `Hiện tại Mr Hachiware chưa tìm thấy tài liệu chính thức trực tiếp khớp với câu hỏi: "${query}".\n\nBạn có thể thử tìm kiếm với các từ khóa ngắn gọn hơn (ví dụ: "đổi ngành", "học phí", "học bổng", "câu lạc bộ") hoặc liên hệ trực tiếp Student Connect (student.connect@rmit.edu.vn) để được hỗ trợ cụ thể.`
-      : `Mr Hachiware couldn't find an exact verified policy record matching: "${query}".\n\nPlease try searching with concise keywords (e.g. "change major", "tuition", "scholarships", "clubs") or reach out directly to Student Connect (student.connect@rmit.edu.vn).`;
+      ? `Hiện tại Mr Hachiware chưa tìm thấy tài liệu chính thức trực tiếp khớp với câu hỏi: "${query}".\n\nBạn có thể thử tìm kiếm với các từ khóa ngắn gọn hơn (ví dụ: "đổi ngành", "học phí", "học bổng", "câu lạc bộ") hoặc liên hệ Student Connect qua số ${STUDENT_CONNECT.phone} (${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}) hoặc trang chính thức ${STUDENT_CONNECT.websiteUrl}.`
+      : `Mr Hachiware couldn't find an exact verified policy record matching: "${query}".\n\nPlease try searching with concise keywords (e.g. "change major", "tuition", "scholarships", "clubs") or contact Student Connect at ${STUDENT_CONNECT.phone} (${STUDENT_CONNECT_PHONE_INSTRUCTION.en}) or use the official page ${STUDENT_CONNECT.websiteUrl}.`;
   }
   const exactAnswer = formatExactFactAnswer(doc, query, language);
   if (exactAnswer) return exactAnswer;

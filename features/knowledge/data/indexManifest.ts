@@ -14,8 +14,8 @@ export interface KnowledgeIndexSource {
  * Update this manifest when verified records or source documents change;
  * do not fetch RMIT pages during a user request.
  */
-export const KNOWLEDGE_INDEX_VERSION = "2026-11-07-event-dedup-timetable-verification-1";
-export const KNOWLEDGE_INDEX_LAST_BUILT = "2026-11-07";
+export const KNOWLEDGE_INDEX_VERSION = "2026-11-20-contacts-canonical-pilot-1";
+export const KNOWLEDGE_INDEX_LAST_BUILT = "2026-11-20";
 
 export const KNOWLEDGE_INDEX_SOURCES: readonly KnowledgeIndexSource[] = [
   {
@@ -103,8 +103,8 @@ export const KNOWLEDGE_INDEX_SOURCES: readonly KnowledgeIndexSource[] = [
     title: "R-Students verified contact directory",
     url: "https://www.rmit.edu.vn/students/support/student-connect",
     kind: "curated_static_dataset",
-    lastVerifiedDate: "2026-11-03",
-    notes: "Static contact records retain source URLs and verification dates; no private student records are indexed.",
+    lastVerifiedDate: "2026-11-20",
+    notes: "Student Connect canonical contact record; source version rmit-student-connect-page-2026-11-20. Static contact records retain official source URLs and verification dates; no private student records are indexed.",
   },
   {
     id: "rmit-sset-overview",

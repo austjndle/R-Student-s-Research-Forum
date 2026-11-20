@@ -1,3 +1,6 @@
+import { getPublishedCanonicalContact } from "@/features/contacts/public";
+const STUDENT_CONNECT = getPublishedCanonicalContact("dept-student-connect");
+
 export interface GuideStep {
   number: number;
   titleEn: string;
@@ -117,6 +120,7 @@ export const RESEARCH_GUIDES: ResearchGuide[] = [
     descriptionEn: "Learn the fastest ways to submit administrative inquiries and ensure prompt resolution.",
     descriptionVi: "Phương pháp gửi yêu cầu hành chính nhanh nhất và theo dõi xử lý hồ sơ không bị gián đoạn.",
     readTimeMinutes: 3,
+    lastVerifiedDate: STUDENT_CONNECT.source.verifiedAt,
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/current-students/student-council.jpg",
     steps: [
       {
@@ -137,12 +141,12 @@ export const RESEARCH_GUIDES: ResearchGuide[] = [
         number: 3,
         titleEn: "Visit the Service Counter for Urgent Inquiries",
         titleVi: "Đến trực tiếp quầy hỗ trợ đối với các vấn đề khẩn cấp",
-        contentEn: "For same-day letter collection or immediate registration blocks, visit Building 1 Ground Floor (Saigon South) or Handi Resco Level 1 (Hanoi).",
-        contentVi: "Nếu cần nhận giấy xác nhận gấp hoặc gặp lỗi đăng ký cần mở khóa trong ngày, hãy tới quầy trực tiếp tại Tòa nhà 1 (Nam Sài Gòn) hoặc Tòa nhà Handi Resco (Hà Nội)."
+        contentEn: `For same-day letter collection or immediate registration blocks, visit the Student Connect walk-in desk during ${STUDENT_CONNECT.serviceHours.en}. ${STUDENT_CONNECT.location.en}.`,
+        contentVi: `Nếu cần nhận giấy xác nhận gấp hoặc gặp lỗi đăng ký cần mở khóa trong ngày, hãy tới quầy Student Connect trong giờ ${STUDENT_CONNECT.serviceHours.vi}. ${STUDENT_CONNECT.location.vi}.`
       }
     ],
     officialReferences: [
-      { title: "RMIT Vietnam Student Connect Hub", url: "https://www.rmit.edu.vn/students/support/student-connect" }
+      { title: "RMIT Vietnam Student Connect Hub", url: STUDENT_CONNECT.websiteUrl }
     ],
     relatedGuideSlugs: ["how-to-write-an-effective-university-enquiry", "how-to-find-right-department"]
   },

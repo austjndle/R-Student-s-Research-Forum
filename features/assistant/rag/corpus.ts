@@ -338,6 +338,8 @@ function contactChunks(): KnowledgeChunk[] {
       department.descriptionVi,
       department.email,
       department.phone,
+      department.phoneInstructionEn,
+      department.phoneInstructionVi,
       department.locationEn,
       department.locationVi,
       ...department.responsibilitiesEn,

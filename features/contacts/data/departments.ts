@@ -1,4 +1,8 @@
+import { getCanonicalPhoneInstruction, getPublishedCanonicalContact } from "./canonical";
 import { ACADEMIC_SCHOOL_CONTACTS } from "./academicSchools";
+const STUDENT_CONNECT = getPublishedCanonicalContact("dept-student-connect");
+const STUDENT_CONNECT_PHONE_INSTRUCTION = getCanonicalPhoneInstruction(STUDENT_CONNECT);
+
 
 export interface SpecializedContact {
   id: string;
@@ -29,6 +33,8 @@ export interface DepartmentContact {
   emailLabelEn?: string;
   emailLabelVi?: string;
   phone: string | null;
+  phoneInstructionEn?: string;
+  phoneInstructionVi?: string;
   formUrl: string | null;
   websiteUrl: string;
   campus: "saigon_south" | "hanoi" | "all";
@@ -50,8 +56,8 @@ export interface DepartmentContact {
 const CORE_DEPARTMENT_CONTACTS: DepartmentContact[] = [
   {
     id: "dept-student-connect",
-    nameEn: "Student Connect",
-    nameVi: "Trung tâm Hỗ trợ Sinh viên (Student Connect)",
+    nameEn: STUDENT_CONNECT.name.en,
+    nameVi: STUDENT_CONNECT.name.vi,
     category: "administrative",
     descriptionEn: "Single central service point for all academic administration, student records, timetable queries, and official letters.",
     descriptionVi: "Đầu mối tiếp nhận và giải quyết toàn bộ các thủ tục học vụ, hồ sơ sinh viên, điều chỉnh thời khóa biểu và giấy xác nhận.",
@@ -79,16 +85,18 @@ const CORE_DEPARTMENT_CONTACTS: DepartmentContact[] = [
       "Quy trình nộp đơn đổi ngành học như thế nào?",
       "Thủ tục xin bảo lưu một kỳ học ra sao?"
     ],
-    email: "student.connect@rmit.edu.vn",
-    phone: "+84 28 3776 1306",
-    formUrl: "https://www.rmit.edu.vn/students/support/student-connect",
-    websiteUrl: "https://www.rmit.edu.vn/students/support/student-connect",
-    campus: "all",
-    locationEn: "Saigon South: Beanland Building, Ground Floor, Student common area | Hanoi: Handi Resco Building, Level 1, Room 1.1.009",
-    locationVi: "Nam Sài Gòn: Tòa nhà Beanland, Tầng trệt, khu vực sinh viên | Hà Nội: Tòa nhà Handi Resco, Tầng 1, Phòng 1.1.009",
-    serviceHoursEn: "Monday - Friday: 8:30 AM - 5:30 PM (Closed weekends & public holidays)",
-    serviceHoursVi: "Thứ Hai - Thứ Sáu: 8:30 - 17:30 (Nghỉ Thứ Bảy, Chủ Nhật và ngày lễ)",
-    lastVerifiedDate: "2026-11-03"
+    email: STUDENT_CONNECT.email,
+    phone: STUDENT_CONNECT.phone,
+    phoneInstructionEn: STUDENT_CONNECT_PHONE_INSTRUCTION.en,
+    phoneInstructionVi: STUDENT_CONNECT_PHONE_INSTRUCTION.vi,
+    formUrl: STUDENT_CONNECT.formUrl,
+    websiteUrl: STUDENT_CONNECT.websiteUrl,
+    campus: STUDENT_CONNECT.campusScope,
+    locationEn: STUDENT_CONNECT.location.en,
+    locationVi: STUDENT_CONNECT.location.vi,
+    serviceHoursEn: STUDENT_CONNECT.serviceHours.en,
+    serviceHoursVi: STUDENT_CONNECT.serviceHours.vi,
+    lastVerifiedDate: STUDENT_CONNECT.source.verifiedAt
   },
   {
     id: "dept-it",
@@ -209,15 +217,15 @@ const CORE_DEPARTMENT_CONTACTS: DepartmentContact[] = [
       "Thủ tục hoàn tiền khi hủy môn học trước ngày Census Date?",
       "Hạn chót thanh toán học phí các kỳ trong năm là ngày nào?"
     ],
-    email: "student.connect@rmit.edu.vn",
-    phone: "+84 28 3776 1300",
+    email: null,
+    phone: null,
     formUrl: "https://www.rmit.edu.vn/vi/hoc-tap-tai-rmit/hoc-phi",
     websiteUrl: "https://www.rmit.edu.vn/vi/hoc-tap-tai-rmit/hoc-phi",
     campus: "all",
-    locationEn: "Building 1 Ground Floor (coordinated via Student Connect)",
-    locationVi: "Tòa nhà 1 Tầng trệt (tiếp nhận qua quầy Student Connect)",
-    serviceHoursEn: "Monday - Friday: 8:30 AM - 5:00 PM",
-    serviceHoursVi: "Thứ Hai - Thứ Sáu: 8:30 - 17:00",
+    locationEn: "Use the official tuition page for payment details and Student Connect for student-service enquiries.",
+    locationVi: "Dùng trang học phí chính thức cho thông tin thanh toán và Student Connect cho yêu cầu hỗ trợ sinh viên.",
+    serviceHoursEn: "Use the official tuition page for current payment deadlines; Student Connect hours apply to student-service enquiries.",
+    serviceHoursVi: "Xem trang học phí chính thức cho hạn thanh toán hiện hành; giờ Student Connect áp dụng cho yêu cầu hỗ trợ sinh viên.",
     lastVerifiedDate: "2026-10-15"
   },
   {

@@ -1,5 +1,8 @@
 import { KnowledgeDocument } from "./schema";
-import { LOST_AND_FOUND_SERVICE } from "@/features/contacts/public";
+import { LOST_AND_FOUND_SERVICE, getCanonicalPhoneInstruction, getPublishedCanonicalContact } from "@/features/contacts/public";
+const STUDENT_CONNECT = getPublishedCanonicalContact("dept-student-connect");
+const STUDENT_CONNECT_PHONE_INSTRUCTION = getCanonicalPhoneInstruction(STUDENT_CONNECT);
+
 
 export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
   {
@@ -52,27 +55,25 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     ],
     synonymsEn: ["student central", "student enquiry hub", "student administration desk"],
     synonymsVi: ["phòng công tác sinh viên", "bàn hỗ trợ sinh viên", "trung tâm dịch vụ sinh viên"],
-    summaryEn: "Student Connect is the single point of contact for all student administrative enquiries at RMIT Vietnam. Contact them via the online enquiry portal, official email, or in person on campus.",
-    summaryVi: "Student Connect là đầu mối giải đáp và tiếp nhận toàn bộ các thủ tục hành chính sinh viên tại RMIT Việt Nam. Bạn có thể liên hệ qua cổng gửi yêu cầu trực tuyến, email chính thức hoặc trực tiếp tại quầy cơ sở.",
-    detailedGuidanceEn: "Operating hours are Monday to Friday, 8:30 AM to 5:30 PM, excluding public and university holidays. Student Connect assists with student status letters, official transcripts, timetable adjustments, leaves of absence, and graduation advice.",
-    detailedGuidanceVi: "Thời gian làm việc từ Thứ Hai đến Thứ Sáu, 8:30 đến 17:30, trừ ngày lễ và ngày nghỉ của trường. Student Connect hỗ trợ cấp giấy xác nhận sinh viên, bảng điểm chính thức, điều chỉnh thời khóa biểu, bảo lưu và tư vấn tốt nghiệp.",
+    summaryEn: "Student Connect handles student service enquiries via its online portal, phone and campus walk-in desks.",
+    summaryVi: "Student Connect tiếp nhận yêu cầu hỗ trợ sinh viên qua cổng trực tuyến, điện thoại và quầy hỗ trợ tại cơ sở.",
+    detailedGuidanceEn: `Operating hours: ${STUDENT_CONNECT.serviceHours.en}. Student Connect assists with student status letters, official transcripts, timetable adjustments, leaves of absence, and graduation advice.`,
+    detailedGuidanceVi: `Thời gian làm việc: ${STUDENT_CONNECT.serviceHours.vi}. Student Connect hỗ trợ cấp giấy xác nhận sinh viên, bảng điểm chính thức, điều chỉnh thời khóa biểu, bảo lưu và tư vấn tốt nghiệp.`,
     keyDetailsEn: [
-      "Saigon South Campus: Building 1, Ground Floor (near Main Entrance).",
-      "Hanoi Campus: Handi Resco Building, 521 Kim Ma, Ba Dinh, Level 1.",
-      "Official Email: student.connect@rmit.edu.vn",
-      "Phone: +84 28 3776 1300 (Saigon) / +84 24 3726 1460 (Hanoi)."
+      STUDENT_CONNECT.location.en,
+      `Phone: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.en}.`,
+      "Use the official page to submit or track an online enquiry."
     ],
     keyDetailsVi: [
-      "Cơ sở Nam Sài Gòn: Tòa nhà 1, Tầng trệt (gần lối vào chính).",
-      "Cơ sở Hà Nội: Tòa nhà Handi Resco, 521 Kim Mã, Ba Đình, Tầng 1.",
-      "Email chính thức: student.connect@rmit.edu.vn",
-      "Điện thoại: +84 28 3776 1300 (Sài Gòn) / +84 24 3726 1460 (Hà Nội)."
+      STUDENT_CONNECT.location.vi,
+      `Điện thoại: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}.`,
+      "Truy cập trang chính thức để gửi hoặc theo dõi yêu cầu trực tuyến."
     ],
-    officialSourceUrl: "https://www.rmit.edu.vn/students/support/student-connect",
+    officialSourceUrl: STUDENT_CONNECT.websiteUrl,
     sourceTitle: "RMIT Vietnam Student Connect Contact & Services",
     departmentId: "dept-student-connect",
     campus: "all",
-    lastVerifiedDate: "2026-10-20",
+    lastVerifiedDate: STUDENT_CONNECT.source.verifiedAt,
     verificationStatus: "verified",
     imageUrl: "https://www.rmit.edu.vn/assets/vn/en/assets-for-production/images/current-students/student-council.jpg",
     relatedDocIds: ["doc-change-major", "doc-enrolment-deadlines"]
