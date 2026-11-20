@@ -25,7 +25,7 @@
 - installs with `bun install --frozen-lockfile`;
 - audits all dependencies with `bun audit --audit-level=moderate --json`;
 - blocks moderate, high, and critical advisories; low advisories remain visible for tracked review;
-- runs existing `check`, `test`, and `build:vinext` scripts;
+- runs `build:vinext` before `check` because `worker/entry.ts` imports the generated `dist/server/index.js`, then runs TypeScript checks and tests;
 - contains no secrets, deployment step, production binding, or write permission.
 
 Action commit SHAs were resolved from the corresponding public `v4` and `v2` tags. Pin maintenance remains an owner-approved dependency task.

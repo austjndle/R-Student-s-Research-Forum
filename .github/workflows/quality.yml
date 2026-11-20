@@ -29,9 +29,9 @@ jobs:
       - name: Dependency audit (moderate/high/critical blocking)
         # Low advisories remain visible for tracked review; moderate+ fail this job.
         run: bun audit --audit-level=moderate --json
+      - name: Cloudflare/Vinext build
+        run: bun run build:vinext
       - name: TypeScript check
         run: bun run check
       - name: Test suite
         run: bun run test --config vitest.config.ts
-      - name: Cloudflare/Vinext build
-        run: bun run build:vinext
