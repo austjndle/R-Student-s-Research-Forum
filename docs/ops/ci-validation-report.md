@@ -8,10 +8,10 @@
 ## Repository and remote evidence
 
 - Remote: `https://github.com/austjndle/R-Student-s-Research-Forum`
-- Current branch: `audit/phase1b-architecture-privacy`
+- Current local branch: `ci-001-sec-req-001-local`
 - `gh` CLI is unavailable.
 - GitHub Actions REST API for the public repository returned HTTP 200 with zero workflow runs.
-- The quality workflow is present in the working tree but has not been committed, so no GitHub-hosted execution exists for this revision.
+- The quality workflow is committed locally in `026e2a8`, but no GitHub-hosted execution exists for this revision.
 
 ## Workflow controls
 
