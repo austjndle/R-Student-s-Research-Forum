@@ -40,6 +40,9 @@ export interface BuildingInfo {
   googleMapsUrl?: string;
   floors: FloorHours[];
 }
+export function isPublishedFloor(floor: FloorHours): boolean {
+  return floor.verificationStatus === undefined || floor.verificationStatus === "verified";
+}
 export type ScheduleField = "weekdayHours" | "saturdayHours" | "sundayHours";
 
 const ENGLISH_SCHEDULE_LABELS: Record<string, string> = {
@@ -632,3 +635,25 @@ export const RMIT_CAMPUS_HOURS: BuildingInfo[] = [
     ],
   },
 ];
+export function getPublishedBuildingInfo(building: BuildingInfo): BuildingInfo {
+  const floors = building.floors.filter(isPublishedFloor);
+  if (floors.length === building.floors.length) return { ...building, floors };
+  return {
+    ...building,
+    overviewEn: `${building.nameEn}. Some floor details are withheld pending verification.`,
+    overviewVi: `${building.nameVi}. Một số thông tin tầng được giữ lại để chờ xác minh.`,
+    floorPlanPdfUrl: undefined,
+    floors,
+  };
+}
+export function getPublishedBuildingSourceUrl(building: BuildingInfo): string {
+  const withheldSourceUrls = new Set(building.floors.filter((floor) => !isPublishedFloor(floor)).map((floor) => floor.sourceUrl).filter((url): url is string => Boolean(url)));
+  const verifiedFloorSource = building.floors.find((floor) => isPublishedFloor(floor) && floor.sourceUrl && !withheldSourceUrls.has(floor.sourceUrl))?.sourceUrl;
+  if (verifiedFloorSource) return verifiedFloorSource;
+  if (building.floorPlanPdfUrl && !withheldSourceUrls.has(building.floorPlanPdfUrl)) return building.floorPlanPdfUrl;
+  return "https://www.rmit.edu.vn/students/campus-life/campus-facilities";
+}
+
+export function getPublishedCampusHours(records: readonly BuildingInfo[] = RMIT_CAMPUS_HOURS): BuildingInfo[] {
+  return records.map(getPublishedBuildingInfo);
+}

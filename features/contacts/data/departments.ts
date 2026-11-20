@@ -398,4 +398,13 @@ const CORE_DEPARTMENT_CONTACTS: DepartmentContact[] = [
   }
 ];
 
-export const DEPARTMENT_CONTACTS: DepartmentContact[] = [...CORE_DEPARTMENT_CONTACTS, ...ACADEMIC_SCHOOL_CONTACTS];
+const ALL_DEPARTMENT_CONTACTS: DepartmentContact[] = [...CORE_DEPARTMENT_CONTACTS, ...ACADEMIC_SCHOOL_CONTACTS];
+
+export function getPublishedDepartmentContacts(records: readonly DepartmentContact[] = ALL_DEPARTMENT_CONTACTS): DepartmentContact[] {
+  return records.map((department) => ({
+    ...department,
+    specializedContacts: department.specializedContacts?.filter((contact) => contact.verificationStatus === "verified"),
+  }));
+}
+
+export const DEPARTMENT_CONTACTS: DepartmentContact[] = getPublishedDepartmentContacts();

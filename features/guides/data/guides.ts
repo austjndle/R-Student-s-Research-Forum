@@ -1,5 +1,6 @@
-import { getPublishedCanonicalContact } from "@/features/contacts/public";
+import { getCanonicalCampusLocation, getPublishedCanonicalContact } from "@/features/contacts/public";
 const STUDENT_CONNECT = getPublishedCanonicalContact("dept-student-connect");
+const STUDENT_CONNECT_LOCATION = getCanonicalCampusLocation(STUDENT_CONNECT, "all");
 
 export interface GuideStep {
   number: number;
@@ -141,8 +142,8 @@ export const RESEARCH_GUIDES: ResearchGuide[] = [
         number: 3,
         titleEn: "Visit the Service Counter for Urgent Inquiries",
         titleVi: "Đến trực tiếp quầy hỗ trợ đối với các vấn đề khẩn cấp",
-        contentEn: `For same-day letter collection or immediate registration blocks, visit the Student Connect walk-in desk during ${STUDENT_CONNECT.serviceHours.en}. ${STUDENT_CONNECT.location.en}.`,
-        contentVi: `Nếu cần nhận giấy xác nhận gấp hoặc gặp lỗi đăng ký cần mở khóa trong ngày, hãy tới quầy Student Connect trong giờ ${STUDENT_CONNECT.serviceHours.vi}. ${STUDENT_CONNECT.location.vi}.`
+        contentEn: `For same-day letter collection or immediate registration blocks, visit the Student Connect walk-in desk during ${STUDENT_CONNECT.serviceHours.en}. ${STUDENT_CONNECT_LOCATION.en}.`,
+        contentVi: `Nếu cần nhận giấy xác nhận gấp hoặc gặp lỗi đăng ký cần mở khóa trong ngày, hãy tới quầy Student Connect trong giờ ${STUDENT_CONNECT.serviceHours.vi}. ${STUDENT_CONNECT_LOCATION.vi}.`
       }
     ],
     officialReferences: [

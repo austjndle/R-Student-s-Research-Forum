@@ -1,19 +1,20 @@
 # DATA-001 — Canonical Data Architecture and Contacts Pilot
 
-**Status:** NEEDS CHANGES
-**Base SHA:** `298d761b0344aa1377d42d521fee9322025fee02`
-**Branch:** `data-001-contacts-pilot`
-**Scope:** Backwards-compatible Contacts data pilot; no production, Events sync, database, CMS, Cloudflare, merge, or push changes.
+**Status:** READY FOR REVIEW
+**Base SHA:** `490998dd9e01b46283bfc126ee4464a205a57203`
+**Branch:** `data-001r-integration`
+**Integrated commit before DATA-001R2:** `9f1c5826f6a56b99e53b7e807c25845054a1fa6f`
+**Scope:** Backwards-compatible Contacts data pilot and publication-gating correction; no production, Events sync, database, CMS, Cloudflare, merge, or push changes.
 
 ## Why this pilot exists
 
-The cached remote `main` contains conflicting Student Connect facts:
+The approved CI-001 base exposed three publication-consistency failures during DATA-001R:
 
-- `features/contacts/data/departments.ts` publishes `+84 28 3776 1306`.
-- `features/knowledge/data/documents.ts` publishes `+84 28 3776 1300` for Saigon and `+84 24 3726 1460` for Hanoi, plus `student.connect@rmit.edu.vn`.
-- `features/guides/data/guides.ts` repeats generic walk-in locations without the current official wording.
+- `doc-myrmit-submit-requests` was `needs_review` in the source array but was emitted as a verified RAG chunk.
+- SSET specialized records marked `manual_review_required` were present in public contact projections, Search and RAG adapters.
+- Student Connect deterministic campus answers did not consistently use the canonical published record, and the sync health target still checked a retired email.
 
-The official RMIT sources checked for DATA-001 publish one Student Connect phone for both campuses: `+84 28 3776 1306`, extension 1. They publish the current walk-in locations and service hours but do not publish the `student.connect@rmit.edu.vn` address used by `main`.
+The official RMIT sources checked for DATA-001 publish one Student Connect phone for both campuses: `+84 28 3776 1306`, extension 1. They publish the current walk-in locations and service hours but do not publish the `student.connect@rmit.edu.vn` address used by the old dataset.
 
 Sources:
 
@@ -26,11 +27,13 @@ Checked: `2026-11-20`; source version recorded as `rmit-student-connect-page-202
 
 ```mermaid
 flowchart LR
-  C[Contacts TS datasets] --> UI[Contacts Directory]
-  C --> S[Search engine]
-  C --> R[RAG corpus]
-  K[Knowledge documents] --> S
-  K --> R
+  C[Contacts TS datasets] --> CP[Published contact projection]
+  CP --> UI[Contacts Directory]
+  CP --> S[Search engine]
+  CP --> R[RAG corpus]
+  K[Knowledge records] --> KP[Verified publication projection]
+  KP --> S
+  KP --> R
   G[Guides TS datasets] --> GP[Guide pages]
   A[Academic calendar] --> E[Events calendar repository]
   E --> EU[Events UI and ICS]
@@ -44,9 +47,9 @@ flowchart LR
 
 | Area | Current owner | Consumers | Provenance/publication | Risk |
 |---|---|---|---|---|
-| Contacts | `features/contacts/data/departments.ts`, `academicSchools.ts`, `studentServices.ts` | Contacts UI, Search, RAG, Mr Hachiware, Facilities tests | `lastVerifiedDate`, URLs, specialized-contact status | Fact duplication across documents and guides; no shared record identity before this pilot |
+| Contacts | `features/contacts/data/canonical.ts`, `departments.ts`, `academicSchools.ts`, `studentServices.ts` | Contacts UI, Search, RAG, Mr Hachiware, Facilities tests | Canonical source metadata plus `lastVerifiedDate`, URLs, specialized-contact review status; public projection keeps only verified specialized contacts | Remaining contact facts outside the pilot can still drift until migrated |
 | Guides | `features/guides/data/guides.ts`, `extendedGuides.ts` | Guide list/detail pages, sitemap | Per-guide references and optional verification date | Free-form guidance can drift from Contacts; not all text should be mechanically normalized |
-| Knowledge Base | `features/knowledge/data/documents.ts`, `schema.ts`, `indexManifest.ts` | Topic pages, Search, RAG, sitemap | `officialSourceUrl`, source title, verification date/status, static index version | Contact facts were duplicated in document text and had a contradictory phone |
+| Knowledge Base | `features/knowledge/data/documents.ts`, `schema.ts`, `indexManifest.ts` | Topic pages, Search, RAG, sitemap | `officialSourceUrl`, source title, verification date/status, static index version; public array contains verified records only | Review data remains source-controlled and requires an explicit publication decision |
 | Academic Calendar | `features/academics/data/calendar.ts` | Events calendar repository, Events UI, ICS, RAG | Source PDF URL, verification date, published/verified event fields | Separate event domain; should not be folded into Contacts |
 | Events | `features/events/data/calendar.ts`, event repository/presentation | Events UI, Search, ICS, RAG, Worker routes | Canonical event records with publication and verification status | Must retain existing deduplication and last-known-good behavior |
 | Content sync | `features/content-sync/data/registry.ts`, `domain/types.ts`, monitor/store | Dynamic Events publication and review routes | `SourceState.lastGoodHash`, revisions, pending reviews, publication status | Sync is event-oriented; automatically publishing contact candidates would bypass review |
@@ -54,7 +57,7 @@ flowchart LR
 
 ### Existing local-only work
 
-The original worktree is on `ci-001-sec-req-001-local` with pre-existing product, SEC-REQ-001, content-sync, Events, documentation, and test changes. Those changes are not present in cached remote `main` and were not copied into this worktree. The pilot is based only on `origin/main` at `298d761...`.
+The original worktree is on `ci-001-sec-req-001-local` with pre-existing product, SEC-REQ-001, content-sync, Events, documentation, and test changes. Those changes remain independent and were not copied into this integration worktree. DATA-001R2 is based on approved CI-001 `490998...` plus DATA-001 at `9f1c582...`.
 
 ## Proposed minimal architecture
 
@@ -69,7 +72,7 @@ The pilot uses a typed, version-controlled repository. No database, CMS, externa
 | `id` | Stable domain ID; pilot reuses `dept-student-connect` so existing consumers keep their identity |
 | `entityType` | `contact` |
 | `campusScope` | `all`, `saigon_south`, or `hanoi`, aligned with the existing shared `Campus` union |
-| `name`, `location`, `serviceHours` | Required English/Vietnamese values |
+| `name`, `location`, optional campus-specific `campusLocations`, `serviceHours` | Required English/Vietnamese values; campus-specific locations are selected by deterministic answers without changing the existing `location` shape |
 | `phone`, `phoneInstruction`, `email` | Explicit nullable contact channels; absence is not inferred |
 | `formUrl`, `websiteUrl` | Required HTTPS URLs |
 | `source.urls` | One or more official RMIT HTTPS URLs |
@@ -78,14 +81,21 @@ The pilot uses a typed, version-controlled repository. No database, CMS, externa
 | `publication.status` | `published`, `review`, or `archived` |
 | `publication.reviewStatus` | `approved`, `pending`, or `rejected` |
 
-`validateCanonicalContacts()` validates required bilingual fields, non-empty localized phone instructions when present, stable IDs, official HTTPS RMIT hosts for public and source URLs, semantically valid ISO verification dates, source version, and publication values. Duplicate IDs are rejected. `getPublishedCanonicalContacts()` validates the candidate set and exposes only approved published records, while `selectLastKnownGoodCanonicalContacts()` preserves the prior approved record when candidates are still under review, incomplete, or invalid.
+`validateCanonicalContacts()` validates required bilingual fields, campus locations, non-empty localized phone instructions, a phone whenever an instruction is present, stable IDs, official HTTPS RMIT hosts for public and source URLs, semantically valid ISO verification dates, source version, and publication values. Duplicate IDs are rejected. `getPublishedCanonicalContacts()` validates the candidate set and exposes only approved published records, while `selectLastKnownGoodCanonicalContacts()` preserves the prior approved record when candidates are still under review, incomplete, or invalid.
 
 The static published array is the last-known-good public record. Future sync candidates must remain separate records with `review`/`pending` state; only validated, approved candidates can replace the matching published record. Existing content-sync remains event-only and is unchanged.
+
+### Publication gating rules
+
+- `ALL_KNOWLEDGE_DOCUMENTS` retains source-controlled review records; `KNOWLEDGE_DOCUMENTS` is the verified-only public projection. Search, topic pages, sitemap, RAG source registry, chunks and Mr Hachiware consume the projection.
+- Public `DEPARTMENT_CONTACTS` and `ACADEMIC_SCHOOL_CONTACTS` projections remove `not_published` and `manual_review_required` specialized records. `REVIEW_ACADEMIC_SCHOOL_CONTACTS` preserves those records for internal review and regression evidence.
+- Facility floors are public only when their optional status is absent or `verified`; Search, RAG chunks and hybrid retrieval apply the same boundary. A public adapter must not convert `needs_review`, `unavailable`, `manual_review_required` or `not_published` to `verified`. Last-known-good published records remain the only authoritative fallback.
 
 ### Ownership boundaries
 
 - **Canonical Contacts:** `features/contacts/data/canonical.ts` owns selected institutional contact facts.
-- **Compatibility adapters:** `departments.ts`, the Student Connect Knowledge document, the Student Connect guide, and the Mr Hachiware no-document fallback read the canonical record while retaining existing public shapes and routes.
+- **Compatibility adapters:** `departments.ts`, the Student Connect Knowledge document, the Student Connect guide, Student ID guidance, and Mr Hachiware deterministic answers read the canonical record while retaining existing public shapes and routes.
+- **Published projections:** `features/knowledge/data/documents.ts` and `features/contacts/data/departments.ts` enforce the public boundary before Search, RAG, topic pages, sitemap, Contacts UI or assistant answers.
 - **Search/RAG/Assistant:** continue consuming their existing public boundaries. They receive canonical facts through the adapters; no API contract changes are required.
 - **Academic Calendar and Events:** remain owned by their existing event/calendar repositories.
 - **Unreviewed sync candidates:** are not imported into public Contacts, Search, Knowledge, or RAG datasets.
@@ -94,47 +104,48 @@ The static published array is the last-known-good public record. Future sync can
 
 Changed files:
 
-- `features/contacts/data/canonical.ts` — new canonical schema, Student Connect record, validation, and publication filtering.
-- `features/contacts/data/departments.ts` — Student Connect adapter; existing `DepartmentContact` shape preserved; unsupported direct Student Connect contact channels removed from the Finance routing record.
-- `features/contacts/public.ts` — exports canonical types and publication/LKG helpers without removing existing Contacts exports.
-- `features/knowledge/data/documents.ts` — Student Connect document now consumes canonical phone, extension, location, hours, source, and verification date; stale email and split phone facts removed while existing service guidance is retained.
-- `features/knowledge/data/indexManifest.ts` — curated contact provenance and index version refreshed for the canonical source version.
-- `features/guides/data/guides.ts` — Student Connect walk-in step consumes canonical hours/location/source and verification date while retaining the guide's editorial urgent-inquiry guidance.
-- `features/assistant/application/gemini.ts` — no-document fallback and Hanoi Student Connect RAG routing consume canonical phone, instruction, and official URL.
-- `features/assistant/rag/corpus.ts` — contact chunks include canonical phone instruction when present.
-- `features/contacts/components/ContactsDirectory.tsx` — renders the canonical phone instruction beside the existing phone link when available.
-- `features/contacts/__tests__/canonical-contacts.test.ts` — schema, duplicate, publication, URL/date-boundary, Search, Knowledge, Hanoi RAG, and consistency tests.
-- `features/assistant/__tests__/hybrid-rag.test.ts` — static index version contract updated for the canonical index rebuild.
+- `features/contacts/data/canonical.ts` — typed canonical Student Connect record, campus-specific locations, validation and publication/LKG helpers.
+- `features/contacts/data/departments.ts` — canonical Student Connect adapter plus verified-only specialized-contact projection.
+- `features/contacts/data/academicSchools.ts` — separates review records from the public verified-only school projection.
+- `features/contacts/public.ts` — exports canonical types and publication helpers without exposing review-only school records through the public projection.
+- `features/knowledge/data/schema.ts` — central verified publication predicate.
+- `features/knowledge/data/documents.ts` — separates `ALL_KNOWLEDGE_DOCUMENTS` review data from the verified-only `KNOWLEDGE_DOCUMENTS` public projection; Student Connect and Student ID guidance consume canonical facts.
+- `features/knowledge/public.ts` — keeps the existing public document export name while publishing only verified records.
+- `features/guides/data/guides.ts` — Student Connect walk-in guidance consumes canonical location data.
+- `features/content-sync/application/knowledge-sync.ts` — replaces the retired Student Connect email health keyword and checks fetched page content; publication behavior is unchanged.
+- `features/assistant/application/gemini.ts` — deterministic Hanoi/Saigon Student Connect answers, no-email handling and SSET manual-review fallback use approved facts.
+- `features/assistant/rag/corpus.ts`, `features/assistant/rag/retrieval.ts` — preserve document status, filter review-only facility chunks/sources, and consume filtered contact records.
+- `features/facilities/data/campusHours.ts`, `features/facilities/public.ts`, `features/facilities/components/FacilitiesDirectory.tsx`, `features/search/application/engine.ts` — share a verified floor/building projection for public facility UI/Search/RAG data.
+- `features/contacts/__tests__/canonical-contacts.test.ts`, `features/knowledge/__tests__/publication-gating.test.ts`, `features/content-sync/__tests__/knowledge-sync.test.ts`, `features/assistant/__tests__/student-connect-canonical.test.ts`, `features/assistant/__tests__/hanoi-audit.test.ts`, `features/assistant/__tests__/rag-evaluation.test.ts`, `features/academics/__tests__/sset-recognition.test.ts`, `features/search/__tests__/engine.test.ts` — schema, publication, manual-review, facility, consumer-consistency, sync-health, email and deterministic-answer regressions.
 - `docs/architecture/DATA-001-canonical-contacts.md` — audit, design, evidence, risks, and migration strategy.
 
-No Events, `features/content-sync/data/registry.ts`, `features/content-sync/domain/types.ts`, Worker route, API route, Cloudflare configuration, or SEC-REQ-001 path was changed.
+No Events repository, `features/content-sync/data/registry.ts`, `features/content-sync/domain/types.ts`, Worker route, API route, Cloudflare configuration, or SEC-REQ-001 path was changed. The content-sync application edit only corrects the Student Connect health-check keyword.
 
 ## Verification evidence
 
 Executed in the isolated worktree:
-
 | Command | Result |
 |---|---|
-| `bun run test --config vitest.config.ts features/contacts/__tests__/canonical-contacts.test.ts` | Passed: 1 file, 3 tests |
-| Targeted Contacts/Knowledge/Search/Facilities/RAG test command | Passed: 8 files, 111 tests |
-| `bun run build:vinext` | Passed; existing Vinext import-optimization and route-classification warnings remain |
-| `bun run check` after the generated build | Passed |
-| `bun run test --config vitest.config.ts` | Passed: 31 files, 313 tests |
+| `bun install --frozen-lockfile` | Passed; 313 installs checked, no dependency changes |
+| `bun audit --audit-level=moderate --json` | Passed: `{}` |
+| `bun run build:vinext` | Passed; existing Vinext `lucide-react` import-optimization and route-classification warnings remain |
+| `bun run check` | Passed |
+| `bun run test --config vitest.config.ts` | Passed: 34 files, 323 tests |
+| Targeted DATA-001R2 tests | Passed: 7 files, 54 tests; final 2-file combined-campus/source-registry gate 8 tests; final facility publication/Search gate 27 tests |
 | `bun run rag:validate` | Passed: no duplicate chunks, invalid URLs, invalid source URLs, or source mappings |
-| `bun run rag:smoke` | Passed: grounded official-source results for five prompts; one general advice prompt correctly returned insufficient evidence |
-| Local `http://127.0.0.1:3000/contacts` preview | Passed: Student Connect phone and localized `Press 1` instruction rendered in the Contacts directory screenshot |
-| `bun audit --audit-level=moderate --json` | Failed on inherited `hono@4.13.14` moderate advisories; the separate held CI-001 Hono remediation is not included by DATA-001 |
+| `bun run rag:smoke` | Passed: five grounded official-source prompts; one general-advice prompt returned insufficient evidence |
+| Throwaway RAG deterministic campus smoke | Passed: Hanoi and Saigon South English/Vietnamese answers used canonical locations and `+84 28 3776 1306 — Press 1` / `Nhấn phím 1` |
 
-The first TypeScript check before the generated build failed because the baseline imports `dist/server/index.js`; the approved workflow builds before checking. The required build-then-check sequence passed.
+The checks above ran in `r-students-data-001r` on the integrated local branch. They validate local source and generated artifacts only; no production deployment, Cloudflare configuration, remote push, merge, or production Events sync was performed.
 
 ## Residual risks
 
-1. The pilot covers Student Connect only. Other contact-bearing facts remain in academic-school records, facilities data, free-form guides, and Knowledge documents.
+1. The pilot canonicalizes Student Connect and adds a reusable verified-only publication boundary; other institutional facts in Guides, Academic Calendar and free-form Knowledge text remain migration candidates.
 2. Static canonical records still require deliberate source review; no automatic contact ingestion was introduced.
-3. The inherited Hono audit failure remains until the separately held CI-001 remediation is approved and integrated.
-4. The content-sync Knowledge health target still contains the legacy Student Connect email keyword; it was left unchanged to preserve existing sync behavior and should be migrated to an official-source assertion in a separate reviewed slice.
-5. Some official pages contain conflicting school-specific facts. Those remain explicitly manual-review content and were not silently corrected.
-6. Independent Security review identified broader pre-existing gaps in provider-output citation validation, stale Knowledge freshness gating, and exclusion of manual-review contact records from RAG; these are outside this limited pilot and remain follow-up work.
+3. The integrated Hono dependency audit passed at the approved CI-001 base; this does not alter production deployment state.
+4. The Student Connect content-sync health target now checks the official page keyword, but the sync implementation still does not publish contact candidates.
+5. Conflicting school-specific facts remain explicitly manual-review content in source control and are excluded from public Contacts, Search, Knowledge and RAG projections.
+6. Provider-output validation, citation enforcement and response-cache safety are separate security findings, not SEC-REQ-001's byte-bounded request-body parsing task and not implemented by DATA-001R2.
 7. The original dirty worktree remains independent and must not be merged from this branch without a separate scope review.
 
 ## Follow-up migration strategy

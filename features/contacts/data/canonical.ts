@@ -7,6 +7,12 @@ export interface LocalizedContactText {
   vi: string;
 }
 
+export interface CanonicalContactLocations {
+  all?: LocalizedContactText;
+  saigon_south?: LocalizedContactText;
+  hanoi?: LocalizedContactText;
+}
+
 export interface CanonicalContact {
   id: string;
   entityType: "contact";
@@ -18,6 +24,7 @@ export interface CanonicalContact {
   formUrl: string;
   websiteUrl: string;
   location: LocalizedContactText;
+  campusLocations?: CanonicalContactLocations;
   serviceHours: LocalizedContactText;
   source: {
     urls: readonly [string, ...string[]];
@@ -69,6 +76,16 @@ const STUDENT_CONNECT_CANONICAL = {
     en: "Saigon South: Beanland Building, Ground floor, Student common area | Hanoi: Handi Resco Building, Floor 1, Room 1.1.009",
     vi: "Nam Sài Gòn: Tòa nhà Beanland, tầng trệt, khu vực sinh viên | Hà Nội: Tòa nhà Handi Resco, tầng 1, phòng 1.1.009",
   },
+  campusLocations: {
+    saigon_south: {
+      en: "Beanland Building, Ground floor, Student common area",
+      vi: "Tòa nhà Beanland, tầng trệt, khu vực sinh viên",
+    },
+    hanoi: {
+      en: "Handi Resco Building, Floor 1, Room 1.1.009",
+      vi: "Tòa nhà Handi Resco, tầng 1, phòng 1.1.009",
+    },
+  },
   serviceHours: {
     en: "Monday–Friday, 8:30 AM–5:30 PM, excluding public and university holidays",
     vi: "Thứ Hai–Thứ Sáu, 8:30–17:30, trừ ngày lễ và ngày nghỉ của trường",
@@ -107,6 +124,9 @@ export function getCanonicalPhoneInstruction(record: CanonicalContact): Localize
   if (!record.phoneInstruction) throw new Error(`Canonical contact has no published phone instruction: ${record.id}`);
   return record.phoneInstruction;
 }
+export function getCanonicalCampusLocation(record: CanonicalContact, campus: Exclude<CanonicalContactCampus, "all"> | "all"): LocalizedContactText {
+  return campus === "all" ? record.location : record.campusLocations?.[campus] ?? record.location;
+}
 
 
 export function selectLastKnownGoodCanonicalContacts(
@@ -133,7 +153,11 @@ export function validateCanonicalContacts(records: readonly CanonicalContact[] =
     if (!record.name.en.trim() || !record.name.vi.trim()) errors.push(`${record.id}: bilingual name is required`);
     if (!record.location.en.trim() || !record.location.vi.trim()) errors.push(`${record.id}: bilingual location is required`);
     if (!record.serviceHours.en.trim() || !record.serviceHours.vi.trim()) errors.push(`${record.id}: bilingual service hours are required`);
+    for (const [campus, location] of Object.entries(record.campusLocations ?? {})) {
+      if (!location?.en.trim() || !location?.vi.trim()) errors.push(`${record.id}: bilingual ${campus} location is required`);
+    }
     if (record.phoneInstruction && (!record.phoneInstruction.en.trim() || !record.phoneInstruction.vi.trim())) errors.push(`${record.id}: bilingual phone instruction is required`);
+    if (record.phoneInstruction && !record.phone?.trim()) errors.push(`${record.id}: phone is required when phone instruction is present`);
     if (!isOfficialRmitHttpsUrl(record.formUrl)) errors.push(`${record.id}: formUrl must be an official HTTPS RMIT URL`);
     if (!isOfficialRmitHttpsUrl(record.websiteUrl)) errors.push(`${record.id}: websiteUrl must be an official HTTPS RMIT URL`);
     if (!record.source.urls.length) errors.push(`${record.id}: at least one source URL is required`);

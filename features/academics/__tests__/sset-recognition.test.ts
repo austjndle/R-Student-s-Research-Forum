@@ -3,7 +3,7 @@ import { ACADEMIC_RECOGNITION } from "@/features/scholarships/public"
 import { SSET_PROGRAMS, SSET_URLS } from "@/features/academics/public"
 import { buildAcademicRecognitionContext, buildSSETContext, formatAcademicRecognitionFallback, formatSSETFallback, isAcademicRecognitionQuery, isSSETQuery } from "@/features/assistant/public"
 import { searchKnowledgeBase } from "@/features/search/public"
-import { ACADEMIC_SCHOOL_CONTACTS } from "@/features/contacts/public"
+import { REVIEW_ACADEMIC_SCHOOL_CONTACTS } from "@/features/contacts/data/academicSchools";
 import { getSourceRegistry } from "@/features/assistant/rag/public"
 import { isApprovedMonitorUrl } from "@/features/content-sync/public"
 
@@ -52,11 +52,18 @@ describe("SSET search and grounded answers", () => {
     expect(formatSSETFallback(canvasQuery, "en", context)).not.toMatch(/course\/\d+|canvas\.rmit\.edu\.au/i);
   });
 
+  it("does not emit the manual-review SSET phone", () => {
+    const context = buildSSETContext("SSET contact", "en");
+    const answer = formatSSETFallback("SSET contact", "en", context);
+
+    expect(answer).toContain("+84 28 3776 1416");
+    expect(answer).not.toContain("+84 28 3776 1369");
+  });
   it("indexes approved SSET sources and flags the conflicting contact phone", () => {
     expect(getSourceRegistry().some((source) => source.canonicalUrl === SSET_URLS.overview)).toBe(true);
     expect(getSourceRegistry().some((source) => source.canonicalUrl === SSET_URLS.showcase)).toBe(true);
     expect(isApprovedMonitorUrl(SSET_URLS.showcase)).toBe(true);
-    const sset = ACADEMIC_SCHOOL_CONTACTS.find((contact) => contact.id === "school-sset");
+    const sset = REVIEW_ACADEMIC_SCHOOL_CONTACTS.find((contact) => contact.id === "school-sset");
     expect(sset?.specializedContacts?.some((contact) => contact.verificationStatus === "manual_review_required" && contact.id === "sset-phone-conflict")).toBe(true);
   });
 });

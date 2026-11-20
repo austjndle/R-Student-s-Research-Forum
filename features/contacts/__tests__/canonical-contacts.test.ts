@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildRAGContext } from "@/features/assistant/public";
 import { searchKnowledgeBase } from "@/features/search/application/engine";
 import { KNOWLEDGE_DOCUMENTS } from "@/features/knowledge/public";
-import { DEPARTMENT_CONTACTS, getCanonicalPhoneInstruction, getPublishedCanonicalContact, getPublishedCanonicalContacts, selectLastKnownGoodCanonicalContacts, validateCanonicalContacts, type CanonicalContact } from "@/features/contacts/public";
+import { DEPARTMENT_CONTACTS, getCanonicalCampusLocation, getCanonicalPhoneInstruction, getPublishedCanonicalContact, getPublishedCanonicalContacts, selectLastKnownGoodCanonicalContacts, validateCanonicalContacts, type CanonicalContact } from "@/features/contacts/public";
 const STUDENT_CONNECT_CANONICAL = getPublishedCanonicalContact("dept-student-connect");
 const STUDENT_CONNECT_PHONE_INSTRUCTION = getCanonicalPhoneInstruction(STUDENT_CONNECT_CANONICAL);
 const STUDENT_CONNECT_PHONE = STUDENT_CONNECT_CANONICAL.phone;
@@ -38,7 +38,17 @@ describe("canonical Contacts pilot", () => {
     expect(validateCanonicalContacts([unsafeCandidate])).toContain("dept-student-connect-unsafe: websiteUrl must be an official HTTPS RMIT URL");
     expect(validateCanonicalContacts([unsafeCandidate])).toContain("dept-student-connect-unsafe: verifiedAt must be an ISO date");
     expect(validateCanonicalContacts([unsafeCandidate])).toContain("dept-student-connect-unsafe: bilingual phone instruction is required");
-    expect(selectLastKnownGoodCanonicalContacts([unsafeCandidate])).toEqual([STUDENT_CONNECT_CANONICAL]);
+    const missingRequiredText: CanonicalContact = {
+      ...STUDENT_CONNECT_CANONICAL,
+      id: "dept-student-connect-missing-text",
+      name: { en: "", vi: "" },
+      serviceHours: { en: "", vi: "" },
+    };
+    expect(validateCanonicalContacts([missingRequiredText])).toContain("dept-student-connect-missing-text: bilingual name is required");
+    expect(validateCanonicalContacts([missingRequiredText])).toContain("dept-student-connect-missing-text: bilingual service hours are required");
+    expect(selectLastKnownGoodCanonicalContacts([missingRequiredText])).toEqual([STUDENT_CONNECT_CANONICAL]);
+    const whitespacePhoneCandidate: CanonicalContact = { ...STUDENT_CONNECT_CANONICAL, id: "dept-student-connect-whitespace-phone", phone: " " };
+    expect(validateCanonicalContacts([whitespacePhoneCandidate])).toContain("dept-student-connect-whitespace-phone: phone is required when phone instruction is present");
   });
 
   it("keeps Contacts, Knowledge, Search, and RAG on the same published facts", () => {
@@ -49,7 +59,7 @@ describe("canonical Contacts pilot", () => {
     const hanoiRagContext = buildRAGContext("What is the Hanoi Student Connect phone?", "en");
 
     expect(department?.phone).toBe(STUDENT_CONNECT_CANONICAL.phone);
-    expect(department?.locationEn).toBe(STUDENT_CONNECT_CANONICAL.location.en);
+    expect(department?.locationEn).toBe(getCanonicalCampusLocation(STUDENT_CONNECT_CANONICAL, "all").en);
     expect(department?.phoneInstructionEn).toBe(STUDENT_CONNECT_PHONE_INSTRUCTION.en);
     expect(document?.keyDetailsEn.join(" ")).toContain(`${STUDENT_CONNECT_CANONICAL.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.en}`);
     expect(document?.officialSourceUrl).toBe(STUDENT_CONNECT_CANONICAL.websiteUrl);

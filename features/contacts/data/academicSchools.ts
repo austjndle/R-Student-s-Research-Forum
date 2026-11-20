@@ -3,7 +3,7 @@ import type { DepartmentContact } from "./departments";
 const VERIFIED_ON = "2026-11-04";
 const ACADEMIC_PROGRESS_SOURCE = "https://www.rmit.edu.vn/students/my-studies/assessment-and-results/academic-progress";
 
-export const ACADEMIC_SCHOOL_CONTACTS: DepartmentContact[] = [
+const REVIEW_ACADEMIC_SCHOOL_CONTACTS: DepartmentContact[] = [
   {
     id: "school-sset",
     nameEn: "School of Science, Engineering & Technology",
@@ -170,3 +170,9 @@ export const ACADEMIC_SCHOOL_CONTACTS: DepartmentContact[] = [
     lastVerifiedDate: VERIFIED_ON,
   },
 ];
+export const ACADEMIC_SCHOOL_CONTACTS: DepartmentContact[] = REVIEW_ACADEMIC_SCHOOL_CONTACTS.map((department) => ({
+  ...department,
+  specializedContacts: department.specializedContacts?.filter((contact) => contact.verificationStatus === "verified"),
+}));
+
+export { REVIEW_ACADEMIC_SCHOOL_CONTACTS };

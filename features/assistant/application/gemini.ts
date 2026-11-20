@@ -1,8 +1,8 @@
 import { processQuery, removeVietnameseDiacritics, searchKnowledgeBase, type SearchResultItem } from "@/features/search/public"
-import { DEPARTMENT_CONTACTS, getCanonicalPhoneInstruction, getPublishedCanonicalContact } from "@/features/contacts/public"
+import { DEPARTMENT_CONTACTS, getCanonicalCampusLocation, getCanonicalPhoneInstruction, getPublishedCanonicalContact } from "@/features/contacts/public"
 import { CAMPUS_ACTIVITY_HIGHLIGHTS, getPublishedCalendarEntries, type CalendarEntry } from "@/features/events/public"
 import { getVerifiedClubs, type ClubCategory, type ClubRecord } from "@/features/clubs/public"
-import { RMIT_CAMPUS_HOURS } from "@/features/facilities/public"
+import { RMIT_CAMPUS_HOURS, getPublishedCampusHours, isPublishedFloor } from "@/features/facilities/public"
 import { GLOBAL_EXPERIENCE_LAST_VERIFIED,
 GLOBAL_EXPERIENCE_PROGRAMS,
 GLOBAL_EXPERIENCE_SCHOLARSHIPS,
@@ -307,10 +307,10 @@ function foodFacilityRecords(query: string, language: "en" | "vi") {
     : /sgs|saigon south|nam sai gon/.test(normalized)
       ? "saigon_south"
       : undefined;
-  return RMIT_CAMPUS_HOURS
+  return getPublishedCampusHours(RMIT_CAMPUS_HOURS)
     .filter((building) => !campus || building.campus === campus)
     .flatMap((building) => building.floors
-      .filter((floor) => FOOD_FACILITY_RECORD_PATTERN.test(`${floor.facilitiesEn} ${floor.facilitiesVi}`))
+      .filter((floor) => isPublishedFloor(floor) && FOOD_FACILITY_RECORD_PATTERN.test(`${floor.facilitiesEn} ${floor.facilitiesVi}`))
       .map((floor) => ({ building, floor, label: extractFoodLabel(language === "vi" ? floor.facilitiesVi : floor.facilitiesEn) })));
 }
 
@@ -620,7 +620,7 @@ export function buildSSETContext(query: string, language: "en" | "vi" = "en"): S
     programs.map((program) => `${program.title[language]} (${program.code}) — ${program.summary[language]} Campus: ${program.campuses.join(", ")}. Guides: ${program.guideUrls.map((guide) => guide.url).join(", ")}. Map: ${program.mapUrl ?? "No separate public map URL confirmed."}`).join("\n"),
     projects.map((project) => `${project.title[language]} — ${project.summary[language]} Source: ${project.url}`).join("\n"),
     /canvas shell/i.test(normalized) ? (language === "vi" ? "SSET Canvas Shell: RMIT Student Login Required. Exact public shell URL was not confirmed; locate it in authenticated Canvas Courses or use official IT support." : "SSET Canvas Shell: RMIT Student Login Required. The exact public shell URL was not confirmed; locate it in authenticated Canvas Courses or use official IT support.") : "",
-    /contact|office|liên hệ|văn phòng/i.test(normalized) ? (language === "vi" ? "SSET contact: sset@rmit.edu.vn; the checked contact page lists +84 28 3776 1416. Another official SSET page displays +84 28 3776 1369, so confirm the current phone." : "SSET contact: sset@rmit.edu.vn; the checked contact page lists +84 28 3776 1416. Another official SSET page displays +84 28 3776 1369, so confirm the current phone.") : "",
+    /contact|office|liên hệ|văn phòng/i.test(normalized) ? (language === "vi" ? "SSET contact: sset@rmit.edu.vn; the checked contact page lists +84 28 3776 1416. Any conflicting SSET number remains unpublished pending review; use the checked contact page." : "SSET contact: sset@rmit.edu.vn; the checked contact page lists +84 28 3776 1416. Any conflicting SSET number remains unpublished pending review; use the checked contact page.") : "",
   ].filter(Boolean);
   return { contextText: blocks.join("\n\n"), sources: [...sources.values()], matchedTitles: [...programs.map((program) => program.title[language]), ...projects.map((project) => project.title[language])] };
 }
@@ -631,8 +631,8 @@ export function formatSSETFallback(query: string, language: "en" | "vi", context
     ? "SSET Canvas Shell yêu cầu đăng nhập RMIT. Chưa xác nhận URL shell công khai; hãy đăng nhập Canvas, tìm shell SSET trong Courses hoặc hỏi giảng viên/văn phòng SSET. Hướng dẫn IT: https://www.rmit.edu.vn/students/support/it-support"
     : "The SSET Canvas Shell requires an RMIT login. The exact public shell URL was not confirmed; sign in to Canvas, find the SSET shell under Courses, or ask a lecturer/SSET office. IT guidance: https://www.rmit.edu.vn/students/support/it-support";
   if (/contact|office|liên hệ|văn phòng/i.test(normalized)) return language === "vi"
-    ? "Liên hệ chung SSET: sset@rmit.edu.vn. Trang liên hệ đã kiểm tra ghi +84 28 3776 1416; một trang SSET khác ghi +84 28 3776 1369, nên hãy xác nhận số hiện hành trước khi gọi. Văn phòng: Nam Sài Gòn, Tòa nhà Học thuật 2 Tầng 4; Hà Nội, Handi Resco Tầng 5 Tháp A. Nguồn: https://www.rmit.edu.vn/about-us/schools-and-centres/school-of-science-engineering-and-technology/contact"
-    : "SSET general contact: sset@rmit.edu.vn. The checked contact page lists +84 28 3776 1416; another SSET page lists +84 28 3776 1369, so confirm the current number before calling. Offices: Saigon South, Academic Building 2 Level 4; Hanoi, Handi Resco Level 5 Tower A. Source: https://www.rmit.edu.vn/about-us/schools-and-centres/school-of-science-engineering-and-technology/contact";
+    ? "Liên hệ chung SSET: sset@rmit.edu.vn. Trang liên hệ đã kiểm tra ghi +84 28 3776 1416. Số điện thoại xung đột chưa được công bố trong khi chờ rà soát; hãy dùng trang liên hệ đã kiểm tra. Văn phòng: Nam Sài Gòn, Tòa nhà Học thuật 2 Tầng 4; Hà Nội, Handi Resco Tầng 5 Tháp A. Nguồn: https://www.rmit.edu.vn/about-us/schools-and-centres/school-of-science-engineering-and-technology/contact"
+    : "SSET general contact: sset@rmit.edu.vn. The checked contact page lists +84 28 3776 1416. The conflicting phone remains unpublished pending review; use the checked contact page. Offices: Saigon South, Academic Building 2 Level 4; Hanoi, Handi Resco Level 5 Tower A. Source: https://www.rmit.edu.vn/about-us/schools-and-centres/school-of-science-engineering-and-technology/contact";
   const lines = context.contextText.split("\n\n").filter(Boolean).slice(0, 3).join("\n\n");
   return language === "vi" ? `Thông tin SSET đã xác minh:\n\n${lines}\n\nNguồn: ${context.sources.slice(0, 4).map((source) => source.url).join(" | ")}` : `Verified SSET information:\n\n${lines}\n\nSources: ${context.sources.slice(0, 4).map((source) => source.url).join(" | ")}`;
 }
@@ -1314,7 +1314,29 @@ export function isSimpleFactualQuery(query: string): boolean {
 function formatExactFactAnswer(doc: any, query: string, language: "en" | "vi"): string | null {
   const normalized = normalizeEventText(query);
   const isVi = language === "vi";
+  const studentConnectIntent = /student connect|trung tam ho tro|phong sinh vien/.test(normalized);
+  const hanoiCampusIntent = /hanoi|ha noi/.test(normalized);
+  const saigonCampusIntent = /saigon south|saigon|nam sai gon|beanland/.test(normalized);
 
+  if (studentConnectIntent && /email|e-mail/.test(normalized)) {
+    return isVi
+      ? `Nguồn RMIT chính thức đã kiểm tra chưa công bố email công khai của Student Connect. Dùng trang chính thức hoặc số ${STUDENT_CONNECT.phone} (${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}).`
+      : `The checked official RMIT source does not publish a public Student Connect email. Use the official page or call ${STUDENT_CONNECT.phone} (${STUDENT_CONNECT_PHONE_INSTRUCTION.en}).`;
+  }
+  if (studentConnectIntent && hanoiCampusIntent && saigonCampusIntent) {
+    const hanoiLocation = getCanonicalCampusLocation(STUDENT_CONNECT, "hanoi");
+    const saigonLocation = getCanonicalCampusLocation(STUDENT_CONNECT, "saigon_south");
+    return isVi
+      ? `Student Connect Hà Nội: ${hanoiLocation.vi}. Student Connect Nam Sài Gòn: ${saigonLocation.vi}. Điện thoại dùng chung: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}.`
+      : `Hanoi Student Connect: ${hanoiLocation.en}. Saigon South Student Connect: ${saigonLocation.en}. Shared phone: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.en}.`;
+  }
+  if (studentConnectIntent && (hanoiCampusIntent || saigonCampusIntent)) {
+    const campus = hanoiCampusIntent ? "hanoi" : "saigon_south";
+    const location = getCanonicalCampusLocation(STUDENT_CONNECT, campus);
+    return isVi
+      ? `Student Connect ${campus === "hanoi" ? "Hà Nội" : "Nam Sài Gòn"}: ${location.vi}. Điện thoại: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}.`
+      : `${campus === "hanoi" ? "Hanoi" : "Saigon South"} Student Connect: ${location.en}. Phone: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.en}.`;
+  }
   if (doc.id === "facility-library-comparison") {
     return isVi
       ? "Beanland Library & Learning Commons: Tòa nhà 1, Tầng 3, Phòng 1.3.30, Nam Sài Gòn. Thư viện Hà Nội: cơ sở Handi Resco, Hà Nội."
@@ -1322,10 +1344,17 @@ function formatExactFactAnswer(doc: any, query: string, language: "en" | "vi"): 
   }
 
   if (doc.id === "facility-sgs-b1") {
+    const studentConnectIntent = /student connect|trung tam ho tro|phong sinh vien/.test(normalized);
     const libraryIntent = /beanland|library|thu vien/.test(normalized);
     const roomIntent = /room|phong/.test(normalized);
     const floorIntent = /floor|level|tang/.test(normalized);
     const levelTwoIntent = /level 2|tang 2/.test(normalized);
+    if (studentConnectIntent) {
+      const location = getCanonicalCampusLocation(STUDENT_CONNECT, "saigon_south");
+      return isVi
+        ? `Student Connect Nam Sài Gòn: ${location.vi}. Điện thoại: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}.`
+        : `Saigon South Student Connect: ${location.en}. Phone: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.en}.`;
+    }
     if (libraryIntent) {
       if (/name|ten gi/.test(normalized)) return "Beanland Library & Learning Commons.";
       if (roomIntent) return isVi ? "Phòng 1.3.30." : "Room 1.3.30.";
@@ -1341,14 +1370,19 @@ function formatExactFactAnswer(doc: any, query: string, language: "en" | "vi"): 
 
   if (doc.id === "facility-hn-main") {
     if (/library|thu vien/.test(normalized)) return isVi ? "Thư viện Hà Nội, Tầng 2, Phòng 1.2.006." : "Hanoi Library, Level 2, Room 1.2.006.";
-    if (/student connect|trung tam ho tro/.test(normalized)) return isVi ? "Student Connect Hà Nội, Tầng 1, Phòng 1.1.009." : "Hanoi Student Connect, Level 1, Room 1.1.009.";
+    if (/student connect|trung tam ho tro|phong sinh vien/.test(normalized)) {
+      const location = getCanonicalCampusLocation(STUDENT_CONNECT, "hanoi");
+      return isVi
+        ? `Student Connect Hà Nội: ${location.vi}. Điện thoại: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}.`
+        : `Hanoi Student Connect: ${location.en}. Phone: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.en}.`;
+    }
     if (/it support|support.*it|ho tro cntt/.test(normalized)) return isVi ? "IT Support Hà Nội: Tòa nhà B, Tầng 5, Phòng 11." : "Hanoi IT Support: Building B, Level 5, Room 11.";
     if (/writing|learning centre|wlc|academic success|hoc tap/.test(normalized)) return isVi ? "Writing and Learning Centre Hà Nội, Phòng 1.2.001." : "Hanoi Writing and Learning Centre, Room 1.2.001.";
-    if (/career ready|career hub|career|huong nghiep/.test(normalized)) return isVi ? "Career Ready Hub: Tower A, Tầng 5, Phòng 1.5.A024. Nhãn sơ đồ cần được xác nhận với dịch vụ Career hiện hành." : "Career Ready Hub: Tower A, Level 5, Room 1.5.A024. The floor-plan label requires confirmation against the current Career service.";
+    if (/career ready|career hub|career|huong nghiep/.test(normalized)) return isVi ? "Địa điểm Career Ready Hub chưa được xác nhận trong nguồn công khai hiện hành; hãy kiểm tra trang dịch vụ Career trước khi đến." : "The Career Ready Hub location is not confirmed in the current public source; check the Career service page before visiting.";
     if (/highlands|vending|food|eat|an uong|nha hang|ca phe/.test(normalized)) return isVi ? "Highlands Coffee và máy bán đồ ăn nhẹ/đồ uống ở Tầng 5C." : "Highlands Coffee and a snack/beverage vending machine are on Level 5C.";
-    if (/student access lab|access lab/.test(normalized)) return isVi ? "Student Access Lab được ghi trên sơ đồ Hà Nội tại Tầng 2; hoạt động hiện tại cần xác nhận." : "Student Access Lab is labelled on the Hanoi Level 2 floor plan; current operation requires confirmation.";
+    if (/student access lab|access lab/.test(normalized)) return isVi ? "Vị trí Student Access Lab chưa được xác nhận trong nguồn công khai hiện hành; hãy kiểm tra kênh dịch vụ chính thức." : "The Student Access Lab location is not confirmed in the current public source; check the official service channel.";
     if (/health|y te|medical|clinic/.test(normalized)) return isVi ? "Health Centre Hà Nội, Phòng 1.1.017." : "Hanoi Health Centre, Room 1.1.017.";
-    if (/sport|recreation|gym|the thao|phong tap/.test(normalized)) return isVi ? "RMIT Active Hub Hà Nội: Room 1.5.B001 theo trang dịch vụ hiện hành; sơ đồ cũ ghi 1.5.001, nên cần xác nhận trước khi đến." : "RMIT Active Hub Hanoi: Room 1.5.B001 on the current service page; the older floor plan labels 1.5.001, so confirm before visiting.";
+    if (/sport|recreation|gym|the thao|phong tap/.test(normalized)) return isVi ? "Địa điểm RMIT Active Hub Hà Nội đang có thông tin xung đột và chưa được xác nhận; hãy kiểm tra trang Active Hub hiện hành trước khi đến." : "The RMIT Active Hub Hanoi location has conflicting records and is not confirmed; check the current Active Hub page before visiting.";
     if (/study room|meeting room|phong hoc nhom|phong hop/.test(normalized)) return isVi ? "Phòng học nhóm thư viện Hà Nội: 1.2.007, 1.2.010, 1.2.012, 1.2.019, 1.2.020, 1.2.021, 1.2.022 và 1.2.023." : "Hanoi Library bookable rooms: 1.2.007, 1.2.010, 1.2.012, 1.2.019, 1.2.020, 1.2.021, 1.2.022, and 1.2.023.";
   }
   if (doc.categoryId === "academic-calendar" && /when|start|begin|date|khi nao|bat dau|ngay/.test(normalized)) {
@@ -1361,6 +1395,11 @@ function formatExactFactAnswer(doc: any, query: string, language: "en" | "vi"): 
     }
   }
 
+  if (doc.id === "doc-student-connect" && /email|e-mail/.test(normalized)) {
+    return isVi
+      ? `Nguồn RMIT chính thức đã kiểm tra chưa công bố email công khai của Student Connect. Dùng trang chính thức hoặc số ${STUDENT_CONNECT.phone} (${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}).`
+      : `The checked official RMIT source does not publish a public Student Connect email. Use the official page or call ${STUDENT_CONNECT.phone} (${STUDENT_CONNECT_PHONE_INSTRUCTION.en}).`;
+  }
   if (doc.id === "doc-myrmit-submit-requests" && /leave of absence|loa|bao luu|bảo lưu/.test(normalized)) {
     return isVi
       ? "Mở myRMIT → Submit Requests → chọn Leave of Absence → đọc hướng dẫn, đính kèm giấy tờ nếu yêu cầu và nộp. Theo dõi trạng thái trong lịch sử yêu cầu; nếu không thấy biểu mẫu, liên hệ Student Connect."
@@ -1382,8 +1421,8 @@ export function formatKnowledgeAnswer(
 
   if (!doc) {
     return isVi
-      ? `Hiện tại Mr Hachiware chưa tìm thấy tài liệu chính thức trực tiếp khớp với câu hỏi: "${query}".\n\nBạn có thể thử tìm kiếm với các từ khóa ngắn gọn hơn (ví dụ: "đổi ngành", "học phí", "học bổng", "câu lạc bộ") hoặc liên hệ Student Connect qua số ${STUDENT_CONNECT.phone} (${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}) hoặc trang chính thức ${STUDENT_CONNECT.websiteUrl}.`
-      : `Mr Hachiware couldn't find an exact verified policy record matching: "${query}".\n\nPlease try searching with concise keywords (e.g. "change major", "tuition", "scholarships", "clubs") or contact Student Connect at ${STUDENT_CONNECT.phone} (${STUDENT_CONNECT_PHONE_INSTRUCTION.en}) or use the official page ${STUDENT_CONNECT.websiteUrl}.`;
+      ? `Hiện tại Mr Hachiware chưa tìm thấy tài liệu chính thức trực tiếp khớp với câu hỏi: "${query}".\n\nBạn có thể thử tìm kiếm với các từ khóa ngắn gọn hơn (ví dụ: "đổi ngành", "học phí", "học bổng", "câu lạc bộ") hoặc liên hệ Student Connect qua số ${STUDENT_CONNECT.phone} (${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}) hoặc trang chính thức ${STUDENT_CONNECT.websiteUrl}. Email công khai chưa được đăng trên nguồn RMIT đã kiểm tra.`
+      : `Mr Hachiware couldn't find an exact verified policy record matching: "${query}".\n\nPlease try searching with concise keywords (e.g. "change major", "tuition", "scholarships", "clubs") or contact Student Connect at ${STUDENT_CONNECT.phone} (${STUDENT_CONNECT_PHONE_INSTRUCTION.en}) or use the official page ${STUDENT_CONNECT.websiteUrl}. No public email is published on the checked RMIT source.`;
   }
   const exactAnswer = formatExactFactAnswer(doc, query, language);
   if (exactAnswer) return exactAnswer;

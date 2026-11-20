@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useLanguage } from "@/shared/i18n/context"
-import { RMIT_CAMPUS_HOURS, getLocalizedFloorLabel, getLocalizedScheduleLabel } from "../data/campusHours";
+import { RMIT_CAMPUS_HOURS, getLocalizedFloorLabel, getLocalizedScheduleLabel, getPublishedCampusHours, isPublishedFloor } from "../data/campusHours";
 import {
   Clock,
   Building2,
@@ -34,7 +34,7 @@ export function FacilitiesDirectory() {
   const [activeBuildingId, setActiveBuildingId] = useState<string | null>("sgs-b1");
   const [searchFilter, setSearchFilter] = useState("");
 
-  const buildings = RMIT_CAMPUS_HOURS.filter((b) => b.campus === activeCampus);
+  const buildings = getPublishedCampusHours(RMIT_CAMPUS_HOURS).filter((b) => b.campus === activeCampus);
 
   const filteredBuildings = buildings.filter((b) => {
     if (!searchFilter.trim()) return true;
@@ -42,7 +42,7 @@ export function FacilitiesDirectory() {
     return (
       b.nameEn.toLowerCase().includes(term) ||
       b.nameVi.toLowerCase().includes(term) ||
-      b.floors.some(
+      b.floors.filter(isPublishedFloor).some(
         (f) =>
           f.floor.toLowerCase().includes(term) ||
           f.facilitiesEn.toLowerCase().includes(term) ||
@@ -280,7 +280,7 @@ export function FacilitiesDirectory() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border)]">
-                  {building.floors.map((floor, fIdx) => (
+                  {building.floors.filter(isPublishedFloor).map((floor, fIdx) => (
                     <tr key={fIdx} className="hover:bg-[var(--surface-elevated)] transition-colors">
                       <td className="w-[22%] min-w-[170px] xl:min-w-0 max-w-[240px] break-words whitespace-normal bg-[var(--surface)] py-3.5 pr-4 align-top font-bold text-[var(--main-text)]">
                         {getLocalizedFloorLabel(floor, language)}
@@ -301,12 +301,12 @@ export function FacilitiesDirectory() {
                   ))}
                 </tbody>
               </table>
-              {building.floors.some((floor) => language === "vi" ? floor.notesVi : floor.notesEn) && (
+              {building.floors.filter(isPublishedFloor).some((floor) => language === "vi" ? floor.notesVi : floor.notesEn) && (
                 <div className="mt-4 space-y-2" aria-label={language === "vi" ? "Ghi chú vận hành" : "Operational notes"}>
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--secondary-text)]">
                     {language === "vi" ? "Ghi chú vận hành" : "Operational notes"}
                   </p>
-                  {building.floors.map((floor, fIdx) => {
+                  {building.floors.filter(isPublishedFloor).map((floor, fIdx) => {
                     const note = language === "vi" ? floor.notesVi : floor.notesEn;
                     if (!note) return null;
                     return (

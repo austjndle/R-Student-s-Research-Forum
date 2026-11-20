@@ -1,4 +1,5 @@
 export {
+  getCanonicalCampusLocation,
   getCanonicalPhoneInstruction,
   getPublishedCanonicalContact,
   getPublishedCanonicalContacts,
@@ -11,6 +12,7 @@ export type {
   CanonicalPublicationStatus,
   CanonicalReviewStatus,
   LocalizedContactText,
+  CanonicalContactLocations,
 } from "./data/canonical";
 export { ACADEMIC_SCHOOL_CONTACTS } from "./data/academicSchools";
 export { DEPARTMENT_CONTACTS } from "./data/departments";

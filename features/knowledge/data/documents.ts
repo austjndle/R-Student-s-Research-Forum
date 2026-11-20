@@ -1,10 +1,11 @@
-import { KnowledgeDocument } from "./schema";
-import { LOST_AND_FOUND_SERVICE, getCanonicalPhoneInstruction, getPublishedCanonicalContact } from "@/features/contacts/public";
+import { isPublishedKnowledgeDocument, type KnowledgeDocument } from "./schema";
+import { getCanonicalCampusLocation, LOST_AND_FOUND_SERVICE, getCanonicalPhoneInstruction, getPublishedCanonicalContact } from "@/features/contacts/public";
 const STUDENT_CONNECT = getPublishedCanonicalContact("dept-student-connect");
 const STUDENT_CONNECT_PHONE_INSTRUCTION = getCanonicalPhoneInstruction(STUDENT_CONNECT);
+const STUDENT_CONNECT_LOCATION = getCanonicalCampusLocation(STUDENT_CONNECT, "all");
 
 
-export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
+export const ALL_KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
   {
     id: "doc-change-major",
     slug: "how-to-change-major-program",
@@ -60,13 +61,15 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     detailedGuidanceEn: `Operating hours: ${STUDENT_CONNECT.serviceHours.en}. Student Connect assists with student status letters, official transcripts, timetable adjustments, leaves of absence, and graduation advice.`,
     detailedGuidanceVi: `Thời gian làm việc: ${STUDENT_CONNECT.serviceHours.vi}. Student Connect hỗ trợ cấp giấy xác nhận sinh viên, bảng điểm chính thức, điều chỉnh thời khóa biểu, bảo lưu và tư vấn tốt nghiệp.`,
     keyDetailsEn: [
-      STUDENT_CONNECT.location.en,
+      STUDENT_CONNECT_LOCATION.en,
       `Phone: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.en}.`,
+      "Public email: not published on the checked official RMIT source; use the official page or phone route.",
       "Use the official page to submit or track an online enquiry."
     ],
     keyDetailsVi: [
-      STUDENT_CONNECT.location.vi,
+      STUDENT_CONNECT_LOCATION.vi,
       `Điện thoại: ${STUDENT_CONNECT.phone} — ${STUDENT_CONNECT_PHONE_INSTRUCTION.vi}.`,
+      "Email công khai: nguồn RMIT chính thức đã kiểm tra chưa công bố; hãy dùng trang chính thức hoặc kênh điện thoại.",
       "Truy cập trang chính thức để gửi hoặc theo dõi yêu cầu trực tuyến."
     ],
     officialSourceUrl: STUDENT_CONNECT.websiteUrl,
@@ -627,13 +630,13 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     detailedGuidanceVi: "Tân sinh viên cần tải ảnh chân dung chuẩn lên Cổng thông tin sinh viên trước tuần O-Week. Nhận thẻ sinh viên tại quầy Student Connect. Thẻ sinh viên dùng để quét cổng an ninh, mượn sách thư viện, in ấn tài liệu và sử dụng phòng tập thể thao.",
     keyDetailsEn: [
       "Orientation Week (O-Week): Held one week prior to teaching commencement in Semesters 1, 2, and 3.",
-      "Student ID Card: Upload photo online -> Collect in person at Student Connect (Building 1 Saigon South / Level 1 Hanoi).",
+      `Student ID Card: Upload photo online -> Collect in person at Student Connect (${getCanonicalCampusLocation(STUDENT_CONNECT, "saigon_south").en}; ${getCanonicalCampusLocation(STUDENT_CONNECT, "hanoi").en}).`,
       "Essential Accounts: Activate RMIT Microsoft 365 student email and Canvas LMS credentials.",
       "Campus WiFi: Connect to 'RMIT-University' using student ID (sXXXXXXX) and network password."
     ],
     keyDetailsVi: [
       "Tuần lễ định hướng (O-Week): Diễn ra 1 tuần trước khi kỳ học chính thức bắt đầu (Kỳ 1, 2, 3).",
-      "Làm thẻ sinh viên: Tải ảnh thẻ trực tuyến -> Nhận thẻ trực tiếp tại quầy Student Connect (Tòa nhà 1 Nam Sài Gòn / Tầng 1 Hà Nội).",
+      `Làm thẻ sinh viên: Tải ảnh thẻ trực tuyến -> Nhận thẻ trực tiếp tại quầy Student Connect (${getCanonicalCampusLocation(STUDENT_CONNECT, "saigon_south").vi}; ${getCanonicalCampusLocation(STUDENT_CONNECT, "hanoi").vi}).`,
       "Kích hoạt tài khoản: Đăng nhập email sinh viên Microsoft 365 và hệ thống học tập Canvas LMS.",
       "Mạng Wi-Fi: Kết nối vào mạng 'RMIT-University' bằng mã số sinh viên (sXXXXXXX) và mật khẩu tài khoản."
     ],
@@ -913,3 +916,8 @@ export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = [
     relatedDocIds: ["doc-student-connect"],
   },
 ];
+export function getPublishedKnowledgeDocuments(records: readonly KnowledgeDocument[] = ALL_KNOWLEDGE_DOCUMENTS): KnowledgeDocument[] {
+  return records.filter(isPublishedKnowledgeDocument);
+}
+
+export const KNOWLEDGE_DOCUMENTS: KnowledgeDocument[] = getPublishedKnowledgeDocuments();
