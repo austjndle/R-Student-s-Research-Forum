@@ -1,6 +1,6 @@
 import { KNOWLEDGE_DOCUMENTS } from "@/features/knowledge/public"
 import { DEPARTMENT_CONTACTS, type DepartmentContact } from "@/features/contacts/public"
-import { RMIT_CAMPUS_HOURS } from "@/features/facilities/public"
+import { RMIT_CAMPUS_HOURS, getPublishedBuildingSourceUrl, getPublishedCampusHours, isPublishedFloor } from "@/features/facilities/public"
 import { getPublishedCalendarEntries } from "@/features/events/public"
 import { getVerifiedClubs } from "@/features/clubs/public"
 import { SSET_INDUSTRY, SSET_INFRASTRUCTURE, SSET_OVERVIEW, SSET_PROGRAMS, SSET_PROJECTS, SSET_RESEARCH, SSET_URLS } from "@/features/academics/public"
@@ -97,7 +97,7 @@ function buildAuxiliarySearchDocuments(): KnowledgeDocument[] {
     resultHref: `/clubs/${club.id}`,
   }));
 
-  const facilityDocuments = RMIT_CAMPUS_HOURS.map((building): KnowledgeDocument => ({
+  const facilityDocuments = getPublishedCampusHours(RMIT_CAMPUS_HOURS).map((building): KnowledgeDocument => ({
     id: `facility-${building.id}`,
     slug: building.id,
     titleEn: building.nameEn,
@@ -108,7 +108,7 @@ function buildAuxiliarySearchDocuments(): KnowledgeDocument[] {
       building.nameVi,
       building.id,
       building.buildingCode ?? "",
-      ...building.floors.flatMap((floor) => [floor.floorEn ?? floor.floor, floor.floorVi ?? floor.floor, floor.facilitiesEn, floor.facilitiesVi]),
+      ...building.floors.filter(isPublishedFloor).flatMap((floor) => [floor.floorEn ?? floor.floor, floor.floorVi ?? floor.floor, floor.facilitiesEn, floor.facilitiesVi]),
     ],
     synonymsEn: ["building", "facility", "campus map", "where is", "library", "student connect", "gym", "health centre", "clinic", "international sos"],
     synonymsVi: ["tòa nhà", "cơ sở vật chất", "bản đồ cơ sở", "ở đâu", "thư viện", "phòng gym"],
@@ -116,10 +116,10 @@ function buildAuxiliarySearchDocuments(): KnowledgeDocument[] {
     summaryVi: building.overviewVi,
     detailedGuidanceEn: "Use the official floor-plan or campus map link for navigation. Building access and facility hours are shown only when published in the checked source.",
     detailedGuidanceVi: "Dùng liên kết sơ đồ tầng hoặc bản đồ cơ sở chính thức để tìm đường. Chỉ hiển thị giờ mở cửa khi nguồn đã kiểm tra công bố.",
-    keyDetailsEn: building.floors.map((floor) => `${floor.floorEn ?? floor.floor}: ${floor.facilitiesEn} (${floor.weekdayHours})`),
-    keyDetailsVi: building.floors.map((floor) => `${floor.floorVi ?? floor.floor}: ${floor.facilitiesVi} (${floor.weekdayHours})`),
+    keyDetailsEn: building.floors.filter(isPublishedFloor).map((floor) => `${floor.floorEn ?? floor.floor}: ${floor.facilitiesEn} (${floor.weekdayHours})`),
+    keyDetailsVi: building.floors.filter(isPublishedFloor).map((floor) => `${floor.floorVi ?? floor.floor}: ${floor.facilitiesVi} (${floor.weekdayHours})`),
     sourceTitle: "RMIT Vietnam campus facilities",
-    officialSourceUrl: building.floorPlanPdfUrl ?? building.floors.find((floor) => floor.sourceUrl)?.sourceUrl ?? "https://www.rmit.edu.vn/students/campus-life/campus-facilities",
+    officialSourceUrl: getPublishedBuildingSourceUrl(building),
     departmentId: "dept-student-connect",
     campus: building.campus,
     lastVerifiedDate: "2026-11-03",

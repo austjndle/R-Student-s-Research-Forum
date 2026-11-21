@@ -10,7 +10,6 @@ const hanoiFactCases = [
   ["Student Connect Hanoi ở phòng nào?", /1\.1\.009/],
   ["Where is IT Support at Hanoi?", /Level 5|Room 11/],
   ["Hanoi campus có shuttle bus không?", /không có|not available/i],
-  ["Where is the Career Ready Hub in Hanoi?", /1\.5\.A024/],
   ["How can I book a study room in Hanoi?", /1\.2\.007|1\.2\.023/],
 ] as const;
 
@@ -30,6 +29,13 @@ describe("Hanoi campus verified retrieval", () => {
     expect(context.sources.some((source) => source.url.includes("rmit.edu.vn"))).toBe(true);
   });
 
+  it("does not publish the review-only Career Ready Hub room", () => {
+    const query = "Where is the Career Ready Hub in Hanoi?";
+    const context = buildRAGContext(query, "en");
+    const answer = context.bestDoc ? formatKnowledgeAnswer(context.bestDoc, query, "en") : context.contextText;
+
+    expect(answer).not.toContain("1.5.A024");
+  });
   it("retrieves Hanoi clubs without substituting Saigon South clubs", () => {
     const context = buildClubContext("Tell me about clubs in Hanoi.", "en");
     expect(context.matchedClubNames.length).toBeGreaterThan(0);

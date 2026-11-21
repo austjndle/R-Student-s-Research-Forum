@@ -16,7 +16,7 @@ export const RMIT_OFFICIAL_ENDPOINTS: SyncTarget[] = [
   {
     name: "Student Connect",
     url: "https://www.rmit.edu.vn/students/support/student-connect",
-    expectedSelectorOrKeyword: "student.connect@rmit.edu.vn",
+    expectedSelectorOrKeyword: "Student Connect",
     lastChecked: new Date().toISOString(),
     status: "active",
   },
@@ -97,6 +97,10 @@ export async function verifyOfficialEndpoints(): Promise<{
         });
 
         if (res.ok) {
+          const body = (await res.text()).toLowerCase();
+          if (!body.includes(target.expectedSelectorOrKeyword.trim().toLowerCase())) {
+            return { ...target, lastChecked: new Date().toISOString(), status: "updated" as const };
+          }
           healthy += 1;
           return {
             ...target,

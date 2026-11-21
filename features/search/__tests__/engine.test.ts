@@ -60,7 +60,7 @@ describe("Smart Search Engine", () => {
     expect(result).toBeDefined();
     expect(getSearchResultHref(result!.document)).toBe("/topics/scholarships");
   });
-  it("searches verified club, facility, and calendar records with correct routes", () => {
+  it("searches published records with correct routes and excludes review records", () => {
     const cineverse = searchKnowledgeBase("Cineverse", { limit: 5 });
     expect(cineverse.some((result) => result.document.id === "club-hn-cineverse" && result.document.resultHref === "/clubs/hn-cineverse")).toBe(true);
 
@@ -71,7 +71,10 @@ describe("Smart Search Engine", () => {
     expect(calendar.some((result) => result.document.id === "calendar-academic-s1-start-2027" && result.document.resultHref === "/calendar")).toBe(true);
 
     const procedure = searchKnowledgeBase("myRMIT leave of absence", { limit: 5 });
-    expect(procedure.some((result) => result.document.id === "doc-myrmit-submit-requests" && result.document.officialSourceUrl.includes("/myrmit/submit-requests"))).toBe(true);
+    expect(procedure.some((result) => result.document.id === "doc-myrmit-submit-requests")).toBe(false);
+    const studentConnectEmail = searchKnowledgeBase("Student Connect email", { language: "en", limit: 5 }).find((result) => result.document.id === "doc-student-connect");
+    expect(studentConnectEmail?.keyDetails.join(" ")).toContain("Public email: not published");
+    expect(studentConnectEmail?.keyDetails.join(" ")).not.toContain("student.connect@rmit.edu.vn");
     const lygon = searchKnowledgeBase("The Lygon Café", { limit: 5 });
     expect(lygon.some((result) => result.document.id === "facility-sgs-b1" && result.document.resultHref === "/facilities#sgs-b1")).toBe(true);
     const melbourneTheatre = searchKnowledgeBase("Melbourne Theatre Room 1.2.35", { limit: 5 });

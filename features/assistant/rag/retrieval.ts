@@ -91,7 +91,7 @@ export interface RetrievalResult {
 
 export async function retrieveHybrid(queryText: string, preferredLanguage: "en" | "vi" = "en", options: RetrievalOptions = {}): Promise<RetrievalResult> {
   const query = analyzeQuery(queryText, preferredLanguage);
-  const chunks = options.chunks ?? getKnowledgeChunks();
+  const chunks = (options.chunks ?? getKnowledgeChunks()).filter((chunk) => chunk.verificationStatus === "verified");
   const initialK = Math.min(Math.max(options.initialK ?? DEFAULT_INITIAL_K, 1), 50);
   const finalK = Math.min(Math.max(options.finalK ?? DEFAULT_FINAL_K, 1), initialK);
   const lexicalStarted = performance.now();
@@ -164,7 +164,7 @@ export async function retrieveHybrid(queryText: string, preferredLanguage: "en" 
 
 export function retrieveHybridSync(queryText: string, preferredLanguage: "en" | "vi" = "en", options: Omit<RetrievalOptions, "embeddingProvider" | "vectorIndex"> = {}): RetrievalResult {
   const query = analyzeQuery(queryText, preferredLanguage);
-  const chunks = options.chunks ?? getKnowledgeChunks();
+  const chunks = (options.chunks ?? getKnowledgeChunks()).filter((chunk) => chunk.verificationStatus === "verified");
   const lexicalStarted = performance.now();
   const lexical = chunks
     .filter((chunk) => allowsExplicitCampus(query, chunk))

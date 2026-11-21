@@ -230,6 +230,11 @@ export function ContactsDirectory() {
                       <a href={`tel:${dept.phone.replace(/[^\d+]/g, "")}`} className="font-mono text-[var(--accent)] hover:underline" aria-label={`${t.contacts.phone}: ${dept.phone}`}>
                         {dept.phone}
                       </a>
+                      {(dept.phoneInstructionEn || dept.phoneInstructionVi) && (
+                        <span className="text-[var(--secondary-text)]">
+                          ({language === "vi" ? dept.phoneInstructionVi ?? dept.phoneInstructionEn : dept.phoneInstructionEn ?? dept.phoneInstructionVi})
+                        </span>
+                      )}
                     </div>
                   )}
 

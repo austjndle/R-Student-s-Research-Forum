@@ -38,6 +38,9 @@ export interface KnowledgeDocument {
   resultHref?: string;
   imageUrl?: string;
 }
+export function isPublishedKnowledgeDocument(document: Pick<KnowledgeDocument, "verificationStatus">): boolean {
+  return document.verificationStatus === "verified";
+}
 
 export const KNOWLEDGE_CATEGORIES: KnowledgeCategory[] = [
   {

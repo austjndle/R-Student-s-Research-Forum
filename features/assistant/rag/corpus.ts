@@ -1,5 +1,7 @@
 import { KNOWLEDGE_DOCUMENTS } from "@/features/knowledge/public"
-import { RMIT_CAMPUS_HOURS, type BuildingInfo, type FloorHours } from "@/features/facilities/public"
+import { ALL_KNOWLEDGE_DOCUMENTS } from "@/features/knowledge/data/documents";
+import { isPublishedKnowledgeDocument } from "@/features/knowledge/data/schema";
+import { RMIT_CAMPUS_HOURS, getPublishedBuildingSourceUrl, getPublishedCampusHours, isPublishedFloor, type BuildingInfo, type FloorHours } from "@/features/facilities/public"
 import { getVerifiedClubs, type ClubRecord } from "@/features/clubs/public"
 import { CAMPUS_ACTIVITY_HIGHLIGHTS, getPublishedCalendarEntries, type CalendarEntry } from "@/features/events/public"
 import { DEPARTMENT_CONTACTS } from "@/features/contacts/public"
@@ -79,7 +81,10 @@ function makeSource(input: {
 
 export function buildSourceRegistry(): SourceRegistryEntry[] {
   const sources = new Map<string, SourceRegistryEntry>();
+  const unpublishedKnowledgeUrls = new Set(ALL_KNOWLEDGE_DOCUMENTS.filter((document) => !isPublishedKnowledgeDocument(document)).map((document) => document.officialSourceUrl));
+  const unpublishedFacilityUrls = new Set(RMIT_CAMPUS_HOURS.flatMap((building) => building.floors.filter((floor) => !isPublishedFloor(floor)).map((floor) => floor.sourceUrl)));
   for (const source of KNOWLEDGE_INDEX_SOURCES) {
+    if (unpublishedKnowledgeUrls.has(source.url) || unpublishedFacilityUrls.has(source.url)) continue;
     const entry = makeSource({
       id: source.id,
       title: source.title,
@@ -100,8 +105,10 @@ export function buildSourceRegistry(): SourceRegistryEntry[] {
   for (const doc of KNOWLEDGE_DOCUMENTS) {
     add(makeSource({ id: sourceIdFor("knowledge", doc.id), title: doc.sourceTitle, url: doc.officialSourceUrl, type: "curated_static_dataset", authority: 3, campus: doc.campus, category: doc.categoryId, lastVerified: doc.lastVerifiedDate, content: JSON.stringify(doc) }));
   }
-  for (const building of RMIT_CAMPUS_HOURS) {
-    add(makeSource({ id: sourceIdFor("facility", building.id), title: building.nameEn, url: building.floorPlanPdfUrl ?? building.floors.find((floor) => floor.sourceUrl)?.sourceUrl ?? "https://www.rmit.edu.vn/students/campus-life/campus-facilities", type: building.floorPlanPdfUrl ? "official_pdf" : "curated_static_dataset", authority: building.floorPlanPdfUrl ? 1 : 3, campus: building.campus, category: "campus-facilities", content: JSON.stringify(building) }));
+  for (const building of getPublishedCampusHours(RMIT_CAMPUS_HOURS)) {
+    const sourceUrl = getPublishedBuildingSourceUrl(building);
+    const sourceType = sourceUrl.endsWith(".pdf") ? "official_pdf" : "curated_static_dataset";
+    add(makeSource({ id: sourceIdFor("facility", building.id), title: building.nameEn, url: sourceUrl, type: sourceType, authority: sourceType === "official_pdf" ? 1 : 3, campus: building.campus, category: "campus-facilities", content: JSON.stringify(building) }));
   }
   for (const club of getVerifiedClubs()) {
     add(makeSource({ id: sourceIdFor("club", club.id), title: club.nameEn, url: club.officialClubUrl ?? club.sourceUrl, type: "official_organisation", authority: 2, campus: club.campus, category: "clubs", lastVerified: club.lastVerifiedDate, content: JSON.stringify(club) }));
@@ -185,18 +192,19 @@ function knowledgeChunks(): KnowledgeChunk[] {
   return KNOWLEDGE_DOCUMENTS.map((doc) => {
     const text = [doc.titleEn, doc.titleVi, doc.summaryEn, doc.summaryVi, doc.detailedGuidanceEn, doc.detailedGuidanceVi, ...doc.keyDetailsEn, ...doc.keyDetailsVi].join("\n");
     const sourceId = sourceIdFor("knowledge", doc.id);
-    return chunkFromSource({ id: `chunk:${doc.id}`, documentId: doc.id, sourceId, text, title: doc.titleEn, campus: doc.campus, category: doc.categoryId, sourceUrl: doc.officialSourceUrl, sourceType: "curated_static_dataset", metadata: { recordId: doc.id } });
+    return chunkFromSource({ id: `chunk:${doc.id}`, documentId: doc.id, sourceId, text, title: doc.titleEn, campus: doc.campus, category: doc.categoryId, sourceUrl: doc.officialSourceUrl, sourceType: "curated_static_dataset", verificationStatus: doc.verificationStatus, metadata: { recordId: doc.id } });
   });
 }
 
 function facilityChunks(): KnowledgeChunk[] {
   const chunks: KnowledgeChunk[] = [];
-  for (const building of RMIT_CAMPUS_HOURS) {
+  for (const building of getPublishedCampusHours(RMIT_CAMPUS_HOURS)) {
     const sourceId = sourceIdFor("facility", building.id);
     const source = SOURCE_BY_ID.get(sourceId);
-    const sourceUrl = source?.canonicalUrl ?? building.floorPlanPdfUrl ?? "https://www.rmit.edu.vn/students/campus-life/campus-facilities";
-    chunks.push(chunkFromSource({ id: `chunk:${building.id}:overview`, documentId: building.id, sourceId, text: `${building.nameEn}\n${building.nameVi}\n${building.overviewEn}\n${building.overviewVi}`, title: building.nameEn, campus: building.campus, category: "campus-facilities", sourceUrl, sourceType: building.floorPlanPdfUrl ? "official_pdf" : "curated_static_dataset", building: building.nameEn, metadata: { recordId: building.id, buildingCode: building.buildingCode } }));
+    const sourceUrl = source?.canonicalUrl ?? getPublishedBuildingSourceUrl(building);
+    chunks.push(chunkFromSource({ id: `chunk:${building.id}:overview`, documentId: building.id, sourceId, text: `${building.nameEn}\n${building.nameVi}\n${building.overviewEn}\n${building.overviewVi}`, title: building.nameEn, campus: building.campus, category: "campus-facilities", sourceUrl, sourceType: source?.sourceType ?? "curated_static_dataset", building: building.nameEn, metadata: { recordId: building.id, buildingCode: building.buildingCode } }));
     for (const [index, floor] of building.floors.entries()) {
+      if (!isPublishedFloor(floor)) continue;
       chunks.push(facilityFloorChunk(building, floor, index));
     }
   }
@@ -315,12 +323,14 @@ function contactChunks(): KnowledgeChunk[] {
   return DEPARTMENT_CONTACTS.map((department) => {
     const sourceId = sourceIdFor("contact", department.id);
     const specialized = department.specializedContacts ?? [];
+    const sourceType = department.id === "dept-student-connect" ? "curated_static_dataset" : "official_page";
+    const sourceAuthority = department.id === "dept-student-connect" ? 3 : 1;
     const source = makeSource({
       id: sourceId,
       title: department.nameEn,
       url: department.websiteUrl,
-      type: "official_page",
-      authority: 1,
+      type: sourceType,
+      authority: sourceAuthority,
       campus: department.campus,
       category: department.isAcademicSchool ? "academic-schools" : "contacts",
       lastVerified: department.lastVerifiedDate,
@@ -338,6 +348,8 @@ function contactChunks(): KnowledgeChunk[] {
       department.descriptionVi,
       department.email,
       department.phone,
+      department.phoneInstructionEn,
+      department.phoneInstructionVi,
       department.locationEn,
       department.locationVi,
       ...department.responsibilitiesEn,
@@ -353,7 +365,7 @@ function contactChunks(): KnowledgeChunk[] {
       campus: department.campus,
       category: department.isAcademicSchool ? "academic-schools" : "contacts",
       sourceUrl: department.websiteUrl,
-      sourceType: "official_page",
+      sourceType,
       verificationStatus: "verified",
       metadata: { recordId: department.id, academicSchool: department.isAcademicSchool === true },
     });
